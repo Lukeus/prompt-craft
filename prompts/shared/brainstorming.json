@@ -1,0 +1,67 @@
+{
+  "id": "shared_brainstorm_01",
+  "name": "Creative Brainstorming Session",
+  "description": "A structured prompt for generating creative ideas and solutions using various brainstorming techniques",
+  "content": "Let's conduct a creative brainstorming session on: {{topic}}\n\n**Context:** {{context}}\n**Constraints:** {{constraints}}\n**Success Criteria:** {{success_criteria}}\n{{additional_info}}\n\nPlease use the following structured approach to generate ideas:\n\n**1. Initial Idea Generation ({{technique}})**\nGenerate {{idea_count}} initial ideas using the {{technique}} technique:\n- Focus on quantity over quality initially\n- Build on previous ideas when possible\n- Think outside conventional boundaries\n- Consider different perspectives and stakeholders\n\n**2. Idea Categorization**\nGroup the ideas into logical categories:\n- High-impact, low-effort (quick wins)\n- High-impact, high-effort (major initiatives)\n- Low-impact, low-effort (nice-to-haves)\n- Wildcard ideas (unconventional approaches)\n\n**3. Idea Development**\nTake the {{top_count}} most promising ideas and develop them further:\n- Expand on the core concept\n- Address potential challenges\n- Identify required resources\n- Suggest next steps for validation\n\n**4. Creative Enhancement**\nApply creative thinking techniques to enhance the top ideas:\n- What if we combined multiple ideas?\n- How would different industries approach this?\n- What would the opposite solution look like?\n- How could emerging technologies help?\n\n**5. Practical Evaluation**\nEvaluate ideas against practical criteria:\n- Feasibility (1-10 scale)\n- Potential impact (1-10 scale)\n- Resource requirements\n- Risk factors\n- Timeline considerations\n\nPlease maintain an optimistic, creative mindset while also providing realistic assessments.",
+  "category": "shared",
+  "tags": ["brainstorming", "creativity", "problem-solving", "innovation"],
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "version": "1.0.0",
+  "author": "Prompt Manager",
+  "variables": [
+    {
+      "name": "topic",
+      "description": "The main topic or challenge to brainstorm about",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "context",
+      "description": "Background context and current situation",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "constraints",
+      "description": "Any limitations or constraints to consider",
+      "type": "string",
+      "required": false,
+      "defaultValue": "None specified"
+    },
+    {
+      "name": "success_criteria",
+      "description": "How success will be measured",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "technique",
+      "description": "Brainstorming technique to use (e.g., 'mind mapping', 'SCAMPER', '6-3-5', 'free association')",
+      "type": "string",
+      "required": false,
+      "defaultValue": "free association"
+    },
+    {
+      "name": "idea_count",
+      "description": "Number of initial ideas to generate",
+      "type": "number",
+      "required": false,
+      "defaultValue": 20
+    },
+    {
+      "name": "top_count",
+      "description": "Number of top ideas to develop further",
+      "type": "number",
+      "required": false,
+      "defaultValue": 5
+    },
+    {
+      "name": "additional_info",
+      "description": "Any additional information or specific requirements",
+      "type": "string",
+      "required": false,
+      "defaultValue": ""
+    }
+  ]
+}

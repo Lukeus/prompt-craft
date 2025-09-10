@@ -1,0 +1,27 @@
+{
+  "id": "work_code_review_01",
+  "name": "Comprehensive Code Review",
+  "description": "A thorough code review prompt that evaluates code quality, security, performance, and maintainability",
+  "content": "Please perform a comprehensive code review of the following {{language}} code:\n\n```{{language}}\n{{code}}\n```\n\nFocus on the following areas:\n\n**Code Quality:**\n- Code structure and organization\n- Naming conventions and clarity\n- Code duplication and reusability\n- Error handling and edge cases\n\n**Performance:**\n- Time and space complexity\n- Potential bottlenecks\n- Resource usage optimization\n\n**Security:**\n- Input validation\n- Potential vulnerabilities\n- Data sanitization\n\n**Best Practices:**\n- Following {{language}} conventions\n- Design patterns usage\n- Documentation and comments\n- Testing considerations\n\n**Maintainability:**\n- Code readability\n- Modularity and coupling\n- Future extensibility\n\nPlease provide:\n1. Overall assessment (1-10 score)\n2. Specific issues found with line references\n3. Suggestions for improvement\n4. Positive aspects worth highlighting\n5. Priority level for each issue (High/Medium/Low)",
+  "category": "work",
+  "tags": ["code-review", "software-engineering", "quality-assurance"],
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "version": "1.0.0",
+  "author": "Prompt Manager",
+  "variables": [
+    {
+      "name": "language",
+      "description": "Programming language of the code being reviewed",
+      "type": "string",
+      "required": true,
+      "defaultValue": "TypeScript"
+    },
+    {
+      "name": "code",
+      "description": "The code to be reviewed",
+      "type": "string",
+      "required": true
+    }
+  ]
+}

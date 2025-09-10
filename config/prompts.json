@@ -1,0 +1,27 @@
+{
+  "version": "1.0.0",
+  "collections": {
+    "work": [
+      "code-review",
+      "documentation",
+      "debugging",
+      "architecture",
+      "testing"
+    ],
+    "personal": [
+      "music",
+      "visual-art",
+      "branding",
+      "website"
+    ],
+    "shared": [
+      "general-writing",
+      "brainstorming"
+    ]
+  },
+  "mcpServer": {
+    "name": "prompt-manager-mcp",
+    "version": "1.0.0",
+    "port": 3000
+  }
+}

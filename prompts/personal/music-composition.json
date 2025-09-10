@@ -1,0 +1,52 @@
+{
+  "id": "personal_music_01",
+  "name": "Music Composition Assistant",
+  "description": "A detailed prompt to help with music composition ideas, structure, and creative direction",
+  "content": "I want to compose a {{genre}} piece with the following characteristics:\n\n**Mood/Emotion:** {{mood}}\n**Target Length:** {{length}} minutes\n**Instruments:** {{instruments}}\n**Key Inspiration:** {{inspiration}}\n\n{{additional_context}}\n\nPlease help me with the following aspects of this composition:\n\n**1. Overall Structure**\n- Recommended song structure (intro, verse, chorus, bridge, etc.)\n- Approximate timing for each section\n- Dynamic progression throughout the piece\n\n**2. Harmonic Framework**\n- Suggested key signatures and possible modulations\n- Chord progressions for different sections\n- Interesting harmonic techniques that suit the genre/mood\n\n**3. Melodic Ideas**\n- Characteristics for main melodic themes\n- Melodic development techniques\n- Countermelody suggestions\n\n**4. Rhythm and Tempo**\n- Recommended tempo range (BPM)\n- Signature rhythmic patterns for this style\n- Rhythmic variation ideas\n\n**5. Arrangement Suggestions**\n- Instrumental roles and interactions\n- Textural development throughout the piece\n- Production techniques that enhance the intended mood\n\n**6. Creative Direction**\n- Reference tracks that might provide inspiration\n- Emotional journey throughout the piece\n- Ways to make this composition unique while staying within the genre\n\nPlease include specific technical music theory concepts where helpful, but explain them in accessible terms.",
+  "category": "personal",
+  "tags": ["music", "composition", "creative", "artistic"],
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "version": "1.0.0",
+  "author": "Prompt Manager",
+  "variables": [
+    {
+      "name": "genre",
+      "description": "Music genre (e.g., 'classical', 'jazz', 'electronic')",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "mood",
+      "description": "Intended emotional quality",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "length",
+      "description": "Approximate length in minutes",
+      "type": "number",
+      "required": true,
+      "defaultValue": 4
+    },
+    {
+      "name": "instruments",
+      "description": "List of instruments to use",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "inspiration",
+      "description": "Source of inspiration (artist, song, concept)",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "additional_context",
+      "description": "Any additional details or constraints",
+      "type": "string",
+      "required": false,
+      "defaultValue": ""
+    }
+  ]
+}

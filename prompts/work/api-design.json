@@ -1,0 +1,46 @@
+{
+  "id": "work_api_design_01",
+  "name": "REST API Design Assistant",
+  "description": "A comprehensive prompt for designing RESTful APIs with best practices, security, and scalability considerations",
+  "content": "I need to design a REST API for {{service_name}}. Please help me create a well-structured API design.\n\n**Service Overview:**\n{{service_description}}\n\n**Target Scale:** {{scale}} users/requests\n\n**Requirements:**\n{{requirements}}\n\nPlease provide:\n\n**1. API Structure**\n- Resource identification and naming\n- HTTP methods and endpoints\n- URL patterns and hierarchies\n- Request/response formats\n\n**2. Data Models**\n- Core entities and relationships\n- JSON schema examples\n- Validation rules\n\n**3. Authentication & Security**\n- Authentication strategy (JWT, OAuth2, etc.)\n- Authorization patterns\n- Rate limiting approach\n- Security headers and best practices\n\n**4. Error Handling**\n- Error response format\n- HTTP status codes usage\n- Error categorization\n\n**5. Documentation**\n- OpenAPI/Swagger specification outline\n- Example requests and responses\n- Integration guide structure\n\n**6. Scalability Considerations**\n- Caching strategies\n- Pagination patterns\n- Performance optimizations\n- Monitoring and logging\n\n**7. Versioning Strategy**\n- API versioning approach\n- Backward compatibility\n- Migration path\n\nPlease focus on {{framework}} implementation where relevant.",
+  "category": "work",
+  "tags": ["api-design", "rest", "backend", "architecture", "web-services"],
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "version": "1.0.0",
+  "author": "Prompt Manager",
+  "variables": [
+    {
+      "name": "service_name",
+      "description": "Name of the service/application",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "service_description",
+      "description": "Brief description of what the service does",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "scale",
+      "description": "Expected scale (e.g., '10K', '100K', '1M')",
+      "type": "string",
+      "required": true,
+      "defaultValue": "10K"
+    },
+    {
+      "name": "requirements",
+      "description": "Specific requirements and constraints",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "framework",
+      "description": "Preferred framework or technology stack",
+      "type": "string",
+      "required": false,
+      "defaultValue": "Node.js/Express"
+    }
+  ]
+}
