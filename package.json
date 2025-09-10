@@ -1,10 +1,10 @@
 {
-  "name": "prompt-manager",
+  "name": "prompt-craft",
   "version": "1.0.0",
   "description": "A TypeScript-based prompt management system with MCP server integration for organizing work and personal prompts",
   "main": "dist/index.js",
   "bin": {
-    "prompt-manager": "./dist/cli.js"
+    "prompt-craft": "./dist/cli.js"
   },
   "scripts": {
     "build": "tsc",

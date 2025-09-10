@@ -1,4 +1,4 @@
-# 📝 Prompt Manager
+# 📝 PromptCraft
 
 A comprehensive TypeScript-based prompt management system with MCP (Model Context Protocol) server integration for organizing and using work and personal prompts across different AI tools and applications.
 
@@ -14,7 +14,7 @@ A comprehensive TypeScript-based prompt management system with MCP (Model Contex
 ## 📁 Project Structure
 
 ```
-prompt-manager/
+prompt-craft/
 ├── src/                    # TypeScript source code
 │   ├── types/             # Type definitions and interfaces
 │   ├── managers/          # Core prompt management logic
@@ -32,8 +32,8 @@ prompt-manager/
 
 1. **Clone the repository**:
    ```bash
-   git clone <your-repo-url>
-   cd prompt-manager
+   git clone https://github.com/Lukeus/prompt-craft.git
+   cd prompt-craft
    ```
 
 2. **Install dependencies**:
@@ -55,32 +55,32 @@ prompt-manager/
 
 ### CLI Commands
 
-Once installed, you can use the `prompt-manager` command:
+Once installed, you can use the `prompt-craft` command:
 
 ```bash
 # List all prompts
-prompt-manager list
+prompt-craft list
 
 # List prompts in a specific category
-prompt-manager list work
+prompt-craft list work
 
 # Search for prompts
-prompt-manager search "code review"
+prompt-craft search "code review"
 
 # Render a prompt with variables
-prompt-manager render work_code_review_01 language=TypeScript code="console.log('hello')"
+prompt-craft render work_code_review_01 language=TypeScript code="console.log('hello')"
 
 # Show available categories
-prompt-manager categories
+prompt-craft categories
 
 # Show help
-prompt-manager help
+prompt-craft help
 ```
 
 ### Programmatic Usage
 
 ```typescript
-import { PromptManager, PromptCategory } from 'prompt-manager';
+import { PromptManager, PromptCategory } from 'prompt-craft';
 
 // Initialize the prompt manager
 const manager = new PromptManager();
@@ -149,7 +149,7 @@ The system uses `config/prompts.json` for configuration:
     "shared": ["general-writing", "brainstorming"]
   },
   "mcpServer": {
-    "name": "prompt-manager-mcp",
+    "name": "prompt-craft-mcp",
     "version": "1.0.0",
     "port": 3000
   }
@@ -232,10 +232,10 @@ Configure your AI assistant to connect to the MCP server:
 ```json
 {
   "mcpServers": {
-    "prompt-manager": {
+    "prompt-craft": {
       "command": "node",
       "args": ["./dist/mcp-server.js"],
-      "cwd": "/path/to/prompt-manager"
+      "cwd": "/path/to/prompt-craft"
     }
   }
 }
@@ -246,7 +246,7 @@ Configure your AI assistant to connect to the MCP server:
 ### Code Review Prompt
 
 ```bash
-prompt-manager render work_code_review_01 \\
+prompt-craft render work_code_review_01 \\
   language=TypeScript \\
   code="function add(a: number, b: number) { return a + b; }"
 ```
@@ -254,7 +254,7 @@ prompt-manager render work_code_review_01 \\
 ### Music Composition Prompt
 
 ```bash
-prompt-manager render personal_music_01 \\
+prompt-craft render personal_music_01 \\
   genre="jazz" \\
   mood="uplifting" \\
   length=5 \\
@@ -265,7 +265,7 @@ prompt-manager render personal_music_01 \\
 ### Brand Identity Prompt
 
 ```bash
-prompt-manager render personal_brand_01 \\
+prompt-craft render personal_brand_01 \\
   project_name="CreativeStudio" \\
   project_description="boutique design agency" \\
   target_audience="small businesses" \\

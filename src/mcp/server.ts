@@ -16,7 +16,7 @@ export class PromptMcpServer {
   constructor() {
     this.server = new Server(
       {
-        name: 'prompt-manager',
+        name: 'prompt-craft',
         version: '1.0.0',
       },
       {

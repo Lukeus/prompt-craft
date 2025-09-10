@@ -42,7 +42,7 @@ export class PromptManager {
         shared: []
       },
       mcpServer: {
-        name: 'prompt-manager-mcp',
+        name: 'prompt-craft-mcp',
         version: '1.0.0'
       }
     };

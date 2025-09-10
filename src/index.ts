@@ -134,9 +134,9 @@ async function listCategories(promptManager: PromptManager): Promise<void> {
 
 function printHelp(): void {
   console.log(`
-📝 Prompt Manager CLI
+📝 PromptCraft CLI
 
-Usage: prompt-manager <command> [options]
+Usage: prompt-craft <command> [options]
 
 Commands:
   list [category]           List all prompts or prompts in a specific category
@@ -146,10 +146,10 @@ Commands:
   help                     Show this help message
 
 Examples:
-  prompt-manager list work
-  prompt-manager search "code review"
-  prompt-manager render abc123 language=TypeScript complexity=high
-  prompt-manager categories
+  prompt-craft list work
+  prompt-craft search "code review"
+  prompt-craft render abc123 language=TypeScript complexity=high
+  prompt-craft categories
 
 Categories: ${Object.values(PromptCategory).join(', ')}
 `);
