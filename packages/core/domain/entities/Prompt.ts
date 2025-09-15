@@ -104,33 +104,35 @@ export class Prompt {
   public validateConsistency(): { errors: string[]; warnings: string[] } {
     const errors: string[] = [];
     const warnings: string[] = [];
-    
-    // Extract placeholders from content using regex
-    const placeholderRegex = /{{\s*([^\s{}]+)\s*}}/g;
+
+    // Extract all placeholders from content using regex (more restrictive pattern for valid variable names)
+    const placeholderRegex = /{{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*}}/g;
     const placeholdersInContent = new Set<string>();
     let match;
     
     while ((match = placeholderRegex.exec(this.content)) !== null) {
       placeholdersInContent.add(match[1]);
     }
-    
-    // Get declared variables
+
+    // Get declared variable names
     const declaredVariables = new Set<string>(this.variables?.map(v => v.name) || []);
-    
+
     // Check for placeholders without variable declarations
-    for (const placeholder of placeholdersInContent) {
+    placeholdersInContent.forEach(placeholder => {
       if (!declaredVariables.has(placeholder)) {
-        errors.push(`Placeholder '{{${placeholder}}}' found in content but no variable declared`);
+        errors.push(`Placeholder '{{${placeholder}}}' found in content but no variable '${placeholder}' is declared`);
       }
-    }
-    
+    });
+
     // Check for declared variables not used in content
-    for (const variableName of declaredVariables) {
-      if (!placeholdersInContent.has(variableName)) {
-        warnings.push(`Variable '${variableName}' is declared but not used in prompt content`);
-      }
+    if (this.variables) {
+      this.variables.forEach(variable => {
+        if (!placeholdersInContent.has(variable.name)) {
+          warnings.push(`Variable '${variable.name}' is declared but not used in content`);
+        }
+      });
     }
-    
+
     return { errors, warnings };
   }
 

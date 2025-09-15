@@ -8,6 +8,7 @@ import * as readline from 'readline';
 import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as os from 'os';
+import * as crypto from 'crypto';
 
 interface CLIArgs {
   command: string;
@@ -244,7 +245,10 @@ function addToRecents(promptId: string): void {
 async function main() {
   try {
 const promptsDirectory = path.join(process.cwd(), 'prompts');
-    const promptRepository = new FileSystemPromptRepository(promptsDirectory);
+    const promptRepository = new FileSystemPromptRepository(
+      promptsDirectory,
+      () => loadState() // Provide usage stats for sorting
+    );
     const container = getContainer({
       promptRepository,
       generateId: () => crypto.randomUUID()
@@ -280,14 +284,24 @@ const promptsDirectory = path.join(process.cwd(), 'prompts');
       }
 
       case 'search': {
-        if (!args.query) {
-          console.error('Please provide a search query.');
+        if (!args.query && !args.tags && !args.author) {
+          console.error('Please provide a search query, --tags, or --author filter.');
           process.exit(1);
+        }
+
+        // Parse tags if provided
+        let tags: string[] | undefined;
+        if (args.tags) {
+          tags = typeof args.tags === 'string' 
+            ? args.tags.split(',').map(t => t.trim())
+            : [args.tags];
         }
 
         const results = await promptUseCases.searchPrompts({
           query: args.query,
           category: args.category as PromptCategory,
+          tags,
+          author: args.author,
           limit: args.limit ? parseInt(args.limit) : undefined
         });
 
@@ -301,6 +315,12 @@ const promptsDirectory = path.join(process.cwd(), 'prompts');
           console.log(`📝 ${prompt.name} (${prompt.category})`);
           console.log(`   ${prompt.description}`);
           console.log(`   ID: ${prompt.id}`);
+          if (prompt.tags.length > 0) {
+            console.log(`   Tags: ${prompt.tags.join(', ')}`);
+          }
+          if (prompt.author) {
+            console.log(`   Author: ${prompt.author}`);
+          }
           console.log('');
         });
         break;
@@ -409,13 +429,34 @@ const promptsDirectory = path.join(process.cwd(), 'prompts');
         // Handle --dry-run flag
         if (args['dry-run']) {
           console.log('🔍 Dry run - validation only:\n');
+          
+          // Check consistency first
+          const consistency = prompt.validateConsistency();
+          if (consistency.errors.length > 0) {
+            console.error('❌ Content consistency errors:');
+            consistency.errors.forEach(error => console.error(`  - ${error}`));
+          }
+          if (consistency.warnings.length > 0) {
+            console.log('⚠️  Content consistency warnings:');
+            consistency.warnings.forEach(warning => console.log(`  - ${warning}`));
+          }
+          
+          // Check variable values
           const errors = prompt.validateVariables(variableValues);
           if (errors.length > 0) {
-            console.error('❌ Validation errors:');
+            console.error('❌ Variable validation errors:');
             errors.forEach(error => console.error(`  - ${error}`));
+          }
+          
+          const hasErrors = consistency.errors.length > 0 || errors.length > 0;
+          if (hasErrors) {
             process.exit(1);
           } else {
-            console.log('✅ All variables valid');
+            if (consistency.warnings.length === 0) {
+              console.log('✅ All validations passed');
+            } else {
+              console.log('✅ No errors found (warnings above)');
+            }
             if (prompt.variables) {
               console.log('\nVariable summary:');
               prompt.variables.forEach(variable => {
@@ -546,6 +587,80 @@ const promptsDirectory = path.join(process.cwd(), 'prompts');
         }
         break;
       }
+      
+      case 'validate': {
+        const promptId = args.id || args.query; // Support both --id flag and positional arg
+        
+        if (promptId) {
+          // Validate specific prompt
+          const prompt = await promptUseCases.getPromptById(promptId);
+          if (!prompt) {
+            console.error(`Prompt with ID ${promptId} not found.`);
+            process.exit(1);
+          }
+          
+          console.log(`🔍 Validating prompt: ${prompt.name}\n`);
+          const consistency = prompt.validateConsistency();
+          
+          if (consistency.errors.length === 0 && consistency.warnings.length === 0) {
+            console.log('✅ No consistency issues found');
+          } else {
+            if (consistency.errors.length > 0) {
+              console.error('❌ Content consistency errors:');
+              consistency.errors.forEach(error => console.error(`  - ${error}`));
+            }
+            if (consistency.warnings.length > 0) {
+              console.log('⚠️  Content consistency warnings:');
+              consistency.warnings.forEach(warning => console.log(`  - ${warning}`));
+            }
+            
+            if (consistency.errors.length > 0) {
+              process.exit(1);
+            }
+          }
+        } else {
+          // Validate all prompts
+          const prompts = await promptUseCases.getAllPrompts();
+          console.log(`🔍 Validating ${prompts.length} prompts...\n`);
+          
+          let totalErrors = 0;
+          let totalWarnings = 0;
+          const promptsWithIssues: string[] = [];
+          
+          for (const prompt of prompts) {
+            const consistency = prompt.validateConsistency();
+            if (consistency.errors.length > 0 || consistency.warnings.length > 0) {
+              promptsWithIssues.push(prompt.id);
+              console.log(`📝 ${prompt.name} (${prompt.id})`);
+              
+              if (consistency.errors.length > 0) {
+                console.error('  ❌ Errors:');
+                consistency.errors.forEach(error => console.error(`    - ${error}`));
+                totalErrors += consistency.errors.length;
+              }
+              
+              if (consistency.warnings.length > 0) {
+                console.log('  ⚠️  Warnings:');
+                consistency.warnings.forEach(warning => console.log(`    - ${warning}`));
+                totalWarnings += consistency.warnings.length;
+              }
+              console.log('');
+            }
+          }
+          
+          if (promptsWithIssues.length === 0) {
+            console.log('✅ All prompts are consistent');
+          } else {
+            console.log(`Summary: ${promptsWithIssues.length}/${prompts.length} prompts have issues`);
+            console.log(`Total errors: ${totalErrors}, warnings: ${totalWarnings}`);
+            
+            if (totalErrors > 0) {
+              process.exit(1);
+            }
+          }
+        }
+        break;
+      }
 
       case 'validate': {
         if (args.id) {
@@ -617,6 +732,7 @@ const promptsDirectory = path.join(process.cwd(), 'prompts');
         console.log('  categories                Show category statistics');
         console.log('  favorites [add|remove] <id>  Manage favorite prompts');
         console.log('  recent                    Show recently used prompts');
+        console.log('  validate [id]             Check prompt consistency (all prompts if no ID)');
         console.log('  help                      Show this help message\\n');
         console.log('Categories: work, personal, shared\\n');
         console.log('Examples:');
