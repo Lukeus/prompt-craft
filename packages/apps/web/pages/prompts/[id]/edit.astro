@@ -1,6 +1,6 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
-import PromptEditor from '../../../components/PromptEditor.astro';
+import PromptWizard from '../../../components/PromptWizard.astro';
 
 const { id } = Astro.params;
 
@@ -33,18 +33,18 @@ if (error) {
 
 <Layout title={`Edit ${prompt?.name || 'Prompt'} - Prompt Craft`}>
   <div class="mb-6">
-    <div class="flex items-center space-x-4 text-sm text-gray-600">
-      <a href="/prompts" class="hover:text-primary-600 transition-colors">
+    <div class="flex items-center space-x-4 text-sm text-gray-400">
+      <a href="/prompts" class="hover:text-primary-400 transition-colors">
         ← Back to Prompts
       </a>
       <span>/</span>
-      <a href={`/prompts/${prompt.id}`} class="hover:text-primary-600 transition-colors">
+      <a href={`/prompts/${prompt.id}`} class="hover:text-primary-400 transition-colors">
         {prompt.name}
       </a>
       <span>/</span>
-      <span class="text-gray-900 font-medium">Edit</span>
+      <span class="text-gray-100 font-medium">Edit</span>
     </div>
   </div>
   
-  <PromptEditor prompt={prompt} isEdit={true} />
+  {prompt && <PromptWizard prompt={prompt} isEdit={true} />}
 </Layout>

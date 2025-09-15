@@ -43,8 +43,8 @@ function parseArgs(): CLIArgs {
       // Handle key=value pairs
       const [key, value] = arg.split('=', 2);
       parsed[key] = value || true;
-    } else if (!parsed.id && (parsed.command === 'render' || parsed.command === 'show')) {
-      // For render and show commands, the first non-flag arg is the ID
+    } else if (!parsed.id && (parsed.command === 'render' || parsed.command === 'show' || parsed.command === 'validate')) {
+      // For render, show, and validate commands, the first non-flag arg is the ID
       parsed.id = arg;
     } else if (!parsed.category && (['work', 'personal', 'shared'].includes(arg) || (parsed.command === 'favorites' && ['add', 'remove'].includes(arg)))) {
       parsed.category = arg;
@@ -547,6 +547,63 @@ const promptsDirectory = path.join(process.cwd(), 'prompts');
         break;
       }
 
+      case 'validate': {
+        if (args.id) {
+          // Validate specific prompt
+          const prompt = await promptUseCases.getPromptById(args.id);
+          if (!prompt) {
+            console.error(`Prompt with ID ${args.id} not found.`);
+            process.exit(1);
+          }
+          
+          console.log(`🔍 Validating prompt: ${prompt.name}\n`);
+          const consistencyResult = prompt.validateConsistency();
+          
+          if (consistencyResult.errors.length > 0 || consistencyResult.warnings.length > 0) {
+            if (consistencyResult.errors.length > 0) {
+              console.error('❌ Consistency errors:');
+              consistencyResult.errors.forEach(error => console.error(`  - ${error}`));
+            }
+            
+            if (consistencyResult.warnings.length > 0) {
+              console.warn('⚠️  Warnings:');
+              consistencyResult.warnings.forEach(warning => console.warn(`  - ${warning}`));
+            }
+          } else {
+            console.log('✅ No consistency issues found');
+          }
+        } else {
+          // Validate all prompts
+          const prompts = await promptUseCases.getAllPrompts();
+          console.log(`🔍 Validating ${prompts.length} prompts...\n`);
+          
+          let hasIssues = false;
+          for (const prompt of prompts) {
+            const consistencyResult = prompt.validateConsistency();
+            
+            if (consistencyResult.errors.length > 0 || consistencyResult.warnings.length > 0) {
+              hasIssues = true;
+              console.log(`\n📝 ${prompt.name} (${prompt.id}):`);
+              
+              if (consistencyResult.errors.length > 0) {
+                console.error('  ❌ Errors:');
+                consistencyResult.errors.forEach(error => console.error(`    - ${error}`));
+              }
+              
+              if (consistencyResult.warnings.length > 0) {
+                console.warn('  ⚠️  Warnings:');
+                consistencyResult.warnings.forEach(warning => console.warn(`    - ${warning}`));
+              }
+            }
+          }
+          
+          if (!hasIssues) {
+            console.log('✅ All prompts are consistent');
+          }
+        }
+        break;
+      }
+
       case 'help':
       default: {
         console.log('Prompt Craft CLI - AI Prompt Management System\\n');
@@ -556,6 +613,7 @@ const promptsDirectory = path.join(process.cwd(), 'prompts');
         console.log('  search <query>            Search prompts');
         console.log('  show <id>                 Show detailed prompt information');
         console.log('  render <id> [vars...]     Render prompt with variables');
+        console.log('  validate [id]             Validate prompt consistency (all or specific)');
         console.log('  categories                Show category statistics');
         console.log('  favorites [add|remove] <id>  Manage favorite prompts');
         console.log('  recent                    Show recently used prompts');

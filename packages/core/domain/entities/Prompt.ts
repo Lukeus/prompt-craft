@@ -101,6 +101,39 @@ export class Prompt {
     return errors;
   }
 
+  public validateConsistency(): { errors: string[]; warnings: string[] } {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+    
+    // Extract placeholders from content using regex
+    const placeholderRegex = /{{\s*([^\s{}]+)\s*}}/g;
+    const placeholdersInContent = new Set<string>();
+    let match;
+    
+    while ((match = placeholderRegex.exec(this.content)) !== null) {
+      placeholdersInContent.add(match[1]);
+    }
+    
+    // Get declared variables
+    const declaredVariables = new Set<string>(this.variables?.map(v => v.name) || []);
+    
+    // Check for placeholders without variable declarations
+    for (const placeholder of placeholdersInContent) {
+      if (!declaredVariables.has(placeholder)) {
+        errors.push(`Placeholder '{{${placeholder}}}' found in content but no variable declared`);
+      }
+    }
+    
+    // Check for declared variables not used in content
+    for (const variableName of declaredVariables) {
+      if (!placeholdersInContent.has(variableName)) {
+        warnings.push(`Variable '${variableName}' is declared but not used in prompt content`);
+      }
+    }
+    
+    return { errors, warnings };
+  }
+
   public toJSON(): any {
     return {
       id: this.id,
