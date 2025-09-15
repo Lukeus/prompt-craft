@@ -11,7 +11,11 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 - `npm run lint` - Type check without emitting files (uses TypeScript compiler)
 
 ### MCP Server
-- `npm run mcp-server` - Start the Model Context Protocol server for AI assistant integration
+- `npm run mcp-server` - Start the CLI-based MCP server (stdio transport)
+- `npm run mcp-web:dev` - Start the web-accessible MCP server in development mode
+- `npm run mcp-web:build` - Build the web MCP server for production
+- `npm run mcp-web:preview` - Preview the production build of web MCP server
+- `npm run dev:mcp-web` - Start both build process and web MCP development server
 
 ### Testing
 - `npm test` - Run Jest tests (though no test files currently exist in the codebase)
@@ -20,18 +24,21 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 After building, the CLI can be used with:
 ```bash
 # List prompts by category
-./dist/cli.js list work
-./dist/cli.js list personal
+node dist/packages/apps/cli/index.js list work
+node dist/packages/apps/cli/index.js list personal
+
+# Or via npm start (equivalent to node dist/cli/index.js)
+npm start -- list work
 
 # Search prompts
-./dist/cli.js search "code review"
+node dist/packages/apps/cli/index.js search "code review"
 
 # Render prompts with variables
-./dist/cli.js render prompt_id language=TypeScript code="example"
+node dist/packages/apps/cli/index.js render <prompt_id> language=TypeScript code="example"
 
 # Show categories and help
-./dist/cli.js categories
-./dist/cli.js help
+node dist/packages/apps/cli/index.js categories
+node dist/packages/apps/cli/index.js help
 ```
 
 ## Architecture Overview
@@ -40,10 +47,11 @@ After building, the CLI can be used with:
 This is a TypeScript-based prompt management system that organizes AI prompts into categories and provides both CLI and MCP server interfaces.
 
 **Primary Components:**
-- **PromptManager** (`src/managers/PromptManager.ts`) - Core business logic for prompt storage, retrieval, search, and rendering
-- **MCP Server** (`src/mcp/server.ts`) - Model Context Protocol server that exposes prompts as callable tools for AI assistants
-- **CLI Interface** (`src/index.ts`) - Command-line interface for prompt management
-- **Type Definitions** (`src/types/index.ts`) - Comprehensive TypeScript interfaces and enums
+- **Core Domain & Application** (`packages/core/`) - Entities, repositories, and use cases (Prompt, PromptUseCases)
+- **Infrastructure** (`packages/infrastructure/`) - FileSystemPromptRepository and adapters
+- **CLI Interface** (`packages/apps/cli/`) - Command-line interface for prompt management
+- **MCP Server (stdio)** (`packages/apps/mcp-server/`) - Model Context Protocol server exposing prompts as tools
+- **Web MCP + REST APIs** (`packages/apps/web/`) - HTTP/WS MCP endpoints and REST APIs
 
 ### Data Flow Architecture
 1. **Configuration**: System loads from `config/prompts.json` with fallback to defaults
@@ -79,16 +87,29 @@ Supports typed variables:
 
 ## MCP Integration
 
-The MCP server exposes each prompt as a callable tool with:
+The system provides two MCP server implementations:
+
+### CLI MCP Server (stdio)
+- Traditional MCP server using stdio transport
+- Located in `packages/apps/mcp-server/`
+- Perfect for local AI assistant integration
+- Uses `@modelcontextprotocol/sdk` stdio transport
+
+### Web MCP Server (HTTP/WebSocket)
+- Web-accessible MCP server with multiple access methods
+- HTTP endpoints with JSON-RPC 2.0 protocol
+- WebSocket support for real-time communication
+- REST API wrapper for easier integration
+- Located in `packages/apps/web/pages/api/mcp/`
+- Can be deployed to any web hosting platform
+
+### MCP Server Features (Both Implementations)
+- Each prompt exposed as a callable tool
 - Dynamic JSON schemas generated from prompt variables
 - Automatic input validation based on variable definitions
 - Error handling for missing or invalid parameters
 - Standardized response format for AI assistants
-
-### MCP Server Features
-- Standard MCP tool listing and execution
 - Custom handlers for prompt search and category listing
-- Stdio transport for AI assistant integration
 - Comprehensive error handling with appropriate MCP error codes
 
 ## Development Guidance

@@ -1,0 +1,1453 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const seoData = {
+  title: "What is this stuff? AI Prompts, Assistants & Agents Explained - Prompt Craft",
+  description: "New to AI? Learn the difference between AI assistants and agents, understand prompts, and discover how prompt management works. Beginner-friendly guide with interactive examples.",
+  type: "article" as const,
+  publishedTime: "2024-12-12T21:30:00.000Z",
+  modifiedTime: new Date().toISOString(),
+  tags: [
+    "AI Education",
+    "AI Assistant vs Agent",
+    "Prompt Engineering",
+    "Beginner AI Guide",
+    "AI Automation",
+    "Model Context Protocol",
+    "AI Tools",
+    "Machine Learning"
+  ],
+  image: "/what-is-this-og.png"
+};
+---
+
+<Layout {...seoData}>
+  <!-- Hero Section with Animated Background -->
+  <div class="relative overflow-hidden">
+    <div class="floating-shapes"></div>
+    
+    <div class="relative z-10 text-center mb-16">
+      <div class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 border border-indigo-400/30 rounded-full text-sm font-semibold text-indigo-300 backdrop-blur-sm mb-6 animate-bounce-slow">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        New to AI? Start here!
+      </div>
+      
+      <h1 class="text-5xl md:text-7xl font-bold mb-6">
+        <span class="bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent animate-gradient-shift">
+          What is this stuff?
+        </span>
+      </h1>
+      
+      <p class="text-xl md:text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed mb-8">
+        A friendly guide to understanding AI prompts, assistants, and how this magical tool helps you become an AI wizard
+      </p>
+      
+      <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+        <button onclick="scrollToSection('basics')" class="btn-glow bg-gradient-to-r from-blue-500 to-purple-600">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C20.832 18.477 19.246 18 17.5 18c-1.746 0-3.332.477-4.5 1.253z"></path>
+          </svg>
+          Start Learning
+        </button>
+        <button onclick="scrollToSection('interactive')" class="btn-outline-glow">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.01M15 10h1.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          Interactive Demo
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress Bar -->
+  <div class="sticky top-0 z-50 mb-8">
+    <div class="progress-container">
+      <div id="progress-bar" class="progress-bar"></div>
+    </div>
+  </div>
+
+  <!-- Section 1: The Basics -->
+  <section id="basics" class="section-container">
+    <div class="section-header">
+      <div class="section-number">01</div>
+      <h2 class="section-title">Think of it like this...</h2>
+    </div>
+    
+    <div class="grid md:grid-cols-2 gap-12 items-center">
+      <div class="space-y-6">
+        <div class="concept-card">
+          <div class="concept-icon bg-blue-500">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+            </svg>
+          </div>
+          <div class="concept-content">
+            <h3 class="concept-title">AI Assistant</h3>
+            <p class="concept-description">Imagine a super-smart friend who can help with anything - writing, coding, creative work, or answering questions. That's an AI assistant!</p>
+          </div>
+        </div>
+        
+        <div class="concept-card">
+          <div class="concept-icon bg-cyan-500">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+            </svg>
+          </div>
+          <div class="concept-content">
+            <h3 class="concept-title">AI Agent</h3>
+            <p class="concept-description">Think of an AI agent as an assistant that can actually DO things for you - like booking flights, sending emails, or running code. Agents take action!</p>
+          </div>
+        </div>
+        
+        <div class="concept-card">
+          <div class="concept-icon bg-purple-500">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+            </svg>
+          </div>
+          <div class="concept-content">
+            <h3 class="concept-title">Prompts</h3>
+            <p class="concept-description">These are the instructions you give to your AI friend. Like saying "Help me write a funny poem about cats" or "Explain quantum physics simply."</p>
+          </div>
+        </div>
+        
+        <div class="concept-card">
+          <div class="concept-icon bg-green-500">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+            </svg>
+          </div>
+          <div class="concept-content">
+            <h3 class="concept-title">Prompt Management</h3>
+            <p class="concept-description">This app helps you collect, organize, and reuse your favorite prompts. Like having a recipe book, but for AI instructions!</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="interactive-demo">
+        <div class="demo-window">
+          <div class="demo-header">
+            <div class="demo-dots">
+              <span class="dot red"></span>
+              <span class="dot yellow"></span>
+              <span class="dot green"></span>
+            </div>
+            <span class="demo-title">AI Chat</span>
+          </div>
+          <div class="demo-content">
+            <div class="chat-message user">
+              <div class="message-bubble user-bubble">
+                "Write a haiku about coding"
+              </div>
+            </div>
+            <div class="chat-message assistant">
+              <div class="message-bubble assistant-bubble">
+                <div class="typing-indicator">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: Assistant vs Agent -->
+  <section id="assistant-vs-agent" class="section-container">
+    <div class="section-header">
+      <div class="section-number">02</div>
+      <h2 class="section-title">Assistant vs Agent - What's the difference?</h2>
+    </div>
+    
+    <div class="comparison-container">
+      <div class="comparison-intro">
+        <p class="text-xl text-gray-300 text-center mb-12 leading-relaxed">
+          This is one of the most important distinctions in AI today. Let's break it down with simple examples!
+        </p>
+      </div>
+      
+      <div class="comparison-grid">
+        <!-- Assistant Side -->
+        <div class="comparison-card assistant-card">
+          <div class="comparison-header">
+            <div class="comparison-icon bg-gradient-to-br from-blue-500 to-blue-600">
+              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+              </svg>
+            </div>
+            <h3 class="comparison-title">AI Assistant</h3>
+            <p class="comparison-subtitle">"I can help you think and create"</p>
+          </div>
+          
+          <div class="comparison-content">
+            <div class="what-they-do">
+              <h4 class="feature-title">What they do:</h4>
+              <ul class="feature-list">
+                <li>Answer questions</li>
+                <li>Write content</li>
+                <li>Explain concepts</li>
+                <li>Give advice</li>
+                <li>Brainstorm ideas</li>
+              </ul>
+            </div>
+            
+            <div class="example-box">
+              <h4 class="example-title">Real Example:</h4>
+              <div class="example-conversation">
+                <div class="example-message user-msg">
+                  "Help me write a professional email to my boss"
+                </div>
+                <div class="example-message assistant-msg">
+                  "Here's a draft email for you to copy and send..."
+                </div>
+              </div>
+              <p class="example-note">👆 You still need to copy, paste, and send it yourself</p>
+            </div>
+            
+            <div class="analogy-box">
+              <div class="analogy-icon">💭</div>
+              <p class="analogy-text"><strong>Like:</strong> A really smart advisor who gives you great ideas and content, but you do the actual work</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- VS Divider -->
+        <div class="vs-divider">
+          <div class="vs-circle">
+            <span class="vs-text">VS</span>
+          </div>
+        </div>
+        
+        <!-- Agent Side -->
+        <div class="comparison-card agent-card">
+          <div class="comparison-header">
+            <div class="comparison-icon bg-gradient-to-br from-cyan-500 to-cyan-600">
+              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+              </svg>
+            </div>
+            <h3 class="comparison-title">AI Agent</h3>
+            <p class="comparison-subtitle">"I can actually DO things for you"</p>
+          </div>
+          
+          <div class="comparison-content">
+            <div class="what-they-do">
+              <h4 class="feature-title">What they do:</h4>
+              <ul class="feature-list">
+                <li>Send actual emails</li>
+                <li>Book real appointments</li>
+                <li>Run code and programs</li>
+                <li>Make purchases</li>
+                <li>Control other software</li>
+              </ul>
+            </div>
+            
+            <div class="example-box">
+              <h4 class="example-title">Real Example:</h4>
+              <div class="example-conversation">
+                <div class="example-message user-msg">
+                  "Send an email to my boss about the meeting"
+                </div>
+                <div class="example-message agent-msg">
+                  "✅ Email sent successfully to boss@company.com"
+                </div>
+              </div>
+              <p class="example-note">👆 The agent actually sent the email for you!</p>
+            </div>
+            
+            <div class="analogy-box">
+              <div class="analogy-icon">🤖</div>
+              <p class="analogy-text"><strong>Like:</strong> A personal assistant who can actually perform tasks in the real world on your behalf</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Key Insight -->
+      <div class="key-insight">
+        <div class="insight-icon">
+          <svg class="w-8 h-8 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+          </svg>
+        </div>
+        <div class="insight-content">
+          <h3 class="insight-title">💡 The Big Picture</h3>
+          <p class="insight-text">
+            <strong>Assistants</strong> help you think and create content. <strong>Agents</strong> can take real actions in the world. 
+            The future is agents that can access your prompt library to know exactly how to help you!
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: Why It Matters -->
+  <section id="why-matters" class="section-container">
+    <div class="section-header">
+      <div class="section-number">03</div>
+      <h2 class="section-title">Why does this matter?</h2>
+    </div>
+    
+    <div class="grid md:grid-cols-3 gap-8">
+      <div class="benefit-card">
+        <div class="benefit-icon">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+          </svg>
+        </div>
+        <h3 class="benefit-title">Save Time</h3>
+        <p class="benefit-description">Instead of typing the same instructions over and over, save them once and reuse them forever.</p>
+        <div class="benefit-example">
+          <span class="example-tag">Example</span>
+          <p class="example-text">Save "Help me write professional emails" and use it whenever you need email help!</p>
+        </div>
+      </div>
+      
+      <div class="benefit-card">
+        <div class="benefit-icon">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+          </svg>
+        </div>
+        <h3 class="benefit-title">Get Better Results</h3>
+        <p class="benefit-description">Well-crafted prompts get better answers from AI. This app helps you build a collection of your best prompts.</p>
+        <div class="benefit-example">
+          <span class="example-tag">Example</span>
+          <p class="example-text">A detailed prompt gets much better results than just saying "help me code"</p>
+        </div>
+      </div>
+      
+      <div class="benefit-card">
+        <div class="benefit-icon">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+          </svg>
+        </div>
+        <h3 class="benefit-title">Stay Organized</h3>
+        <p class="benefit-description">Keep work prompts separate from personal ones. Find exactly what you need with smart categories and search.</p>
+        <div class="benefit-example">
+          <span class="example-tag">Example</span>
+          <p class="example-text">Separate folders for "Work", "Creative Writing", and "Learning"</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: Interactive Demo -->
+  <section id="interactive" class="section-container">
+    <div class="section-header">
+      <div class="section-number">04</div>
+      <h2 class="section-title">Try it yourself!</h2>
+    </div>
+    
+    <div class="interactive-playground">
+      <div class="playground-header">
+        <h3 class="playground-title">Interactive Prompt Builder</h3>
+        <p class="playground-subtitle">Build a prompt step by step and see how it works</p>
+      </div>
+      
+      <div class="prompt-builder">
+        <div class="builder-steps">
+          <div class="step active" data-step="1">
+            <div class="step-number">1</div>
+            <div class="step-content">
+              <h4 class="step-title">Choose your task</h4>
+              <div class="step-options">
+                <button class="option-btn active" data-task="write">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                  </svg>
+                  Writing
+                </button>
+                <button class="option-btn" data-task="code">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                  </svg>
+                  Coding
+                </button>
+                <button class="option-btn" data-task="explain">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                  </svg>
+                  Explaining
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="step" data-step="2">
+            <div class="step-number">2</div>
+            <div class="step-content">
+              <h4 class="step-title">Add details</h4>
+              <div class="detail-inputs">
+                <input type="text" id="topic" placeholder="What topic?" class="detail-input">
+                <input type="text" id="style" placeholder="What style/tone?" class="detail-input">
+                <input type="text" id="audience" placeholder="For who?" class="detail-input">
+              </div>
+            </div>
+          </div>
+          
+          <div class="step" data-step="3">
+            <div class="step-number">3</div>
+            <div class="step-content">
+              <h4 class="step-title">See your prompt</h4>
+              <div class="generated-prompt">
+                <div class="prompt-display" id="promptDisplay">
+                  Choose a task above to start building your prompt!
+                </div>
+                <button class="copy-btn" onclick="copyPrompt()">
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                  </svg>
+                  Copy Prompt
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 5: What's MCP -->
+  <section id="mcp" class="section-container">
+    <div class="section-header">
+      <div class="section-number">05</div>
+      <h2 class="section-title">What's this MCP thing?</h2>
+    </div>
+    
+    <div class="mcp-explanation">
+      <div class="mcp-visual">
+        <div class="connection-diagram">
+          <div class="node ai-node">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+            </svg>
+            <span>AI Assistant</span>
+          </div>
+          
+          <div class="connection-line">
+            <div class="data-flow">
+              <div class="flow-particle"></div>
+              <div class="flow-particle"></div>
+              <div class="flow-particle"></div>
+            </div>
+          </div>
+          
+          <div class="node app-node">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+            </svg>
+            <span>Prompt Craft</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mcp-content">
+        <div class="mcp-card">
+          <h3 class="mcp-title">MCP = Model Context Protocol</h3>
+          <p class="mcp-description">
+            Think of it as a special bridge that lets AI assistants directly access your prompt library. 
+            Instead of copy-pasting, the AI can automatically fetch the perfect prompt for any situation.
+          </p>
+          
+          <div class="mcp-analogy">
+            <div class="analogy-icon">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+              </svg>
+            </div>
+            <div class="analogy-text">
+              <strong>It's like:</strong> Having a personal assistant who knows exactly where all your favorite recipes are stored and can grab the perfect one whenever you're cooking!
+            </div>
+          </div>
+          
+          <div class="mcp-benefits">
+            <div class="benefit-point">
+              <div class="benefit-dot"></div>
+              <span>AI assistants can use your prompts directly</span>
+            </div>
+            <div class="benefit-point">
+              <div class="benefit-dot"></div>
+              <span>No more copy-pasting between apps</span>
+            </div>
+            <div class="benefit-point">
+              <div class="benefit-dot"></div>
+              <span>Seamless workflow integration</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 6: Getting Started -->
+  <section id="getting-started" class="section-container">
+    <div class="section-header">
+      <div class="section-number">06</div>
+      <h2 class="section-title">Ready to become an AI wizard?</h2>
+    </div>
+    
+    <div class="getting-started-grid">
+      <div class="step-card">
+        <div class="step-icon">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+          </svg>
+        </div>
+        <h3 class="step-card-title">1. Create Your First Prompt</h3>
+        <p class="step-card-description">Start with something simple like "Help me write better emails" or "Explain complex topics simply"</p>
+        <a href="/prompts/new" class="step-card-action">Create Prompt →</a>
+      </div>
+      
+      <div class="step-card">
+        <div class="step-icon">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+        </div>
+        <h3 class="step-card-title">2. Explore Examples</h3>
+        <p class="step-card-description">Browse the prompt library to see what others have created and get inspiration</p>
+        <a href="/prompts" class="step-card-action">Browse Prompts →</a>
+      </div>
+      
+      <div class="step-card">
+        <div class="step-icon">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+          </svg>
+        </div>
+        <h3 class="step-card-title">3. Connect with AI</h3>
+        <p class="step-card-description">Set up MCP to let your AI assistant access your prompts directly</p>
+        <a href="/mcp" class="step-card-action">Setup MCP →</a>
+      </div>
+    </div>
+    
+    <div class="final-cta">
+      <div class="cta-content">
+        <h3 class="cta-title">Questions? We've got you covered!</h3>
+        <p class="cta-subtitle">This is an experimental platform - we're here to help you learn and succeed</p>
+        <div class="cta-actions">
+          <a href="/search" class="btn-primary">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+            Start Exploring
+          </a>
+          <a href="/" class="btn-outline">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+            </svg>
+            Back to Dashboard
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<!-- Educational Content Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "What is this stuff? AI Prompts, Assistants & Agents Explained",
+  "description": "A comprehensive beginner's guide to understanding AI assistants, AI agents, prompts, and prompt management systems.",
+  "image": {
+    "@type": "ImageObject",
+    "url": "https://prompt-craft.vercel.app/what-is-this-og.png",
+    "width": 1200,
+    "height": 630
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Lukeus",
+    "url": "https://lukeus.com"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Prompt Craft",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://prompt-craft.vercel.app/favicon.svg"
+    }
+  },
+  "datePublished": "2024-12-12T21:30:00.000Z",
+  "dateModified": "2024-12-12T21:37:00.000Z",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://prompt-craft.vercel.app/what-is-this"
+  },
+  "articleSection": "Education",
+  "keywords": "AI education, AI assistant, AI agent, prompt engineering, artificial intelligence, beginner guide, automation, MCP, Model Context Protocol",
+  "about": [
+    {
+      "@type": "Thing",
+      "name": "Artificial Intelligence",
+      "description": "Computer systems that can perform tasks that typically require human intelligence"
+    },
+    {
+      "@type": "Thing", 
+      "name": "AI Assistant",
+      "description": "AI systems that help users by providing information, creating content, and answering questions"
+    },
+    {
+      "@type": "Thing",
+      "name": "AI Agent", 
+      "description": "AI systems that can take actions in the real world on behalf of users"
+    },
+    {
+      "@type": "Thing",
+      "name": "Prompt Engineering",
+      "description": "The practice of crafting effective instructions for AI systems"
+    }
+  ],
+  "educationalLevel": "Beginner",
+  "learningResourceType": "Interactive Tutorial",
+  "teaches": [
+    "Understanding the difference between AI assistants and AI agents",
+    "How AI prompts work and why they matter", 
+    "The basics of prompt management systems",
+    "What the Model Context Protocol (MCP) is and how it works",
+    "Getting started with AI automation tools"
+  ]
+}
+</script>
+
+<!-- Scripts -->
+<script>
+  // Progress bar functionality
+  function updateProgressBar() {
+    const sections = document.querySelectorAll('section[id]');
+    const progressBar = document.getElementById('progress-bar');
+    
+    let currentSection = 0;
+    const scrollPosition = window.scrollY + window.innerHeight / 3;
+    
+    sections.forEach((section, index) => {
+      const sectionTop = section.offsetTop;
+      const sectionBottom = sectionTop + section.offsetHeight;
+      
+      if (scrollPosition >= sectionTop && scrollPosition <= sectionBottom) {
+        currentSection = index;
+      }
+    });
+    
+    const progress = ((currentSection + 1) / sections.length) * 100;
+    progressBar.style.width = `${progress}%`;
+  }
+  
+  // Smooth scrolling to sections
+  function scrollToSection(sectionId) {
+    document.getElementById(sectionId).scrollIntoView({
+      behavior: 'smooth'
+    });
+  }
+  
+  // Interactive prompt builder
+  let selectedTask = 'write';
+  let promptTemplate = {
+    write: "Write a {{style}} {{topic}} for {{audience}}",
+    code: "Create {{style}} code for {{topic}} suitable for {{audience}}",
+    explain: "Explain {{topic}} in a {{style}} way for {{audience}}"
+  };
+  
+  function updatePromptBuilder() {
+    const topic = document.getElementById('topic').value || '[topic]';
+    const style = document.getElementById('style').value || '[style]';
+    const audience = document.getElementById('audience').value || '[audience]';
+    
+    let prompt = promptTemplate[selectedTask];
+    prompt = prompt.replace('{{topic}}', topic);
+    prompt = prompt.replace('{{style}}', style);
+    prompt = prompt.replace('{{audience}}', audience);
+    
+    document.getElementById('promptDisplay').textContent = prompt;
+  }
+  
+  function copyPrompt() {
+    const promptText = document.getElementById('promptDisplay').textContent;
+    navigator.clipboard.writeText(promptText);
+    
+    // Show feedback
+    const copyBtn = document.querySelector('.copy-btn');
+    const originalText = copyBtn.innerHTML;
+    copyBtn.innerHTML = '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Copied!';
+    copyBtn.classList.add('copied');
+    
+    setTimeout(() => {
+      copyBtn.innerHTML = originalText;
+      copyBtn.classList.remove('copied');
+    }, 2000);
+  }
+  
+  // Animation on scroll
+  function handleScrollAnimations() {
+    const elements = document.querySelectorAll('.concept-card, .benefit-card, .step-card');
+    
+    elements.forEach(element => {
+      const elementTop = element.getBoundingClientRect().top;
+      const elementVisible = 150;
+      
+      if (elementTop < window.innerHeight - elementVisible) {
+        element.classList.add('animate-in');
+      }
+    });
+  }
+  
+  // Initialize
+  document.addEventListener('DOMContentLoaded', () => {
+    // Event listeners
+    window.addEventListener('scroll', () => {
+      updateProgressBar();
+      handleScrollAnimations();
+    });
+    
+    // Task selection
+    document.querySelectorAll('.option-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedTask = btn.dataset.task;
+        updatePromptBuilder();
+        
+        // Activate next steps
+        document.querySelectorAll('.step').forEach(step => step.classList.remove('active'));
+        document.querySelector('[data-step="2"]').classList.add('active');
+        document.querySelector('[data-step="3"]').classList.add('active');
+      });
+    });
+    
+    // Input changes
+    ['topic', 'style', 'audience'].forEach(id => {
+      document.getElementById(id).addEventListener('input', updatePromptBuilder);
+    });
+    
+    // Initial setup
+    updateProgressBar();
+    handleScrollAnimations();
+    updatePromptBuilder();
+    
+    // Typing animation for demo
+    setTimeout(() => {
+      const assistantBubble = document.querySelector('.assistant-bubble');
+      assistantBubble.innerHTML = `
+        <div class="haiku">
+          <div class="haiku-line">Code flows like water</div>
+          <div class="haiku-line">Through logic's winding pathways</div>
+          <div class="haiku-line">Beauty in each line</div>
+        </div>
+      `;
+    }, 3000);
+  });
+</script>
+
+<!-- Styles -->
+<style>
+  /* Global animations */
+  @keyframes gradient-shift {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+  
+  @keyframes bounce-slow {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+  
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+  
+  .animate-gradient-shift {
+    background-size: 400% 400%;
+    animation: gradient-shift 4s ease infinite;
+  }
+  
+  .animate-bounce-slow {
+    animation: bounce-slow 3s ease-in-out infinite;
+  }
+  
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  /* Floating background shapes */
+  .floating-shapes {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    z-index: 1;
+  }
+  
+  .floating-shapes::before,
+  .floating-shapes::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    background: linear-gradient(45deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1));
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  .floating-shapes::before {
+    width: 300px;
+    height: 300px;
+    top: 10%;
+    right: 10%;
+    animation-delay: -2s;
+  }
+  
+  .floating-shapes::after {
+    width: 200px;
+    height: 200px;
+    bottom: 20%;
+    left: 10%;
+    animation-delay: -4s;
+  }
+  
+  /* Buttons */
+  .btn-glow {
+    @apply inline-flex items-center px-8 py-4 text-lg font-semibold text-white rounded-xl;
+    @apply shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
+    @apply transition-all duration-300 transform hover:scale-105;
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
+  }
+  
+  .btn-glow:hover {
+    box-shadow: 0 0 40px rgba(59, 130, 246, 0.5);
+  }
+  
+  .btn-outline-glow {
+    @apply inline-flex items-center px-6 py-3 text-base font-medium text-gray-300 rounded-xl;
+    @apply border-2 border-gray-500/50 bg-transparent hover:bg-gray-500/10;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400;
+    @apply transition-all duration-300 transform hover:scale-105;
+  }
+  
+  /* Progress bar */
+  .progress-container {
+    @apply w-full h-1 bg-dark-800;
+  }
+  
+  .progress-bar {
+    @apply h-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-300;
+    width: 0%;
+  }
+  
+  /* Section styles */
+  .section-container {
+    @apply py-20;
+  }
+  
+  .section-header {
+    @apply flex items-center mb-12;
+  }
+  
+  .section-number {
+    @apply text-6xl font-black text-transparent bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text mr-6;
+  }
+  
+  .section-title {
+    @apply text-4xl md:text-5xl font-bold text-gray-100;
+  }
+  
+  /* Concept cards */
+  .concept-card {
+    @apply flex items-start space-x-4 p-6 rounded-xl;
+    @apply bg-gradient-to-r from-dark-800/50 to-dark-700/50 border border-dark-600/50;
+    @apply hover:from-dark-700/60 hover:to-dark-600/60 transition-all duration-300;
+    @apply transform hover:scale-105;
+  }
+  
+  .concept-icon {
+    @apply w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg;
+  }
+  
+  .concept-content {
+    @apply flex-1;
+  }
+  
+  .concept-title {
+    @apply text-xl font-bold text-gray-100 mb-2;
+  }
+  
+  .concept-description {
+    @apply text-gray-300 leading-relaxed;
+  }
+  
+  /* Interactive demo */
+  .interactive-demo {
+    @apply flex justify-center items-center;
+  }
+  
+  .demo-window {
+    @apply bg-dark-800 rounded-xl shadow-2xl overflow-hidden border border-dark-600 max-w-md w-full;
+  }
+  
+  .demo-header {
+    @apply flex items-center justify-between px-4 py-3 bg-dark-700 border-b border-dark-600;
+  }
+  
+  .demo-dots {
+    @apply flex space-x-2;
+  }
+  
+  .dot {
+    @apply w-3 h-3 rounded-full;
+  }
+  
+  .dot.red { @apply bg-red-500; }
+  .dot.yellow { @apply bg-yellow-500; }
+  .dot.green { @apply bg-green-500; }
+  
+  .demo-title {
+    @apply text-sm font-medium text-gray-300;
+  }
+  
+  .demo-content {
+    @apply p-4 space-y-4;
+  }
+  
+  .chat-message {
+    @apply flex;
+  }
+  
+  .chat-message.user {
+    @apply justify-end;
+  }
+  
+  .chat-message.assistant {
+    @apply justify-start;
+  }
+  
+  .message-bubble {
+    @apply max-w-xs px-4 py-2 rounded-2xl;
+  }
+  
+  .user-bubble {
+    @apply bg-blue-600 text-white;
+  }
+  
+  .assistant-bubble {
+    @apply bg-dark-600 text-gray-200;
+  }
+  
+  /* Typing indicator */
+  .typing-indicator {
+    @apply flex space-x-1;
+  }
+  
+  .typing-indicator span {
+    @apply w-2 h-2 bg-gray-400 rounded-full;
+    animation: typing 1.4s infinite ease-in-out;
+  }
+  
+  .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+  .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+  
+  @keyframes typing {
+    0%, 80%, 100% {
+      transform: scale(0);
+      opacity: 0.5;
+    }
+    40% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  
+  /* Haiku animation */
+  .haiku {
+    @apply text-center;
+  }
+  
+  .haiku-line {
+    @apply text-sm leading-relaxed opacity-0;
+    animation: fade-in-up 0.6s ease forwards;
+  }
+  
+  .haiku-line:nth-child(1) { animation-delay: 0.2s; }
+  .haiku-line:nth-child(2) { animation-delay: 0.5s; }
+  .haiku-line:nth-child(3) { animation-delay: 0.8s; }
+  
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Benefit cards */
+  .benefit-card {
+    @apply p-8 rounded-xl border transition-all duration-300;
+    @apply bg-gradient-to-br from-dark-800/50 to-dark-700/50 border-dark-600/50;
+    @apply hover:from-dark-700/60 hover:to-dark-600/60 hover:border-dark-500/60;
+    @apply transform hover:scale-105 hover:shadow-2xl;
+  }
+  
+  .benefit-icon {
+    @apply w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white mb-6 mx-auto;
+    @apply shadow-lg;
+  }
+  
+  .benefit-title {
+    @apply text-2xl font-bold text-gray-100 mb-4 text-center;
+  }
+  
+  .benefit-description {
+    @apply text-gray-300 leading-relaxed mb-6 text-center;
+  }
+  
+  .benefit-example {
+    @apply p-4 bg-dark-600/50 rounded-lg border border-dark-500/50;
+  }
+  
+  .example-tag {
+    @apply inline-block px-3 py-1 bg-accent-600/20 text-accent-300 text-xs font-semibold rounded-full mb-2;
+  }
+  
+  .example-text {
+    @apply text-sm text-gray-400;
+  }
+  
+  /* Interactive playground */
+  .interactive-playground {
+    @apply bg-gradient-to-br from-dark-800/60 to-dark-700/60 rounded-2xl p-8 border border-dark-600/50;
+  }
+  
+  .playground-header {
+    @apply text-center mb-8;
+  }
+  
+  .playground-title {
+    @apply text-3xl font-bold text-gray-100 mb-2;
+  }
+  
+  .playground-subtitle {
+    @apply text-gray-400;
+  }
+  
+  /* Prompt builder */
+  .prompt-builder {
+    @apply space-y-8;
+  }
+  
+  .builder-steps {
+    @apply space-y-8;
+  }
+  
+  .step {
+    @apply flex items-start space-x-6 opacity-50 transition-all duration-300;
+  }
+  
+  .step.active {
+    @apply opacity-100;
+  }
+  
+  .step-number {
+    @apply w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold rounded-full flex items-center justify-center flex-shrink-0;
+  }
+  
+  .step-content {
+    @apply flex-1;
+  }
+  
+  .step-title {
+    @apply text-xl font-bold text-gray-100 mb-4;
+  }
+  
+  .step-options {
+    @apply flex flex-wrap gap-3;
+  }
+  
+  .option-btn {
+    @apply flex items-center px-4 py-2 bg-dark-700 text-gray-300 rounded-lg border border-dark-600;
+    @apply hover:bg-dark-600 hover:text-white transition-all duration-200;
+  }
+  
+  .option-btn.active {
+    @apply bg-gradient-to-r from-blue-500 to-purple-600 text-white border-transparent;
+  }
+  
+  .detail-inputs {
+    @apply space-y-3;
+  }
+  
+  .detail-input {
+    @apply w-full px-4 py-3 bg-dark-700 border border-dark-600 rounded-lg text-gray-200;
+    @apply focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors duration-200;
+  }
+  
+  .generated-prompt {
+    @apply space-y-4;
+  }
+  
+  .prompt-display {
+    @apply p-4 bg-dark-700 border border-dark-600 rounded-lg text-gray-200 font-mono;
+    @apply min-h-[60px] flex items-center;
+  }
+  
+  .copy-btn {
+    @apply flex items-center px-4 py-2 bg-gradient-to-r from-green-600 to-green-700;
+    @apply text-white rounded-lg hover:from-green-700 hover:to-green-800;
+    @apply transition-all duration-200;
+  }
+  
+  .copy-btn.copied {
+    @apply from-green-500 to-green-600;
+  }
+  
+  /* MCP Section */
+  .mcp-explanation {
+    @apply grid md:grid-cols-2 gap-12 items-center;
+  }
+  
+  .connection-diagram {
+    @apply flex items-center justify-center space-x-8;
+  }
+  
+  .node {
+    @apply flex flex-col items-center space-y-3 p-6 rounded-xl bg-dark-700 border border-dark-600;
+  }
+  
+  .ai-node {
+    @apply bg-gradient-to-br from-blue-600/20 to-blue-700/20 border-blue-500/50;
+  }
+  
+  .app-node {
+    @apply bg-gradient-to-br from-purple-600/20 to-purple-700/20 border-purple-500/50;
+  }
+  
+  .connection-line {
+    @apply relative w-16 h-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded;
+  }
+  
+  .data-flow {
+    @apply absolute inset-0;
+  }
+  
+  .flow-particle {
+    @apply absolute w-2 h-2 bg-white rounded-full;
+    animation: flow 2s infinite linear;
+  }
+  
+  .flow-particle:nth-child(1) { animation-delay: 0s; }
+  .flow-particle:nth-child(2) { animation-delay: 0.7s; }
+  .flow-particle:nth-child(3) { animation-delay: 1.4s; }
+  
+  @keyframes flow {
+    from {
+      left: -8px;
+      opacity: 0;
+    }
+    50% {
+      opacity: 1;
+    }
+    to {
+      left: calc(100% + 8px);
+      opacity: 0;
+    }
+  }
+  
+  .mcp-card {
+    @apply p-8 bg-gradient-to-br from-dark-800/60 to-dark-700/60 rounded-xl border border-dark-600/50;
+  }
+  
+  .mcp-title {
+    @apply text-2xl font-bold text-gray-100 mb-4;
+  }
+  
+  .mcp-description {
+    @apply text-gray-300 leading-relaxed mb-6;
+  }
+  
+  .mcp-analogy {
+    @apply flex items-start space-x-4 p-4 bg-amber-900/20 border border-amber-600/30 rounded-lg mb-6;
+  }
+  
+  .analogy-icon {
+    @apply text-amber-400 flex-shrink-0;
+  }
+  
+  .analogy-text {
+    @apply text-amber-200 text-sm;
+  }
+  
+  .mcp-benefits {
+    @apply space-y-3;
+  }
+  
+  .benefit-point {
+    @apply flex items-center space-x-3 text-gray-300;
+  }
+  
+  .benefit-dot {
+    @apply w-2 h-2 bg-green-500 rounded-full;
+  }
+  
+  /* Getting started */
+  .getting-started-grid {
+    @apply grid md:grid-cols-3 gap-8 mb-12;
+  }
+  
+  .step-card {
+    @apply p-8 bg-gradient-to-br from-dark-800/60 to-dark-700/60 rounded-xl border border-dark-600/50;
+    @apply hover:from-dark-700/70 hover:to-dark-600/70 transition-all duration-300;
+    @apply transform hover:scale-105;
+  }
+  
+  .step-icon {
+    @apply w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white mb-6 mx-auto;
+    @apply shadow-lg;
+  }
+  
+  .step-card-title {
+    @apply text-xl font-bold text-gray-100 mb-4 text-center;
+  }
+  
+  .step-card-description {
+    @apply text-gray-300 leading-relaxed mb-6 text-center;
+  }
+  
+  .step-card-action {
+    @apply inline-block w-full text-center py-3 px-6 bg-gradient-to-r from-blue-600 to-purple-600;
+    @apply text-white font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700;
+    @apply transition-all duration-200 no-underline;
+  }
+  
+  /* Final CTA */
+  .final-cta {
+    @apply text-center p-12 bg-gradient-to-r from-blue-900/20 via-purple-900/20 to-pink-900/20;
+    @apply border border-blue-500/30 rounded-2xl;
+  }
+  
+  .cta-title {
+    @apply text-3xl font-bold text-gray-100 mb-4;
+  }
+  
+  .cta-subtitle {
+    @apply text-gray-300 mb-8;
+  }
+  
+  .cta-actions {
+    @apply flex flex-col sm:flex-row gap-4 justify-center;
+  }
+  
+  /* Scroll animations */
+  .concept-card,
+  .benefit-card,
+  .step-card {
+    @apply transform translate-y-8 opacity-0 transition-all duration-700;
+  }
+  
+  .concept-card.animate-in,
+  .benefit-card.animate-in,
+  .step-card.animate-in {
+    @apply translate-y-0 opacity-100;
+  }
+  
+  /* Assistant vs Agent Comparison Styles */
+  .comparison-container {
+    @apply space-y-12;
+  }
+  
+  .comparison-grid {
+    @apply grid lg:grid-cols-3 gap-8 items-start;
+  }
+  
+  .comparison-card {
+    @apply bg-gradient-to-br from-dark-800/60 to-dark-700/60 rounded-2xl p-8 border transition-all duration-300;
+    @apply hover:shadow-2xl transform hover:scale-105;
+  }
+  
+  .assistant-card {
+    @apply border-blue-500/30 hover:border-blue-400/50;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(30, 64, 175, 0.05) 100%);
+  }
+  
+  .agent-card {
+    @apply border-cyan-500/30 hover:border-cyan-400/50;
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(8, 145, 178, 0.05) 100%);
+  }
+  
+  .comparison-header {
+    @apply text-center mb-8;
+  }
+  
+  .comparison-icon {
+    @apply w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg;
+  }
+  
+  .comparison-title {
+    @apply text-2xl font-bold text-gray-100 mb-2;
+  }
+  
+  .comparison-subtitle {
+    @apply text-gray-400 italic;
+  }
+  
+  .comparison-content {
+    @apply space-y-6;
+  }
+  
+  .feature-title {
+    @apply text-lg font-semibold text-gray-200 mb-3;
+  }
+  
+  .feature-list {
+    @apply space-y-2 mb-6;
+  }
+  
+  .feature-list li {
+    @apply text-gray-300 flex items-center;
+  }
+  
+  .feature-list li::before {
+    content: '\2713';
+    @apply text-green-400 font-bold mr-3 text-lg;
+  }
+  
+  .example-box {
+    @apply bg-dark-600/50 rounded-lg p-4 border border-dark-500/50;
+  }
+  
+  .example-title {
+    @apply text-sm font-semibold text-gray-300 mb-3;
+  }
+  
+  .example-conversation {
+    @apply space-y-3 mb-3;
+  }
+  
+  .example-message {
+    @apply p-3 rounded-lg text-sm;
+  }
+  
+  .user-msg {
+    @apply bg-blue-600/20 text-blue-200 border border-blue-500/30;
+  }
+  
+  .assistant-msg {
+    @apply bg-gray-600/20 text-gray-200 border border-gray-500/30;
+  }
+  
+  .agent-msg {
+    @apply bg-green-600/20 text-green-200 border border-green-500/30;
+  }
+  
+  .example-note {
+    @apply text-xs text-gray-400 italic;
+  }
+  
+  .analogy-box {
+    @apply flex items-start space-x-3 p-4 bg-amber-900/10 border border-amber-600/20 rounded-lg;
+  }
+  
+  .analogy-icon {
+    @apply text-2xl;
+  }
+  
+  .analogy-text {
+    @apply text-sm text-amber-200;
+  }
+  
+  /* VS Divider */
+  .vs-divider {
+    @apply flex justify-center items-center;
+  }
+  
+  .vs-circle {
+    @apply w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg;
+    @apply border-4 border-dark-800;
+  }
+  
+  .vs-text {
+    @apply text-white font-black text-xl;
+  }
+  
+  /* Key Insight */
+  .key-insight {
+    @apply flex items-start space-x-4 p-8 bg-gradient-to-r from-yellow-900/20 via-orange-900/20 to-red-900/20;
+    @apply border border-yellow-500/30 rounded-2xl mt-12;
+  }
+  
+  .insight-icon {
+    @apply flex-shrink-0;
+  }
+  
+  .insight-content {
+    @apply flex-1;
+  }
+  
+  .insight-title {
+    @apply text-2xl font-bold text-yellow-300 mb-4;
+  }
+  
+  .insight-text {
+    @apply text-lg text-yellow-100 leading-relaxed;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .section-number {
+      @apply text-4xl mr-4;
+    }
+    
+    .section-title {
+      @apply text-2xl;
+    }
+    
+    .connection-diagram {
+      @apply flex-col space-y-4 space-x-0;
+    }
+    
+    .connection-line {
+      @apply w-1 h-16 bg-gradient-to-b;
+    }
+    
+    .comparison-grid {
+      @apply grid-cols-1 gap-6;
+    }
+    
+    .vs-divider {
+      @apply my-4;
+    }
+    
+    .vs-circle {
+      @apply w-12 h-12;
+    }
+    
+    .vs-text {
+      @apply text-base;
+    }
+    
+    .key-insight {
+      @apply flex-col space-x-0 space-y-4 text-center;
+    }
+  }
+</style>

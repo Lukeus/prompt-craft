@@ -1,0 +1,657 @@
+---
+export interface Props {
+  prompt: {
+    id: string;
+    name: string;
+    description: string;
+    content: string;
+    category: string;
+    tags: string[];
+    author?: string;
+    version: string;
+    variables?: Array<{
+      name: string;
+      description: string;
+      type: string;
+      required: boolean;
+      defaultValue?: any;
+    }>;
+  };
+}
+
+const { prompt } = Astro.props;
+
+// Get category color
+const getCategoryColor = (category: string) => {
+  switch (category) {
+    case 'work':
+      return 'bg-primary-600 text-white hover:bg-primary-700';
+    case 'personal':
+      return 'bg-accent-600 text-white hover:bg-accent-700';
+    case 'shared':
+      return 'bg-success-600 text-white hover:bg-success-700';
+    default:
+      return 'bg-dark-600 text-white hover:bg-dark-700';
+  }
+};
+---
+
+<div class="prompt-testing-interface">
+  <!-- Hero Section with Prompt Testing -->
+  <div class="glass-card rounded-2xl shadow-2xl overflow-hidden mb-8">
+    <div class="bg-gradient-to-r from-primary-900/20 via-dark-800/30 to-accent-900/20 p-6 border-b border-dark-700/30">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center space-x-4">
+          <div class="w-12 h-12 bg-gradient-to-br from-primary-500 to-accent-500 rounded-xl flex items-center justify-center shadow-lg">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold text-gray-100">Test Your Prompt</h1>
+            <p class="text-gray-400 text-sm mt-1">Enter variables below to see your prompt in action</p>
+          </div>
+        </div>
+        <span class={`px-4 py-2 text-sm font-semibold rounded-full uppercase tracking-wide transition-colors duration-200 cursor-pointer ${getCategoryColor(prompt.category)}`}>
+          {prompt.category}
+        </span>
+      </div>
+    </div>
+
+    <!-- Two-Column Layout: Variables on Left, Output on Right -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 min-h-[600px]">
+      <!-- Variables Panel -->
+      <div class="p-6 border-r border-dark-700/30">
+        <div class="space-y-6">
+          <div class="flex items-center justify-between">
+            <h2 class="text-lg font-semibold text-gray-100 flex items-center">
+              <svg class="w-5 h-5 mr-2 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a4 4 0 004 4h4a2 2 0 002-2V5z"></path>
+              </svg>
+              Variables
+            </h2>
+            {prompt.variables && prompt.variables.length > 0 && (
+              <span class="text-xs text-gray-400 bg-dark-800/50 px-3 py-1 rounded-full border border-dark-700/50">
+                {prompt.variables.length} variable{prompt.variables.length !== 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
+
+          {prompt.variables && prompt.variables.length > 0 ? (
+            <form id="variable-form" class="space-y-5">
+              {prompt.variables.map((variable) => (
+                <div key={variable.name} class="variable-input-group">
+                  <label for={variable.name} class="block text-sm font-medium text-gray-200 mb-2 flex items-center justify-between">
+                    <span class="flex items-center">
+                      <code class="text-primary-300 bg-dark-800/50 px-2 py-1 rounded mr-2 text-xs font-mono">
+                        {`{{${variable.name}}}`}
+                      </code>
+                      {variable.required && <span class="text-red-400 text-xs font-bold bg-red-900/30 px-2 py-1 rounded ml-2">Required</span>}
+                    </span>
+                    <span class={`variable-type-badge ${variable.type}`}>
+                      {variable.type}
+                    </span>
+                  </label>
+                  
+                  <div class="relative">
+                    {variable.type === 'boolean' ? (
+                      <select 
+                        id={variable.name}
+                        name={variable.name}
+                        class="variable-input select"
+                      >
+                        <option value="">Choose value...</option>
+                        <option value="true">True</option>
+                        <option value="false">False</option>
+                      </select>
+                    ) : variable.type === 'array' ? (
+                      <textarea 
+                        id={variable.name}
+                        name={variable.name}
+                        rows="4"
+                        placeholder="Enter array items, one per line"
+                        class="variable-input textarea"
+                      ></textarea>
+                    ) : (
+                      <input 
+                        type={variable.type === 'number' ? 'number' : 'text'}
+                        id={variable.name}
+                        name={variable.name}
+                        placeholder={variable.defaultValue ? `Default: ${variable.defaultValue}` : `Enter ${variable.name}...`}
+                        class="variable-input"
+                      />
+                    )}
+                  </div>
+                  
+                  {variable.description && (
+                    <p class="mt-2 text-xs text-gray-400 leading-relaxed">
+                      {variable.description}
+                    </p>
+                  )}
+                  
+                  {variable.defaultValue && (
+                    <div class="mt-2">
+                      <span class="text-xs text-gray-500">Default: </span>
+                      <code class="text-xs bg-dark-700/50 text-gray-300 px-2 py-1 rounded border border-dark-600/50">
+                        {variable.defaultValue}
+                      </code>
+                    </div>
+                  )}
+                </div>
+              ))}
+              
+              <div class="flex space-x-3 pt-4 border-t border-dark-700/30">
+                <button 
+                  type="button"
+                  id="render-btn"
+                  class="btn-primary flex-1"
+                >
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                  </svg>
+                  Render Now
+                </button>
+                <button 
+                  type="button"
+                  id="clear-btn"
+                  class="btn-secondary"
+                >
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                  </svg>
+                  Clear
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div class="text-center py-12">
+              <svg class="w-16 h-16 mx-auto text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              <p class="text-gray-400 text-sm">This prompt has no variables to configure</p>
+              <p class="text-gray-500 text-xs mt-1">The output will show the raw prompt content</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <!-- Live Output Panel -->
+      <div class="p-6 bg-dark-900/30">
+        <div class="h-full flex flex-col">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold text-gray-100 flex items-center">
+              <svg class="w-5 h-5 mr-2 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path>
+              </svg>
+              Live Preview
+            </h2>
+            <div class="flex space-x-2">
+              <button 
+                id="copy-btn"
+                class="btn-secondary text-xs px-3 py-2"
+                title="Copy to clipboard"
+              >
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                </svg>
+                Copy
+              </button>
+              <button 
+                id="export-btn"
+                class="btn-secondary text-xs px-3 py-2"
+                title="Export as file"
+              >
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
+                </svg>
+                Export
+              </button>
+            </div>
+          </div>
+          
+          <div class="flex-1 relative">
+            <div class="output-container h-full">
+              <div id="rendered-content" class="output-text">
+                {prompt.content}
+              </div>
+            </div>
+            
+            <div id="copy-success" class="absolute top-4 right-4 bg-success-500 text-white px-4 py-2 rounded-lg shadow-lg text-sm font-medium opacity-0 transition-all duration-300 transform translate-y-2">
+              <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              Copied to clipboard!
+            </div>
+          </div>
+          
+          <!-- Word Count & Stats -->
+          <div class="flex items-center justify-between pt-4 border-t border-dark-700/30 text-xs text-gray-500">
+            <div class="flex items-center space-x-4">
+              <span id="word-count">Words: 0</span>
+              <span id="char-count">Characters: 0</span>
+            </div>
+            <div id="last-updated" class="text-gray-600">
+              Auto-updating...
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Original Prompt Reference -->
+  <div class="glass-card rounded-xl p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg font-semibold text-gray-100 flex items-center">
+        <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        Original Template
+      </h2>
+      <button 
+        id="toggle-original"
+        class="text-xs text-gray-400 hover:text-gray-300 transition-colors duration-200"
+      >
+        <span id="toggle-text">Show</span>
+        <svg class="w-4 h-4 ml-1 inline transform transition-transform duration-200" id="toggle-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+        </svg>
+      </button>
+    </div>
+    
+    <div id="original-content" class="hidden">
+      <div class="bg-dark-800/50 border border-dark-700/30 rounded-lg p-4">
+        <pre class="whitespace-pre-wrap text-sm text-gray-300 font-mono leading-relaxed">{prompt.content}</pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Enhanced Styles -->
+<style>
+  /* Main Interface Styles */
+  .prompt-testing-interface {
+    @apply max-w-6xl mx-auto;
+  }
+
+  .glass-card {
+    @apply bg-dark-900/30 backdrop-blur-sm border border-dark-700/50 shadow-2xl;
+  }
+
+  /* Variable Input Styles */
+  .variable-input-group {
+    @apply p-4 bg-dark-800/20 border border-dark-700/30 rounded-xl hover:border-dark-600/50 transition-all duration-200;
+  }
+
+  .variable-input {
+    @apply block w-full px-4 py-3 bg-dark-800/50 border border-dark-600/50 rounded-lg text-gray-100 placeholder-gray-500;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500/50 transition-all duration-200;
+    @apply hover:bg-dark-700/50 hover:border-dark-500/50;
+  }
+
+  .variable-input.textarea {
+    @apply resize-y min-h-[100px] font-mono text-sm leading-relaxed;
+  }
+
+  .variable-input.select {
+    @apply cursor-pointer;
+  }
+
+  /* Variable Type Badges */
+  .variable-type-badge {
+    @apply px-3 py-1 text-xs font-medium rounded-full uppercase tracking-wide;
+  }
+
+  .variable-type-badge.string {
+    @apply bg-primary-900/40 text-primary-300 border border-primary-700/50;
+  }
+
+  .variable-type-badge.number {
+    @apply bg-success-900/40 text-success-300 border border-success-700/50;
+  }
+
+  .variable-type-badge.boolean {
+    @apply bg-accent-900/40 text-accent-300 border border-accent-700/50;
+  }
+
+  .variable-type-badge.array {
+    @apply bg-warning-900/40 text-warning-300 border border-warning-700/50;
+  }
+
+  /* Button Styles */
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-6 py-3 text-sm font-semibold rounded-lg;
+    @apply bg-gradient-to-r from-primary-600 to-primary-700 text-white border border-primary-500/50;
+    @apply hover:from-primary-700 hover:to-primary-800 hover:border-primary-400/50 hover:shadow-lg hover:shadow-primary-500/25;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 focus:ring-offset-dark-900;
+    @apply transition-all duration-200 transform hover:scale-105 active:scale-95;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg;
+    @apply bg-dark-800/60 text-gray-300 border border-dark-600/50;
+    @apply hover:bg-dark-700/70 hover:text-gray-200 hover:border-dark-500/50 hover:shadow-md;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dark-500 focus:ring-offset-dark-900;
+    @apply transition-all duration-200;
+  }
+
+  /* Output Container Styles */
+  .output-container {
+    @apply bg-dark-800/40 border border-dark-700/40 rounded-xl p-6 overflow-hidden;
+    @apply backdrop-blur-sm shadow-inner;
+  }
+
+  .output-text {
+    @apply whitespace-pre-wrap text-sm text-gray-200 font-mono leading-relaxed;
+    @apply min-h-[400px] max-h-[500px] overflow-y-auto;
+  }
+
+  /* Responsive Adjustments */
+  @media (max-width: 1024px) {
+    .prompt-testing-interface .grid {
+      @apply grid-cols-1;
+    }
+    
+    .prompt-testing-interface .border-r {
+      @apply border-r-0 border-b border-dark-700/30;
+    }
+    
+    .output-text {
+      @apply min-h-[300px] max-h-[400px];
+    }
+  }
+
+  /* Animation Classes */
+  .fade-in {
+    @apply opacity-0 animate-fade-in;
+  }
+
+  .slide-up {
+    @apply transform translate-y-4 opacity-0;
+    transition: all 0.3s ease-out;
+  }
+
+  .slide-up.active {
+    @apply translate-y-0 opacity-100;
+  }
+
+  /* Success Toast Styling */
+  #copy-success.show {
+    @apply opacity-100 translate-y-0;
+  }
+
+  /* Custom Scrollbar */
+  .output-text::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .output-text::-webkit-scrollbar-track {
+    background: rgba(55, 65, 81, 0.5);
+  }
+
+  .output-text::-webkit-scrollbar-thumb {
+    background: rgba(75, 85, 99, 0.8);
+    border-radius: 3px;
+  }
+
+  .output-text::-webkit-scrollbar-thumb:hover {
+    background: rgba(107, 114, 128, 0.9);
+  }
+</style>
+
+<script define:vars={{ prompt }}>
+  document.addEventListener('DOMContentLoaded', () => {
+    const variableForm = document.getElementById('variable-form');
+    const renderBtn = document.getElementById('render-btn');
+    const clearBtn = document.getElementById('clear-btn');
+    const copyBtn = document.getElementById('copy-btn');
+    const exportBtn = document.getElementById('export-btn');
+    const renderedContent = document.getElementById('rendered-content');
+    const copySuccess = document.getElementById('copy-success');
+    const toggleOriginal = document.getElementById('toggle-original');
+    const originalContent = document.getElementById('original-content');
+    const toggleText = document.getElementById('toggle-text');
+    const toggleIcon = document.getElementById('toggle-icon');
+    const wordCount = document.getElementById('word-count');
+    const charCount = document.getElementById('char-count');
+    const lastUpdated = document.getElementById('last-updated');
+
+    // Auto-render on page load and form changes
+    const autoRender = () => {
+      setTimeout(() => {
+        renderPrompt();
+        updateStats();
+        updateTimestamp();
+      }, 100);
+    };
+
+    // Render button click with visual feedback
+    renderBtn?.addEventListener('click', () => {
+      renderBtn.classList.add('animate-pulse');
+      renderPrompt();
+      updateStats();
+      updateTimestamp();
+      setTimeout(() => {
+        renderBtn.classList.remove('animate-pulse');
+      }, 500);
+    });
+
+    // Clear button click with confirmation and animation
+    clearBtn?.addEventListener('click', () => {
+      if (variableForm) {
+        // Add slide-up animation
+        const inputs = variableForm.querySelectorAll('.variable-input');
+        inputs.forEach((input, index) => {
+          setTimeout(() => {
+            input.value = '';
+            input.classList.add('slide-up');
+            setTimeout(() => input.classList.remove('slide-up'), 300);
+          }, index * 50);
+        });
+        
+        setTimeout(() => {
+          variableForm.reset();
+          renderPrompt();
+          updateStats();
+          updateTimestamp();
+        }, inputs.length * 50 + 100);
+      }
+    });
+
+    // Auto-render on input change with debouncing
+    if (variableForm) {
+      let debounceTimer;
+      const inputs = variableForm.querySelectorAll('input, select, textarea');
+      inputs.forEach(input => {
+        const handleInput = () => {
+          clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(autoRender, 300);
+        };
+        
+        input.addEventListener('input', handleInput);
+        input.addEventListener('change', handleInput);
+        
+        // Add focus effects
+        input.addEventListener('focus', () => {
+          input.parentElement.parentElement.classList.add('ring-2', 'ring-primary-500/30');
+        });
+        
+        input.addEventListener('blur', () => {
+          input.parentElement.parentElement.classList.remove('ring-2', 'ring-primary-500/30');
+        });
+      });
+    }
+
+    // Enhanced copy functionality with better visual feedback
+    copyBtn?.addEventListener('click', async () => {
+      const content = renderedContent.textContent || '';
+      
+      try {
+        await navigator.clipboard.writeText(content);
+        showCopySuccess();
+      } catch (err) {
+        console.error('Failed to copy text: ', err);
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = content;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+          document.execCommand('copy');
+          showCopySuccess();
+        } catch (fallbackErr) {
+          console.error('Fallback copy failed: ', fallbackErr);
+          alert('Failed to copy to clipboard. Please select the text manually.');
+        }
+        
+        document.body.removeChild(textArea);
+      }
+    });
+
+    // Export with better file naming and metadata
+    exportBtn?.addEventListener('click', () => {
+      const content = renderedContent.textContent || '';
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+      const filename = `${prompt.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${timestamp}.txt`;
+      
+      // Add metadata header
+      const metadata = [
+        `# ${prompt.name}`,
+        `# Category: ${prompt.category}`,
+        `# Generated: ${new Date().toLocaleString()}`,
+        `# Variables: ${prompt.variables?.length || 0}`,
+        '',
+        content
+      ].join('\n');
+      
+      const blob = new Blob([metadata], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      // Show export success
+      const exportSuccess = document.createElement('div');
+      exportSuccess.className = 'fixed bottom-4 right-4 bg-success-500 text-white px-4 py-2 rounded-lg shadow-lg text-sm font-medium z-50';
+      exportSuccess.innerHTML = `
+        <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3"></path>
+        </svg>
+        Exported successfully!
+      `;
+      document.body.appendChild(exportSuccess);
+      setTimeout(() => {
+        exportSuccess.remove();
+      }, 3000);
+    });
+
+    // Toggle original content
+    toggleOriginal?.addEventListener('click', () => {
+      const isHidden = originalContent.classList.contains('hidden');
+      
+      if (isHidden) {
+        originalContent.classList.remove('hidden');
+        originalContent.classList.add('slide-up');
+        toggleText.textContent = 'Hide';
+        toggleIcon.style.transform = 'rotate(180deg)';
+        setTimeout(() => {
+          originalContent.classList.add('active');
+        }, 10);
+      } else {
+        originalContent.classList.remove('active');
+        toggleText.textContent = 'Show';
+        toggleIcon.style.transform = 'rotate(0deg)';
+        setTimeout(() => {
+          originalContent.classList.add('hidden');
+          originalContent.classList.remove('slide-up');
+        }, 300);
+      }
+    });
+
+    // Enhanced render function
+    function renderPrompt() {
+      let content = prompt.content;
+      const variables = prompt.variables || [];
+
+      if (variableForm && variables.length > 0) {
+        const formData = new FormData(variableForm);
+
+        variables.forEach(variable => {
+          const value = formData.get(variable.name)?.toString() || '';
+          let substitutionValue = value || variable.defaultValue || `{{${variable.name}}}`;
+
+          // Handle different variable types with better formatting
+          if (variable.type === 'array' && value) {
+            const items = value.split('\n').filter(item => item.trim());
+            substitutionValue = items.length > 1 ? items.join(', ') : items[0] || `{{${variable.name}}}`;
+          } else if (variable.type === 'boolean') {
+            substitutionValue = value === 'true' ? 'true' : value === 'false' ? 'false' : `{{${variable.name}}}`;
+          } else if (variable.type === 'number' && value) {
+            substitutionValue = parseFloat(value).toString();
+          }
+
+          // Replace all occurrences with improved regex
+          const regex = new RegExp(`{{\\s*${variable.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*}}`, 'g');
+          content = content.replace(regex, substitutionValue);
+        });
+      }
+
+      if (renderedContent) {
+        renderedContent.textContent = content;
+        // Add gentle fade effect
+        renderedContent.classList.add('fade-in');
+        setTimeout(() => {
+          renderedContent.classList.remove('fade-in');
+        }, 500);
+      }
+    }
+
+    // Update word and character counts
+    function updateStats() {
+      const content = renderedContent?.textContent || '';
+      const words = content.trim() ? content.trim().split(/\s+/).length : 0;
+      const chars = content.length;
+      
+      if (wordCount) wordCount.textContent = `Words: ${words}`;
+      if (charCount) charCount.textContent = `Characters: ${chars}`;
+    }
+
+    // Update timestamp
+    function updateTimestamp() {
+      if (lastUpdated) {
+        lastUpdated.textContent = `Updated: ${new Date().toLocaleTimeString()}`;
+      }
+    }
+
+    // Show copy success with animation
+    function showCopySuccess() {
+      copySuccess.classList.add('show');
+      setTimeout(() => {
+        copySuccess.classList.remove('show');
+      }, 2000);
+    }
+
+    // Initialize with slide-in animations
+    setTimeout(() => {
+      const elements = document.querySelectorAll('.variable-input-group');
+      elements.forEach((el, index) => {
+        setTimeout(() => {
+          el.classList.add('slide-up', 'active');
+        }, index * 100);
+      });
+    }, 200);
+
+    // Initial render
+    autoRender();
+  });
+</script>

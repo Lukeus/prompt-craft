@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+# Important pages
+Allow: /what-is-this
+Allow: /prompts
+Allow: /search
+Allow: /mcp
+
+# Sitemap
+Sitemap: https://prompt-craft.vercel.app/sitemap.xml
+
+# Crawl delay (optional)
+Crawl-delay: 1

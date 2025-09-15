@@ -1,0 +1,31 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "baseUrl": "../../..",
+    "paths": {
+      "@core/*": ["packages/core/*"],
+      "@infrastructure/*": ["packages/infrastructure/*"],
+      "@apps/*": ["packages/apps/*"]
+    },
+    "types": ["astro/client"]
+  },
+  "include": [
+    "./**/*",
+    "../../../packages/core/**/*",
+    "../../../packages/infrastructure/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/__tests__",
+    "**/*.test.ts"
+  ]
+}

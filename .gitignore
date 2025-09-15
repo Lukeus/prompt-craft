@@ -40,3 +40,4 @@ coverage/
 
 # MCP server specific
 mcp-server.log
+.vercel

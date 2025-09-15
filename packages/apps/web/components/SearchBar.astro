@@ -1,0 +1,173 @@
+---
+export interface Props {
+  initialQuery?: string;
+  initialCategory?: string;
+  initialTags?: string[];
+}
+
+const { initialQuery = '', initialCategory = '', initialTags = [] } = Astro.props;
+---
+
+<div class="glass-card rounded-lg shadow-lg p-6 mb-6">
+  <form id="search-form" class="space-y-4">
+    <!-- Search Query -->
+    <div>
+      <label for="query" class="block text-sm font-medium text-gray-300 mb-2">
+        Search Prompts
+      </label>
+      <input 
+        type="text" 
+        id="query" 
+        name="q"
+        value={initialQuery}
+        placeholder="Search by name, description, content, or tags..."
+        class="block w-full px-3 py-2 border border-dark-600 bg-dark-800/50 text-gray-100 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm placeholder:text-gray-500"
+      />
+    </div>
+    
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <!-- Category Filter -->
+      <div>
+        <label for="category" class="block text-sm font-medium text-gray-300 mb-2">
+          Category
+        </label>
+        <select 
+          id="category" 
+          name="category"
+          class="block w-full px-3 py-2 border border-dark-600 bg-dark-800/50 text-gray-100 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+        >
+          <option value="">All Categories</option>
+          <option value="work" selected={initialCategory === 'work'}>Work</option>
+          <option value="personal" selected={initialCategory === 'personal'}>Personal</option>
+          <option value="shared" selected={initialCategory === 'shared'}>Shared</option>
+        </select>
+      </div>
+      
+      <!-- Tags Filter -->
+      <div>
+        <label for="tags" class="block text-sm font-medium text-gray-300 mb-2">
+          Tags (comma-separated)
+        </label>
+        <input 
+          type="text" 
+          id="tags" 
+          name="tags"
+          value={initialTags.join(', ')}
+          placeholder="tag1, tag2, tag3"
+          class="block w-full px-3 py-2 border border-dark-600 bg-dark-800/50 text-gray-100 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm placeholder:text-gray-500"
+        />
+      </div>
+      
+      <!-- Author Filter -->
+      <div>
+        <label for="author" class="block text-sm font-medium text-gray-300 mb-2">
+          Author
+        </label>
+        <input 
+          type="text" 
+          id="author" 
+          name="author"
+          placeholder="Search by author"
+          class="block w-full px-3 py-2 border border-dark-600 bg-dark-800/50 text-gray-100 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm placeholder:text-gray-500"
+        />
+      </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="flex items-center space-x-3 pt-2">
+      <button 
+        type="submit"
+        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+      >
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+        Search
+      </button>
+      
+      <button 
+        type="button"
+        id="clear-filters"
+        class="inline-flex items-center px-4 py-2 border border-dark-600 text-sm font-medium rounded-md text-gray-300 bg-dark-800/50 hover:bg-dark-700/60 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200"
+      >
+        Clear Filters
+      </button>
+      
+      <div class="flex-1"></div>
+      
+      <!-- Results Count -->
+      <div id="results-count" class="text-sm text-gray-400">
+        <!-- Will be populated by JavaScript -->
+      </div>
+    </div>
+  </form>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('search-form') as HTMLFormElement;
+    const clearButton = document.getElementById('clear-filters');
+    const resultsCount = document.getElementById('results-count');
+    
+    // Handle form submission
+    form?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      performSearch();
+    });
+    
+    // Handle clear filters
+    clearButton?.addEventListener('click', () => {
+      form?.reset();
+      // Redirect to clean URL
+      window.location.href = window.location.pathname;
+    });
+    
+    // Auto-search on input (debounced)
+    let searchTimeout: number;
+    const inputs = form?.querySelectorAll('input, select');
+    inputs?.forEach(input => {
+      input.addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = window.setTimeout(performSearch, 500);
+      });
+    });
+    
+    function performSearch() {
+      if (!form) return;
+      
+      const formData = new FormData(form);
+      const searchParams = new URLSearchParams();
+      
+      // Build search parameters
+      formData.forEach((value, key) => {
+        if (value && typeof value === 'string' && value.trim()) {
+          searchParams.set(key, value.trim());
+        }
+      });
+      
+      // Update URL and perform search
+      const newUrl = searchParams.toString() ? 
+        `${window.location.pathname}?${searchParams.toString()}` : 
+        window.location.pathname;
+      
+      window.history.pushState({}, '', newUrl);
+      
+      // Trigger search event for other components to listen to
+      window.dispatchEvent(new CustomEvent('searchUpdate', { 
+        detail: { searchParams: searchParams.toString() } 
+      }));
+    }
+    
+    // Update results count
+    function updateResultsCount(count: number) {
+      if (resultsCount) {
+        resultsCount.textContent = count === 1 ? '1 result' : `${count} results`;
+      }
+    }
+    
+    // Listen for result updates
+    window.addEventListener('searchResults', ((e: CustomEvent) => {
+      updateResultsCount(e.detail.count || 0);
+    }) as EventListener);
+  });
+</script>

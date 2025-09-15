@@ -1,0 +1,749 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PromptCard from '../components/PromptCard.astro';
+
+// Fetch all prompts to show statistics
+let prompts = [];
+let stats = {
+  total: 0,
+  work: 0,
+  personal: 0,
+  shared: 0
+};
+
+try {
+  const response = await fetch(`${Astro.url.origin}/api/prompts`);
+  if (response.ok) {
+    prompts = await response.json();
+    
+    stats.total = prompts.length;
+    stats.work = prompts.filter((p: any) => p.category === 'work').length;
+    stats.personal = prompts.filter((p: any) => p.category === 'personal').length;
+    stats.shared = prompts.filter((p: any) => p.category === 'shared').length;
+  }
+} catch (error) {
+  console.error('Error fetching prompts:', error);
+}
+
+// Get recent prompts (last 6)
+const recentPrompts = prompts
+  .sort((a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+  .slice(0, 6);
+---
+
+<Layout 
+  title="Prompt Craft - The Ultimate AI Prompt Management System"
+  description="Supercharge your AI workflow with the most powerful prompt management system ever built. Organize, test, and deploy prompts with TypeScript precision. Real-time testing, smart categorization, and seamless workflows."
+  image="/dashboard-og.png"
+  type="website"
+>
+  <!-- Hero Header -->
+  <div class="mb-12 text-center sm:text-left">
+    <div class="animate-slide-up">
+      <!-- Experimental Badge -->
+      <div class="flex flex-wrap items-center justify-center sm:justify-start gap-3 mb-6">
+        <div class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-accent-600/20 to-primary-600/20 border border-accent-500/30 rounded-full text-sm font-semibold text-accent-300 backdrop-blur-sm animate-pulse">
+          <svg class="w-4 h-4 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+          </svg>
+          🧪 Live Experiment
+        </div>
+        <div class="inline-flex items-center px-3 py-1 bg-dark-800/50 border border-dark-600/50 rounded-full text-xs font-medium text-gray-400">
+          <div class="w-2 h-2 bg-success-400 rounded-full mr-2 animate-pulse"></div>
+          Active Development
+        </div>
+      </div>
+      
+      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-balance">
+        <span class="bg-gradient-to-r from-gray-100 via-primary-300 to-accent-400 bg-clip-text text-transparent">
+          Supercharge Your 
+        </span>
+        <span class="bg-gradient-to-r from-accent-400 via-accent-500 to-accent-600 bg-clip-text text-transparent">
+          AI Workflow
+        </span>
+      </h1>
+      <p class="mt-6 text-xl text-gray-200 max-w-3xl text-balance leading-relaxed">
+        The most powerful prompt management system ever built.
+      </p>
+      <p class="text-lg text-gray-400 max-w-3xl text-balance leading-relaxed">
+        Organize, test, and deploy prompts with TypeScript precision. 
+        <span class="text-primary-400 font-medium">Real-time testing</span>, 
+        <span class="text-accent-400 font-medium">smart categorization</span>, and 
+        <span class="text-success-400 font-medium">seamless workflows</span>.
+      </p>
+      
+      <!-- Experiment Notice -->
+      <div class="mt-6 p-4 bg-gradient-to-r from-amber-900/20 via-amber-800/10 to-orange-900/20 border border-amber-600/30 rounded-xl backdrop-blur-sm">
+        <div class="flex items-start space-x-3">
+          <div class="flex-shrink-0">
+            <svg class="w-5 h-5 text-amber-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <div class="text-left">
+            <p class="text-amber-300 font-semibold text-sm">🚀 You're experiencing the future</p>
+            <p class="text-amber-200 text-sm mt-1">
+              This is a <strong>live experiment</strong> - a cutting-edge prompt management platform being refined in real-time. 
+              Features are evolving, new capabilities are dropping regularly, and your feedback shapes what comes next.
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mt-8 flex flex-col sm:flex-row gap-4 items-center sm:items-start justify-center sm:justify-start">
+        <a href="/prompts/new" class="btn-primary animate-scale-in" style="animation-delay: 0.1s;">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+          </svg>
+          Start Experimenting
+        </a>
+        <a href="/prompts" class="btn-secondary animate-scale-in" style="animation-delay: 0.2s;">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path>
+          </svg>
+          Explore the Lab
+        </a>
+        <a href="https://lukeus.com" target="_blank" rel="noopener noreferrer" class="btn-outline animate-scale-in text-sm" style="animation-delay: 0.3s;">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+          </svg>
+          Meet the Creator
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Enhanced Statistics Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+    <div class="stat-card group cursor-pointer animate-slide-up" style="animation-delay: 0.1s;" onclick="window.location.href='/prompts'">
+      <div class="stat-card-content">
+        <div class="stat-icon-container bg-gradient-to-br from-primary-500 to-primary-600">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <p class="stat-number">{stats.total}</p>
+          <p class="stat-label">Total Prompts</p>
+          <p class="stat-change">+{stats.total > 0 ? '100' : '0'}% this month</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card group cursor-pointer animate-slide-up" style="animation-delay: 0.2s;" onclick="window.location.href='/prompts?category=work'">
+      <div class="stat-card-content">
+        <div class="stat-icon-container bg-gradient-to-br from-blue-500 to-blue-600">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2h8zM12 10h.01"></path>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <p class="stat-number">{stats.work}</p>
+          <p class="stat-label">Work Prompts</p>
+          <p class="stat-change">Professional templates</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card group cursor-pointer animate-slide-up" style="animation-delay: 0.3s;" onclick="window.location.href='/prompts?category=personal'">
+      <div class="stat-card-content">
+        <div class="stat-icon-container bg-gradient-to-br from-accent-500 to-accent-600">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <p class="stat-number">{stats.personal}</p>
+          <p class="stat-label">Personal Prompts</p>
+          <p class="stat-change">Creative & hobby</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card group cursor-pointer animate-slide-up" style="animation-delay: 0.4s;" onclick="window.location.href='/prompts?category=shared'">
+      <div class="stat-card-content">
+        <div class="stat-icon-container bg-gradient-to-br from-success-500 to-success-600">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <p class="stat-number">{stats.shared}</p>
+          <p class="stat-label">Shared Prompts</p>
+          <p class="stat-change">Community driven</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Enhanced Quick Actions -->
+  <div class="glass-card rounded-xl shadow-xl p-8 mb-12 animate-slide-up" style="animation-delay: 0.5s;">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h2 class="text-xl font-bold text-gray-100 flex items-center">
+          <svg class="w-6 h-6 mr-2 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+          </svg>
+          Experimental Lab
+        </h2>
+        <p class="text-sm text-gray-400 mt-1">Test drive the most advanced prompt tools on the planet</p>
+      </div>
+      <div class="hidden sm:flex items-center space-x-2">
+        <div class="w-2 h-2 bg-accent-500 rounded-full animate-pulse"></div>
+        <span class="text-xs text-gray-300 font-medium">Live & Active</span>
+      </div>
+    </div>
+    
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <a href="/prompts/new" class="action-card group">
+        <div class="action-icon bg-gradient-to-br from-primary-500 to-primary-600">
+          <svg class="w-5 h-5 text-white group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+          </svg>
+        </div>
+        <div class="action-content">
+          <h3 class="action-title">Craft New Prompt</h3>
+          <p class="action-desc">Build & test cutting-edge prompts</p>
+        </div>
+        <svg class="action-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+        </svg>
+      </a>
+      
+      <a href="/prompts?category=work" class="action-card group">
+        <div class="action-icon bg-gradient-to-br from-blue-500 to-blue-600">
+          <svg class="w-5 h-5 text-white group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2h8zM12 10h.01"></path>
+          </svg>
+        </div>
+        <div class="action-content">
+          <h3 class="action-title">Work Arsenal</h3>
+          <p class="action-desc">Enterprise-grade prompt templates</p>
+        </div>
+        <svg class="action-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+        </svg>
+      </a>
+      
+      <a href="/search" class="action-card group">
+        <div class="action-icon bg-gradient-to-br from-accent-500 to-accent-600">
+          <svg class="w-5 h-5 text-white group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+        </div>
+        <div class="action-content">
+          <h3 class="action-title">AI-Powered Search</h3>
+          <p class="action-desc">Intelligent prompt discovery</p>
+        </div>
+        <svg class="action-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+        </svg>
+      </a>
+      
+      <a href="/prompts" class="action-card group">
+        <div class="action-icon bg-gradient-to-br from-success-500 to-success-600">
+          <svg class="w-5 h-5 text-white group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+          </svg>
+        </div>
+        <div class="action-content">
+          <h3 class="action-title">Command Center</h3>
+          <p class="action-desc">Mission control for all prompts</p>
+        </div>
+        <svg class="action-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+        </svg>
+      </a>
+    </div>
+  </div>
+
+  <!-- Recent Prompts -->
+  {recentPrompts.length > 0 && (
+    <div>
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-lg font-semibold text-gray-100">Recent Prompts</h2>
+        <a href="/prompts" class="text-sm text-primary-400 hover:text-primary-300 transition-colors">
+          View All →
+        </a>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {recentPrompts.map((prompt: any) => (
+          <PromptCard key={prompt.id} prompt={prompt} />
+        ))}
+      </div>
+    </div>
+  )}
+
+  {recentPrompts.length === 0 && (
+    <div class="text-center py-12">
+      <svg class="mx-auto h-12 w-12 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+      </svg>
+      <h3 class="mt-2 text-sm font-medium text-gray-200">No prompts yet</h3>
+      <p class="mt-1 text-sm text-gray-400">Get started by creating your first prompt.</p>
+      <div class="mt-6">
+        <a href="/prompts/new" class="btn-primary">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+          </svg>
+          Create New Prompt
+        </a>
+      </div>
+    </div>
+  )}
+</Layout>
+
+<!-- Particle Background Effect -->
+<div id="particles-container" class="fixed inset-0 pointer-events-none z-0 opacity-30">
+  <canvas id="particles-canvas"></canvas>
+</div>
+
+<script>
+  // Particle animation for background
+  class ParticleSystem {
+    constructor(canvas) {
+      this.canvas = canvas;
+      this.ctx = canvas.getContext('2d');
+      this.particles = [];
+      this.mouse = { x: 0, y: 0 };
+      
+      this.resize();
+      this.createParticles();
+      this.animate();
+      
+      window.addEventListener('resize', () => this.resize());
+      window.addEventListener('mousemove', (e) => {
+        this.mouse.x = e.clientX;
+        this.mouse.y = e.clientY;
+      });
+    }
+    
+    resize() {
+      this.canvas.width = window.innerWidth;
+      this.canvas.height = window.innerHeight;
+    }
+    
+    createParticles() {
+      const particleCount = Math.min(50, Math.floor((this.canvas.width * this.canvas.height) / 10000));
+      
+      for (let i = 0; i < particleCount; i++) {
+        this.particles.push({
+          x: Math.random() * this.canvas.width,
+          y: Math.random() * this.canvas.height,
+          vx: (Math.random() - 0.5) * 0.5,
+          vy: (Math.random() - 0.5) * 0.5,
+          size: Math.random() * 2 + 1,
+          opacity: Math.random() * 0.5 + 0.2,
+          color: Math.random() > 0.5 ? '#0ea5e9' : '#a855f7'
+        });
+      }
+    }
+    
+    animate() {
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      
+      this.particles.forEach((particle, index) => {
+        // Update position
+        particle.x += particle.vx;
+        particle.y += particle.vy;
+        
+        // Bounce off edges
+        if (particle.x < 0 || particle.x > this.canvas.width) particle.vx *= -1;
+        if (particle.y < 0 || particle.y > this.canvas.height) particle.vy *= -1;
+        
+        // Mouse interaction
+        const dx = this.mouse.x - particle.x;
+        const dy = this.mouse.y - particle.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance < 100) {
+          const force = (100 - distance) / 100;
+          particle.x -= (dx / distance) * force * 0.5;
+          particle.y -= (dy / distance) * force * 0.5;
+        }
+        
+        // Draw particle
+        this.ctx.save();
+        this.ctx.globalAlpha = particle.opacity;
+        this.ctx.fillStyle = particle.color;
+        this.ctx.beginPath();
+        this.ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.restore();
+        
+        // Connect nearby particles
+        for (let j = index + 1; j < this.particles.length; j++) {
+          const other = this.particles[j];
+          const dx = particle.x - other.x;
+          const dy = particle.y - other.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          
+          if (distance < 80) {
+            this.ctx.save();
+            this.ctx.globalAlpha = (80 - distance) / 80 * 0.2;
+            this.ctx.strokeStyle = particle.color;
+            this.ctx.lineWidth = 0.5;
+            this.ctx.beginPath();
+            this.ctx.moveTo(particle.x, particle.y);
+            this.ctx.lineTo(other.x, other.y);
+            this.ctx.stroke();
+            this.ctx.restore();
+          }
+        }
+      });
+      
+      requestAnimationFrame(() => this.animate());
+    }
+  }
+  
+  // Initialize particle system
+  document.addEventListener('DOMContentLoaded', () => {
+    const canvas = document.getElementById('particles-canvas');
+    if (canvas) {
+      new ParticleSystem(canvas);
+    }
+    
+    // Add loading animations to stat cards
+    const statCards = document.querySelectorAll('.stat-card');
+    statCards.forEach((card, index) => {
+      card.style.animationDelay = `${index * 0.1}s`;
+      
+      // Add click ripple effect
+      card.addEventListener('click', function(e) {
+        const ripple = document.createElement('div');
+        const rect = this.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        ripple.style.cssText = `
+          position: absolute;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.3);
+          transform: scale(0);
+          animation: ripple 0.6s linear;
+          left: ${x - 10}px;
+          top: ${y - 10}px;
+          width: 20px;
+          height: 20px;
+          pointer-events: none;
+        `;
+        
+        this.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 600);
+      });
+    });
+    
+    // Enhanced hover effects for action cards
+    const actionCards = document.querySelectorAll('.action-card');
+    actionCards.forEach(card => {
+      card.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-4px) scale(1.02)';
+        this.style.boxShadow = '0 20px 40px rgba(14, 165, 233, 0.3)';
+      });
+      
+      card.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0) scale(1)';
+        this.style.boxShadow = '';
+      });
+    });
+  });
+</script>
+
+<style>
+  /* Ripple animation */
+  @keyframes ripple {
+    to {
+      transform: scale(4);
+      opacity: 0;
+    }
+  }
+  
+  /* Enhanced smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* Particle container */
+  #particles-container {
+    background: radial-gradient(ellipse at center, rgba(14, 165, 233, 0.05) 0%, transparent 70%);
+  }
+</style>
+
+<!-- Enhanced Dashboard Styles -->
+<style>
+  /* Button Styles */
+  .btn-primary {
+    @apply inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white;
+    @apply bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800;
+    @apply shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500;
+    @apply transition-all duration-200 transform hover:scale-105;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center px-6 py-3 border border-dark-600 text-base font-medium rounded-xl text-gray-300;
+    @apply bg-dark-800/50 hover:bg-dark-700/60 shadow-md hover:shadow-lg;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500;
+    @apply transition-all duration-200 transform hover:scale-105;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center px-4 py-2 border border-gray-500/50 text-sm font-medium rounded-lg text-gray-300;
+    @apply bg-transparent hover:bg-gray-500/10 hover:border-gray-400/60;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400;
+    @apply transition-all duration-200 transform hover:scale-105;
+  }
+
+  /* Stat Card Styles */
+  .stat-card {
+    @apply glass-card relative overflow-hidden rounded-xl shadow-lg hover:shadow-xl;
+    @apply transition-all duration-300 hover:transform hover:scale-105;
+  }
+
+  .stat-card::before {
+    content: '';
+    @apply absolute inset-0;
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  
+  .stat-card.group:hover::before {
+    opacity: 1;
+  }
+
+  .stat-card-content {
+    @apply relative p-6 flex items-center space-x-4;
+  }
+
+  .stat-icon-container {
+    @apply w-12 h-12 rounded-xl flex items-center justify-center shadow-md;
+    @apply transition-all duration-200;
+  }
+  
+  .stat-card.group:hover .stat-icon-container {
+    @apply shadow-lg;
+    transform: scale(1.1);
+  }
+
+  .stat-content {
+    @apply flex-1 min-w-0;
+  }
+
+  .stat-number {
+    @apply text-3xl font-bold text-gray-100 transition-colors duration-200;
+  }
+  
+  .stat-card.group:hover .stat-number {
+    @apply text-white;
+  }
+
+  .stat-label {
+    @apply text-sm font-semibold text-gray-200;
+  }
+
+  .stat-change {
+    @apply text-xs text-gray-300 mt-1 font-medium;
+  }
+
+  /* Action Card Styles */
+  .action-card {
+    @apply glass-light relative flex items-center p-6 rounded-xl shadow-md;
+    @apply hover:shadow-lg transition-all duration-200;
+    @apply no-underline;
+  }
+  
+  .action-card:hover {
+    @apply bg-dark-700/60 border-dark-600/60;
+    transform: translateY(-2px) scale(1.02);
+  }
+
+  .action-icon {
+    @apply w-12 h-12 rounded-xl flex items-center justify-center shadow-md;
+    @apply transition-all duration-200;
+    background: rgba(30, 41, 59, 0.5);
+    backdrop-filter: blur(10px);
+  }
+  
+  .action-card:hover .action-icon {
+    @apply shadow-lg;
+    background: rgba(30, 41, 59, 0.8);
+    transform: scale(1.05);
+  }
+
+  .action-content {
+    @apply flex-1 ml-4 min-w-0;
+  }
+
+  .action-title {
+    @apply text-base font-bold text-gray-100 transition-colors duration-200;
+  }
+
+  .action-desc {
+    @apply text-sm text-gray-300 mt-1 font-medium;
+  }
+
+  .action-arrow {
+    @apply w-5 h-5 text-gray-400 ml-2 flex-shrink-0;
+    @apply transform transition-all duration-200;
+  }
+  
+  .action-card:hover .action-arrow {
+    @apply text-gray-200;
+    transform: translateX(4px);
+  }
+
+  /* Hover effects */
+  .stat-card:hover .stat-icon-container {
+    animation: bounce 0.6s ease-in-out;
+  }
+
+  @keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+      transform: translateY(0) scale(1.1);
+    }
+    40% {
+      transform: translateY(-2px) scale(1.15);
+    }
+    60% {
+      transform: translateY(-1px) scale(1.12);
+    }
+  }
+
+  /* Advanced micro-animations */
+  .stat-card {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+      45deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent
+    );
+    transform: rotate(45deg) translate(-100%, -100%);
+    transition: transform 0.6s;
+  }
+  
+  .stat-card:hover::after {
+    transform: rotate(45deg) translate(100%, 100%);
+  }
+  
+  /* Floating animation for icons */
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-5px);
+    }
+  }
+  
+  .stat-icon-container {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  .stat-card:nth-child(1) .stat-icon-container {
+    animation-delay: 0s;
+  }
+  
+  .stat-card:nth-child(2) .stat-icon-container {
+    animation-delay: 0.5s;
+  }
+  
+  .stat-card:nth-child(3) .stat-icon-container {
+    animation-delay: 1s;
+  }
+  
+  .stat-card:nth-child(4) .stat-icon-container {
+    animation-delay: 1.5s;
+  }
+  
+  /* Loading state animations */
+  .stat-card.loading {
+    @apply animate-pulse;
+  }
+
+  .stat-card.loading .stat-number {
+    @apply bg-gray-700 text-transparent rounded;
+  }
+  
+  /* Pulse effect on hover */
+  .action-card:hover {
+    animation: pulse-glow 2s infinite;
+  }
+  
+  @keyframes pulse-glow {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(14, 165, 233, 0.3);
+    }
+    50% {
+      box-shadow: 0 0 30px rgba(14, 165, 233, 0.5);
+    }
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 640px) {
+    .btn-primary, .btn-secondary {
+      @apply w-full justify-center;
+    }
+    
+    .stat-card-content {
+      @apply flex-col space-x-0 space-y-3 text-center;
+    }
+    
+    .action-card {
+      @apply flex-col text-center space-y-3;
+    }
+    
+    .action-content {
+      @apply ml-0;
+    }
+    
+    .action-arrow {
+      @apply hidden;
+    }
+  }
+
+  /* Individual stat card color variations with enhanced gradients */
+  .stat-card:nth-child(1) {
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 50%, #0369a1 100%);
+  }
+  
+  .stat-card:nth-child(2) {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%);
+  }
+  
+  .stat-card:nth-child(3) {
+    background: linear-gradient(135deg, #a855f7 0%, #9333ea 50%, #7c3aed 100%);
+  }
+  
+  .stat-card:nth-child(4) {
+    background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
+  }
+  
+  /* Enhanced hover effects for stat cards */
+  .stat-card:nth-child(1):hover {
+    background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 50%, #0284c7 100%);
+  }
+  
+  .stat-card:nth-child(2):hover {
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #2563eb 100%);
+  }
+  
+  .stat-card:nth-child(3):hover {
+    background: linear-gradient(135deg, #c084fc 0%, #a855f7 50%, #9333ea 100%);
+  }
+  
+  .stat-card:nth-child(4):hover {
+    background: linear-gradient(135deg, #34d399 0%, #10b981 50%, #059669 100%);
+  }
+</style>

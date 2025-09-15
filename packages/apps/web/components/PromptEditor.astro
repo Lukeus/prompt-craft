@@ -1,0 +1,787 @@
+---
+export interface Props {
+  prompt?: {
+    id?: string;
+    name: string;
+    description: string;
+    content: string;
+    category: string;
+    tags: string[];
+    author?: string;
+    version: string;
+    variables?: Array<{
+      name: string;
+      description: string;
+      type: string;
+      required: boolean;
+      defaultValue?: any;
+    }>;
+  };
+  isEdit?: boolean;
+}
+
+const { prompt, isEdit = false } = Astro.props;
+
+const defaultPrompt = {
+  name: '',
+  description: '',
+  content: '',
+  category: 'work',
+  tags: [],
+  author: '',
+  version: '1.0.0',
+  variables: []
+};
+
+const promptData = prompt || defaultPrompt;
+---
+
+<div class="max-w-6xl mx-auto">
+  <!-- Header Section -->
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-100">
+      {isEdit ? 'Edit Prompt' : 'Create New Prompt'}
+    </h1>
+    <p class="mt-2 text-gray-400">
+      {isEdit ? 'Update your existing prompt with new content and variables' : 'Build a new AI prompt with variables and preview it in real-time'}
+    </p>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Main Form -->
+    <div class="lg:col-span-2">
+      <form id="prompt-form" class="space-y-6">
+        <!-- Basic Information -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">
+              <svg class="w-5 h-5 mr-2 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              Basic Information
+            </h2>
+            <p class="text-sm text-gray-400 mt-1">Essential details about your prompt</p>
+          </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="md:col-span-2">
+            <label for="name" class="input-label">
+              Prompt Name *
+            </label>
+            <input 
+              type="text" 
+              id="name" 
+              name="name"
+              value={promptData.name}
+              required
+              class="input-field"
+              placeholder="Enter a descriptive name for your prompt"
+            />
+            <p class="input-hint">Choose a clear, descriptive name that explains the prompt's purpose</p>
+          </div>
+        
+          <div class="md:col-span-2">
+            <label for="description" class="input-label">
+              Description *
+            </label>
+            <textarea 
+              id="description" 
+              name="description"
+              rows="3"
+              required
+              class="input-field resize-none"
+              placeholder="Describe what this prompt does and when to use it"
+            >{promptData.description}</textarea>
+            <p class="input-hint">Explain what this prompt does and when it should be used</p>
+          </div>
+        
+          <div>
+            <label for="category" class="input-label">
+              Category *
+            </label>
+            <div class="category-selector">
+              <input type="radio" id="cat-work" name="category" value="work" {promptData.category === 'work' ? 'checked' : ''} class="sr-only">
+              <label for="cat-work" class="category-option">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2h8zM12 10h.01"></path>
+                </svg>
+                Work
+              </label>
+              
+              <input type="radio" id="cat-personal" name="category" value="personal" {promptData.category === 'personal' ? 'checked' : ''} class="sr-only">
+              <label for="cat-personal" class="category-option">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                </svg>
+                Personal
+              </label>
+              
+              <input type="radio" id="cat-shared" name="category" value="shared" {promptData.category === 'shared' ? 'checked' : ''} class="sr-only">
+              <label for="cat-shared" class="category-option">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
+                </svg>
+                Shared
+              </label>
+            </div>
+          </div>
+        
+        <div>
+          <label for="version" class="input-label">
+            Version
+          </label>
+          <input 
+            type="text" 
+            id="version" 
+            name="version"
+            value={promptData.version}
+            class="input-field"
+            placeholder="1.0.0"
+          />
+        </div>
+        
+        <div>
+          <label for="author" class="input-label">
+            Author
+          </label>
+          <input 
+            type="text" 
+            id="author" 
+            name="author"
+            value={promptData.author || ''}
+            class="input-field"
+            placeholder="Your name"
+          />
+        </div>
+        
+          <div class="md:col-span-2">
+            <label for="tags" class="input-label">
+              Tags
+            </label>
+            <input 
+              type="text" 
+              id="tags" 
+              name="tags"
+              value={promptData.tags.join(', ')}
+              class="input-field"
+              placeholder="coding, review, documentation"
+            />
+            <p class="input-hint">Add comma-separated tags to help categorize and search for this prompt</p>
+          </div>
+        </div>
+      </div>
+
+        <!-- Prompt Content -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">
+              <svg class="w-5 h-5 mr-2 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              Prompt Content
+            </h2>
+            <p class="text-sm text-gray-400 mt-1">The main content of your prompt with variable placeholders</p>
+          </div>
+      
+          <div class="relative">
+            <label for="content" class="input-label">
+              Content *
+            </label>
+            <div class="relative">
+              <textarea 
+                id="content" 
+                name="content"
+                rows="12"
+                required
+                class="content-editor"
+                placeholder="Write your prompt content here. Use double curly braces like {{variable_name}} to define variables."
+              >{promptData.content}</textarea>
+              <div class="editor-toolbar">
+                <button type="button" class="editor-btn" id="insert-variable" title="Insert Variable">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a4 4 0 004 4h4a2 2 0 002-2V5z"></path>
+                  </svg>
+                </button>
+                <div class="editor-info">
+                  <span id="char-count" class="text-xs text-gray-400">0 characters</span>
+                  <span id="word-count" class="text-xs text-gray-400 ml-2">0 words</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-start space-x-2 mt-2 p-3 bg-primary-950/30 border border-primary-800/30 rounded-md">
+              <svg class="w-5 h-5 text-primary-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <div class="text-sm text-gray-300">
+                <p class="font-medium mb-1 text-primary-300">Variable Syntax Tips:</p>
+                <ul class="space-y-1 text-gray-400">
+                  <li>• Use <code class="bg-dark-800 text-primary-300 px-1 rounded">{`{{variable_name}}`}</code> for variables</li>
+                  <li>• Variables are automatically detected and added to the Variables section</li>
+                  <li>• Use descriptive names like <code class="bg-dark-800 text-primary-300 px-1 rounded">{`{{user_input}}`}</code> or <code class="bg-dark-800 text-primary-300 px-1 rounded">{`{{target_language}}`}</code></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+    <!-- Variables -->
+    <div class="glass-card rounded-lg shadow-lg p-6">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-lg font-semibold text-gray-100">Variables</h2>
+        <button 
+          type="button" 
+          id="add-variable"
+          class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-primary-300 bg-primary-900/30 hover:bg-primary-800/40 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200"
+        >
+          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+          </svg>
+          Add Variable
+        </button>
+      </div>
+      
+      <div id="variables-container">
+        <!-- Variables will be dynamically added here -->
+      </div>
+      
+      <div id="no-variables" class="text-center py-8 text-gray-400 text-sm">
+        No variables defined. Click "Add Variable" to create your first variable.
+      </div>
+    </div>
+
+    <!-- Preview -->
+    <div class="glass-card rounded-lg shadow-lg p-6">
+      <h2 class="text-lg font-semibold text-gray-100 mb-6">Preview</h2>
+      <div class="bg-dark-800/50 rounded-md p-4 min-h-32 border border-dark-700/30">
+        <div id="preview-content" class="whitespace-pre-wrap font-mono text-sm text-gray-300">
+          <!-- Preview will be populated by JavaScript -->
+        </div>
+      </div>
+    </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center justify-between pt-6 border-t border-dark-700/30">
+          <div class="flex items-center space-x-2">
+            <div class="w-2 h-2 bg-success-500 rounded-full" id="save-status"></div>
+            <span class="text-xs text-gray-400" id="save-text">Changes saved</span>
+          </div>
+          <div class="flex items-center space-x-4">
+            <a 
+              href="/prompts"
+              class="btn-secondary"
+            >
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+              Cancel
+            </a>
+            <button 
+              type="submit"
+              class="btn-primary"
+              id="submit-btn"
+            >
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              {isEdit ? 'Update Prompt' : 'Create Prompt'}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+    
+    <!-- Sidebar: Preview & Variables -->
+    <div class="lg:col-span-1 space-y-6">
+      <!-- Live Preview -->
+      <div class="card sticky top-6">
+        <div class="card-header">
+          <h3 class="card-title text-base">
+            <svg class="w-4 h-4 mr-2 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+            </svg>
+            Live Preview
+          </h3>
+          <p class="text-xs text-gray-400 mt-1">See how your prompt looks</p>
+        </div>
+        
+        <div class="preview-container">
+          <div id="preview-content" class="preview-content">
+            <div class="text-gray-400 italic text-sm text-center py-8">
+              Your prompt preview will appear here as you type...
+            </div>
+          </div>
+        </div>
+        
+        <!-- Variable Values for Testing -->
+        <div id="variable-testing" class="mt-4 space-y-2" style="display: none;">
+          <div class="text-xs font-medium text-gray-300 mb-2">Test Variables:</div>
+          <div id="test-variables">
+            <!-- Dynamic variable inputs will be added here -->
+          </div>
+        </div>
+      </div>
+      
+      <!-- Variable Detection -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title text-base">
+            <svg class="w-4 h-4 mr-2 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a4 4 0 004 4h4a2 2 0 002-2V5z"></path>
+            </svg>
+            Detected Variables
+          </h3>
+          <p class="text-xs text-gray-400 mt-1">Auto-detected from content</p>
+        </div>
+        
+        <div id="detected-variables" class="space-y-2">
+          <div class="text-gray-400 italic text-sm text-center py-4">
+            No variables detected yet
+          </div>
+        </div>
+      </div>
+      
+      <!-- Quick Templates -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title text-base">
+            <svg class="w-4 h-4 mr-2 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path>
+            </svg>
+            Quick Templates
+          </h3>
+          <p class="text-xs text-gray-400 mt-1">Common prompt patterns</p>
+        </div>
+        
+        <div class="space-y-2">
+          <button type="button" class="template-btn" data-template="code-review">
+            <span class="template-icon">🔍</span>
+            <span class="template-name">Code Review</span>
+          </button>
+          <button type="button" class="template-btn" data-template="documentation">
+            <span class="template-icon">📝</span>
+            <span class="template-name">Documentation</span>
+          </button>
+          <button type="button" class="template-btn" data-template="explanation">
+            <span class="template-icon">💡</span>
+            <span class="template-name">Explanation</span>
+          </button>
+          <button type="button" class="template-btn" data-template="creative">
+            <span class="template-icon">🎨</span>
+            <span class="template-name">Creative Writing</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script define:vars={{ promptData, isEdit }}>
+  let variables = Array.isArray(promptData.variables) ? [...promptData.variables] : [];
+  let variableCounter = 0;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('prompt-form');
+    const addVariableBtn = document.getElementById('add-variable');
+    const variablesContainer = document.getElementById('variables-container');
+    const noVariables = document.getElementById('no-variables');
+    const previewContent = document.getElementById('preview-content');
+    const contentTextarea = document.getElementById('content');
+
+    // Initialize existing variables
+    if (variables.length > 0) {
+      variables.forEach(variable => addVariableRow(variable));
+      updateNoVariablesDisplay();
+    }
+
+    // Add variable button
+    addVariableBtn.addEventListener('click', () => {
+      addVariableRow();
+    });
+
+    // Form submission
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = new FormData(form);
+      const submitData = {
+        name: formData.get('name'),
+        description: formData.get('description'),
+        content: formData.get('content'),
+        category: formData.get('category'),
+        version: formData.get('version') || '1.0.0',
+        author: formData.get('author'),
+        tags: formData.get('tags')?.toString().split(',').map(t => t.trim()).filter(t => t) || [],
+        variables: variables.filter(v => v.name) // Only include variables with names
+      };
+
+      try {
+        const url = isEdit ? `/api/prompts/${promptData.id}` : '/api/prompts';
+        const method = isEdit ? 'PUT' : 'POST';
+        
+        if (isEdit && promptData.id) {
+          submitData.id = promptData.id;
+        }
+        
+        const response = await fetch(url, {
+          method,
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(submitData)
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+          window.location.href = '/prompts';
+        } else {
+          alert('Error: ' + (result.error || 'Failed to save prompt'));
+        }
+      } catch (error) {
+        console.error('Error saving prompt:', error);
+        alert('Failed to save prompt');
+      }
+    });
+
+    // Content change handler for preview
+    contentTextarea.addEventListener('input', updatePreview);
+    updatePreview(); // Initial preview
+
+    function addVariableRow(variable = null) {
+      const row = document.createElement('div');
+      row.className = 'variable-row grid grid-cols-1 md:grid-cols-5 gap-4 p-4 bg-gray-50 rounded-md mb-4';
+      
+      const varData = variable || {
+        name: '',
+        description: '',
+        type: 'string',
+        required: false,
+        defaultValue: ''
+      };
+      
+      row.innerHTML = `
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Name</label>
+          <input type="text" class="var-name block w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-blue-500 focus:border-blue-500" 
+                 value="${varData.name}" placeholder="my_variable">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Type</label>
+          <select class="var-type block w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+            <option value="string" ${varData.type === 'string' ? 'selected' : ''}>String</option>
+            <option value="number" ${varData.type === 'number' ? 'selected' : ''}>Number</option>
+            <option value="boolean" ${varData.type === 'boolean' ? 'selected' : ''}>Boolean</option>
+            <option value="array" ${varData.type === 'array' ? 'selected' : ''}>Array</option>
+          </select>
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-xs font-medium text-gray-700 mb-1">Description</label>
+          <input type="text" class="var-description block w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-blue-500 focus:border-blue-500" 
+                 value="${varData.description}" placeholder="Description of this variable">
+        </div>
+        <div class="flex items-center space-x-2">
+          <label class="flex items-center text-sm">
+            <input type="checkbox" class="var-required mr-1" ${varData.required ? 'checked' : ''}>
+            Required
+          </label>
+          <button type="button" class="remove-variable text-red-600 hover:text-red-800">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+      `;
+      
+      // Add event listeners
+      const inputs = row.querySelectorAll('input, select');
+      inputs.forEach(input => {
+        input.addEventListener('change', updateVariablesArray);
+      });
+      
+      // Remove button
+      row.querySelector('.remove-variable').addEventListener('click', () => {
+        row.remove();
+        updateVariablesArray();
+        updateNoVariablesDisplay();
+      });
+      
+      variablesContainer.appendChild(row);
+      updateVariablesArray();
+      updateNoVariablesDisplay();
+    }
+
+    function updateVariablesArray() {
+      const rows = variablesContainer.querySelectorAll('.variable-row');
+      variables = Array.from(rows).map(row => ({
+        name: row.querySelector('.var-name').value.trim(),
+        description: row.querySelector('.var-description').value.trim(),
+        type: row.querySelector('.var-type').value,
+        required: row.querySelector('.var-required').checked,
+        defaultValue: '' // Could be extended later
+      }));
+    }
+
+    function updateNoVariablesDisplay() {
+      const hasVariables = variablesContainer.children.length > 0;
+      noVariables.style.display = hasVariables ? 'none' : 'block';
+    }
+
+    function updatePreview() {
+      let content = contentTextarea.value;
+      
+      // Replace variables with placeholder values
+      variables.forEach(variable => {
+        if (variable.name) {
+          const placeholder = `[${variable.name.toUpperCase()}]`;
+          content = content.replace(new RegExp(`{{\\s*${variable.name}\\s*}}`, 'g'), placeholder);
+        }
+      });
+      
+      previewContent.textContent = content || 'Your prompt preview will appear here...';
+    }
+  });
+</script>
+
+<!-- Enhanced PromptEditor Styles -->
+<style>
+  /* Card Components */
+  .card {
+    @apply glass-card rounded-xl shadow-lg overflow-hidden;
+    @apply hover:shadow-xl transition-all duration-200;
+  }
+  
+  .card-header {
+    @apply px-6 py-4 border-b border-dark-700/30 bg-dark-800/30;
+  }
+  
+  .card-title {
+    @apply flex items-center text-lg font-semibold text-gray-100;
+  }
+  
+  .card > div:not(.card-header) {
+    @apply p-6;
+  }
+
+  /* Form Elements */
+  .input-label {
+    @apply block text-sm font-semibold text-gray-300 mb-2;
+  }
+  
+  .input-field {
+    @apply block w-full px-4 py-3 border border-dark-600 bg-dark-800/50 rounded-lg shadow-sm;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500;
+    @apply transition-all duration-200 text-gray-100;
+    @apply placeholder:text-gray-500;
+  }
+  
+  .input-field:focus {
+    @apply transform scale-[1.02] bg-dark-800/70;
+  }
+  
+  .input-hint {
+    @apply mt-2 text-xs text-gray-400;
+  }
+
+  /* Category Selector */
+  .category-selector {
+    @apply flex space-x-2;
+  }
+  
+  .category-option {
+    @apply flex-1 flex items-center justify-center px-4 py-3 border border-dark-600 rounded-lg;
+    @apply text-sm font-medium text-gray-300 bg-dark-800/30 cursor-pointer;
+    @apply hover:bg-dark-700/50 hover:border-dark-500 transition-all duration-200;
+  }
+  
+  input[type="radio"]:checked + .category-option {
+    @apply bg-primary-900/40 border-primary-500 text-primary-300 ring-2 ring-primary-700/30;
+  }
+  
+  .category-option svg {
+    @apply mr-2 w-4 h-4;
+  }
+
+  /* Content Editor */
+  .content-editor {
+    @apply block w-full px-4 py-3 border border-dark-600 bg-dark-800/50 rounded-lg shadow-sm;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500;
+    @apply transition-all duration-200 font-mono text-sm resize-none text-gray-100;
+    @apply placeholder:text-gray-500;
+  }
+  
+  .editor-toolbar {
+    @apply absolute bottom-3 right-3 flex items-center space-x-2;
+    @apply bg-dark-800/90 backdrop-blur-sm px-3 py-1 rounded-md shadow-sm border border-dark-700/30;
+  }
+  
+  .editor-btn {
+    @apply p-1 text-gray-400 hover:text-primary-400 rounded transition-colors duration-200;
+  }
+  
+  .editor-info {
+    @apply text-xs text-gray-400 border-l border-dark-600 pl-2;
+  }
+
+  /* Preview */
+  .preview-container {
+    @apply relative;
+  }
+  
+  .preview-content {
+    @apply bg-dark-800/50 rounded-lg p-4 min-h-32 max-h-80 overflow-y-auto border border-dark-700/30;
+    @apply whitespace-pre-wrap font-mono text-sm text-gray-300 leading-relaxed;
+  }
+  
+  .preview-content:empty::before {
+    content: 'Your prompt preview will appear here as you type...';
+    @apply text-gray-500 italic;
+  }
+
+  /* Variable Detection */
+  .variable-badge {
+    @apply inline-flex items-center px-2 py-1 rounded-md text-xs font-medium;
+    @apply bg-primary-900/30 text-primary-300 border border-primary-700/30;
+    @apply hover:bg-primary-800/40 transition-colors duration-150;
+  }
+  
+  .variable-badge.required {
+    @apply bg-red-900/30 text-red-300 border-red-700/30;
+  }
+  
+  .variable-badge.optional {
+    @apply bg-blue-900/30 text-blue-300 border-blue-700/30;
+  }
+
+  /* Template Buttons */
+  .template-btn {
+    @apply w-full flex items-center p-3 text-left bg-dark-800/30 border border-dark-600 rounded-lg;
+    @apply hover:bg-dark-700/50 hover:border-primary-600/50 transition-all duration-200;
+    @apply cursor-pointer;
+  }
+  
+  .template-btn:hover {
+    @apply transform scale-[1.02] shadow-md;
+  }
+  
+  .template-icon {
+    @apply text-lg mr-3 transition-transform duration-200;
+  }
+  
+  .template-btn:hover .template-icon {
+    transform: scale(1.1);
+  }
+  
+  .template-name {
+    @apply text-sm font-medium text-gray-300 transition-colors duration-200;
+  }
+  
+  .template-btn:hover .template-name {
+    @apply text-primary-300;
+  }
+
+  /* Button Styles */
+  .btn-primary {
+    @apply inline-flex items-center px-6 py-3 border border-transparent text-sm font-semibold rounded-lg;
+    @apply text-white bg-gradient-to-r from-primary-600 to-primary-700;
+    @apply hover:from-primary-700 hover:to-primary-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500;
+    @apply shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105;
+  }
+  
+  .btn-secondary {
+    @apply inline-flex items-center px-6 py-3 border border-dark-600 text-sm font-semibold rounded-lg;
+    @apply text-gray-300 bg-dark-800/50 hover:bg-dark-700/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500;
+    @apply shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105;
+  }
+
+  /* Variable Testing */
+  .test-variable-input {
+    @apply px-2 py-1 text-xs border border-dark-600 bg-dark-800/50 text-gray-100 rounded focus:outline-none focus:ring-1 focus:ring-primary-500;
+  }
+
+  /* Animations */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .card {
+    animation: fadeInUp 0.3s ease-out;
+  }
+  
+  .card:nth-child(2) { animation-delay: 0.1s; }
+  .card:nth-child(3) { animation-delay: 0.2s; }
+  .card:nth-child(4) { animation-delay: 0.3s; }
+
+  /* Status Indicators */
+  #save-status {
+    @apply transition-all duration-300;
+  }
+  
+  #save-status.saving {
+    @apply bg-warning-500 animate-pulse;
+  }
+  
+  #save-status.error {
+    @apply bg-red-500;
+  }
+  
+  #save-status.success {
+    @apply bg-success-500;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 1024px) {
+    .card.sticky {
+      @apply static;
+    }
+    
+    .editor-toolbar {
+      @apply relative bottom-auto right-auto mt-2 justify-between;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .category-selector {
+      @apply flex-col space-x-0 space-y-2;
+    }
+    
+    .btn-primary, .btn-secondary {
+      @apply w-full justify-center;
+    }
+    
+    .template-btn {
+      @apply p-2;
+    }
+    
+    .template-icon {
+      @apply text-base mr-2;
+    }
+  }
+
+  
+  /* Loading states */
+  .loading {
+    @apply animate-pulse;
+  }
+  
+  .loading * {
+    @apply bg-gray-200 text-transparent;
+  }
+
+  /* Variable highlighting in content */
+  .content-editor:focus {
+    @apply relative;
+  }
+
+  /* Syntax highlighting for variables */
+  .variable-highlight {
+    @apply bg-yellow-100 border border-yellow-300 rounded px-1;
+  }
+</style>

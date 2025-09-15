@@ -1,0 +1,18 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import PromptEditor from '../../components/PromptEditor.astro';
+---
+
+<Layout title="Create New Prompt - Prompt Craft">
+  <div class="mb-6">
+    <div class="flex items-center space-x-4 text-sm text-gray-400">
+      <a href="/prompts" class="hover:text-primary-400 transition-colors">
+        ← Back to Prompts
+      </a>
+      <span>/</span>
+      <span class="text-gray-100 font-medium">New Prompt</span>
+    </div>
+  </div>
+  
+  <PromptEditor isEdit={false} />
+</Layout>

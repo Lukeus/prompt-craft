@@ -6,12 +6,15 @@ import {
   ListToolsRequestSchema,
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
-import { PromptManager } from '../managers/PromptManager.js';
-import { PromptCategory } from '../types/index.js';
+import { getContainer } from '../../../core/infrastructure/Container';
+import { PromptUseCases } from '../../../core/application/usecases/PromptUseCases';
+import { FileSystemPromptRepository } from '../../../infrastructure/filesystem/FileSystemPromptRepository';
+import { PromptCategory } from '../../../core/domain/entities/Prompt';
+import * as path from 'path';
 
 export class PromptMcpServer {
   private server: Server;
-  private promptManager: PromptManager;
+  private promptManager: PromptUseCases | null = null;
 
   constructor() {
     this.server = new Server(
@@ -26,18 +29,30 @@ export class PromptMcpServer {
       }
     );
 
-    this.promptManager = new PromptManager();
     this.setupHandlers();
+  }
+
+  private async initializePromptManager(): Promise<PromptUseCases> {
+    if (!this.promptManager) {
+      const promptsDirectory = path.join(process.cwd(), 'prompts');
+      const promptRepository = new FileSystemPromptRepository(promptsDirectory);
+      const container = getContainer({ promptRepository });
+      this.promptManager = container.getPromptUseCases();
+    }
+    return this.promptManager;
   }
 
   private setupHandlers(): void {
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
-      const prompts = this.promptManager.getAllPrompts();
+      const manager = await this.initializePromptManager();
+      const prompts = await manager.getAllPrompts();
       
-      return {
-        tools: prompts.map(prompt => ({
+return {
+        tools: prompts.map((prompt: any) => ({
           name: `prompt_${prompt.id}`,
-          description: `${prompt.name}: ${prompt.description}`,
+          description: `${prompt.name}: ${prompt.description}` +
+            (prompt.category ? ` [category=${prompt.category}]` : '') +
+            (prompt.tags && prompt.tags.length ? ` [tags=${prompt.tags.join(', ')}]` : ''),
           inputSchema: {
             type: 'object',
             properties: this.generateInputSchemaProperties(prompt),
@@ -57,7 +72,21 @@ export class PromptMcpServer {
       const promptId = name.replace('prompt_', '');
       
       try {
-        const renderedPrompt = await this.promptManager.renderPrompt(promptId, args as Record<string, any>);
+        const manager = await this.initializePromptManager();
+const renderResult = await manager.renderPrompt({ id: promptId, variableValues: args as Record<string, any> });
+        const renderedPrompt = renderResult.rendered;
+        
+        // Compute which defaults were used based on provided args vs prompt variable defaults
+        const prompt = await manager.getPromptById(promptId);
+        const usedDefaults: string[] = [];
+        if (prompt && prompt.variables) {
+          const a: Record<string, any> = (args || {}) as Record<string, any>;
+          for (const v of prompt.variables) {
+            if (v.defaultValue !== undefined && (a[v.name] === undefined || a[v.name] === null)) {
+              usedDefaults.push(v.name);
+            }
+          }
+        }
         
         return {
           content: [
@@ -66,6 +95,10 @@ export class PromptMcpServer {
               text: renderedPrompt,
             },
           ],
+          meta: {
+            errors: renderResult.errors || [],
+            usedDefaults,
+          },
         };
       } catch (error) {
         throw new McpError(
@@ -80,7 +113,8 @@ export class PromptMcpServer {
       const { query, category, tags, limit } = request.params;
       
       try {
-        const results = this.promptManager.searchPrompts({
+        const manager = await this.initializePromptManager();
+        const results = await manager.searchPrompts({
           query,
           category: category as PromptCategory,
           tags,
@@ -91,7 +125,7 @@ export class PromptMcpServer {
           content: [
             {
               type: 'text',
-              text: JSON.stringify(results.map(prompt => ({
+              text: JSON.stringify(results.map((prompt: any) => ({
                 id: prompt.id,
                 name: prompt.name,
                 description: prompt.description,
@@ -111,11 +145,14 @@ export class PromptMcpServer {
 
     this.server.setRequestHandler('prompt_list_categories' as any, async () => {
       try {
+        const manager = await this.initializePromptManager();
         const categories = Object.values(PromptCategory);
-        const categoryCounts = categories.map(category => ({
-          category,
-          count: this.promptManager.getPromptsByCategory(category).length,
-        }));
+        const categoryCounts = await Promise.all(
+          categories.map(async category => ({
+            category,
+            count: (await manager.getPromptsByCategory(category)).length,
+          }))
+        );
 
         return {
           content: [
@@ -181,7 +218,8 @@ export class PromptMcpServer {
   }
 
   async start(): Promise<void> {
-    await this.promptManager.initialize();
+    // Initialize the prompt manager (will be done lazily on first use)
+    await this.initializePromptManager();
     
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
