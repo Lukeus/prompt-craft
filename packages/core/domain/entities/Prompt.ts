@@ -105,7 +105,7 @@ export class Prompt {
     const errors: string[] = [];
     const warnings: string[] = [];
 
-    // Extract all placeholders from content using regex
+    // Extract all placeholders from content using regex (more restrictive pattern for valid variable names)
     const placeholderRegex = /{{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*}}/g;
     const placeholdersInContent = new Set<string>();
     let match;

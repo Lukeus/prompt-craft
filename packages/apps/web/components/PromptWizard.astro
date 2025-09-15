@@ -1,0 +1,1095 @@
+---
+export interface Props {
+  isEdit?: boolean;
+  prompt?: any;
+}
+
+const { isEdit = false, prompt } = Astro.props;
+
+const defaultPrompt = {
+  name: '',
+  description: '',
+  content: '',
+  category: 'work',
+  tags: [],
+  author: '',
+  version: '1.0.0',
+  variables: []
+};
+
+const promptData = prompt || defaultPrompt;
+---
+
+<div class="prompt-wizard max-w-6xl mx-auto">
+  <!-- Progress Header -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-100">
+          {isEdit ? 'Edit Prompt' : 'Create New Prompt'}
+        </h1>
+        <p class="mt-2 text-gray-400">
+          {isEdit ? 'Update your prompt with our guided editor' : 'Build a professional AI prompt step by step'}
+        </p>
+      </div>
+      <div class="flex items-center space-x-2 text-sm text-gray-400">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <span>Step <span id="current-step">1</span> of 4</span>
+      </div>
+    </div>
+    
+    <!-- Progress Bar -->
+    <div class="glass-card rounded-xl p-4">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center space-x-4">
+          <div class="step-indicator active" data-step="1">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <div class="step-connector"></div>
+          <div class="step-indicator" data-step="2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+          </div>
+          <div class="step-connector"></div>
+          <div class="step-indicator" data-step="3">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a4 4 0 004 4h4a2 2 0 002-2V5z"></path>
+            </svg>
+          </div>
+          <div class="step-connector"></div>
+          <div class="step-indicator" data-step="4">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="text-sm text-gray-300">
+          <span class="step-title">Basic Information</span>
+        </div>
+      </div>
+      
+      <!-- Progress bar -->
+      <div class="w-full bg-dark-700 rounded-full h-2">
+        <div id="progress-bar" class="bg-gradient-to-r from-primary-500 to-accent-500 h-2 rounded-full transition-all duration-500 w-1/4"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wizard Steps -->
+  <form id="wizard-form" class="space-y-6">
+    
+    <!-- Step 1: Basic Information -->
+    <div class="wizard-step active" data-step="1">
+      <div class="glass-card rounded-2xl overflow-hidden">
+        <div class="bg-gradient-to-r from-primary-900/20 via-dark-800/30 to-accent-900/20 p-6 border-b border-dark-700/30">
+          <div class="flex items-center space-x-4">
+            <div class="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center">
+              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-gray-100">Basic Information</h2>
+              <p class="text-gray-400 text-sm mt-1">Let's start with the fundamentals of your prompt</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="p-6 space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="md:col-span-2">
+              <label for="name" class="wizard-label">
+                <span class="flex items-center">
+                  Prompt Name
+                  <span class="text-red-400 ml-1">*</span>
+                </span>
+              </label>
+              <input 
+                type="text" 
+                id="name" 
+                name="name"
+                value={promptData.name}
+                required
+                class="wizard-input"
+                placeholder="e.g., Code Review Assistant, Brand Strategy Guide"
+              />
+              <p class="wizard-hint">Choose a clear, descriptive name that explains what your prompt does</p>
+            </div>
+            
+            <div class="md:col-span-2">
+              <label for="description" class="wizard-label">
+                <span class="flex items-center">
+                  Description
+                  <span class="text-red-400 ml-1">*</span>
+                </span>
+              </label>
+              <textarea 
+                id="description" 
+                name="description"
+                rows="3"
+                required
+                class="wizard-input"
+                placeholder="Describe what this prompt does and when to use it..."
+              >{promptData.description}</textarea>
+              <p class="wizard-hint">Help others understand when and how to use this prompt effectively</p>
+            </div>
+            
+            <div>
+              <label class="wizard-label">Category <span class="text-red-400 ml-1">*</span></label>
+              <div class="category-grid">
+                <input type="radio" id="cat-work" name="category" value="work" {promptData.category === 'work' ? 'checked' : ''} class="sr-only">
+                <label for="cat-work" class="category-card">
+                  <div class="category-icon bg-gradient-to-br from-blue-500 to-blue-600">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2h8zM12 10h.01"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 class="font-semibold text-gray-200">Work</h3>
+                    <p class="text-sm text-gray-400">Professional & business</p>
+                  </div>
+                </label>
+                
+                <input type="radio" id="cat-personal" name="category" value="personal" {promptData.category === 'personal' ? 'checked' : ''} class="sr-only">
+                <label for="cat-personal" class="category-card">
+                  <div class="category-icon bg-gradient-to-br from-accent-500 to-accent-600">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 class="font-semibold text-gray-200">Personal</h3>
+                    <p class="text-sm text-gray-400">Creative & hobby projects</p>
+                  </div>
+                </label>
+                
+                <input type="radio" id="cat-shared" name="category" value="shared" {promptData.category === 'shared' ? 'checked' : ''} class="sr-only">
+                <label for="cat-shared" class="category-card">
+                  <div class="category-icon bg-gradient-to-br from-success-500 to-success-600">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 class="font-semibold text-gray-200">Shared</h3>
+                    <p class="text-sm text-gray-400">Community & collaboration</p>
+                  </div>
+                </label>
+              </div>
+            </div>
+            
+            <div>
+              <div class="space-y-4">
+                <div>
+                  <label for="author" class="wizard-label">Author</label>
+                  <input 
+                    type="text" 
+                    id="author" 
+                    name="author"
+                    value={promptData.author || ''}
+                    class="wizard-input"
+                    placeholder="Your name or organization"
+                  />
+                </div>
+                
+                <div>
+                  <label for="version" class="wizard-label">Version</label>
+                  <input 
+                    type="text" 
+                    id="version" 
+                    name="version"
+                    value={promptData.version}
+                    class="wizard-input"
+                    placeholder="1.0.0"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Content Creation -->
+    <div class="wizard-step" data-step="2">
+      <div class="glass-card rounded-2xl overflow-hidden">
+        <div class="bg-gradient-to-r from-primary-900/20 via-dark-800/30 to-accent-900/20 p-6 border-b border-dark-700/30">
+          <div class="flex items-center space-x-4">
+            <div class="w-12 h-12 bg-gradient-to-br from-accent-500 to-accent-600 rounded-xl flex items-center justify-center">
+              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-gray-100">Content Creation</h2>
+              <p class="text-gray-400 text-sm mt-1">Write your prompt and define dynamic variables</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="p-6">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="lg:col-span-2">
+              <label for="content" class="wizard-label">
+                <span class="flex items-center">
+                  Prompt Content
+                  <span class="text-red-400 ml-1">*</span>
+                </span>
+              </label>
+              <div class="content-editor-container">
+                <textarea 
+                  id="content" 
+                  name="content"
+                  rows="12"
+                  required
+                  class="wizard-textarea"
+                  placeholder="Write your prompt here. Use {{variable_name}} to create dynamic placeholders that users can customize..."
+                >{promptData.content}</textarea>
+                
+                <div class="editor-toolbar">
+                  <button type="button" id="insert-variable" class="toolbar-btn" title="Insert Variable">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a4 4 0 004 4h4a2 2 0 002-2V5z"></path>
+                    </svg>
+                  </button>
+                  <button type="button" id="ai-assist" class="toolbar-btn" title="AI Assistant">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                  </button>
+                  <div class="toolbar-separator"></div>
+                  <button type="button" id="template-gallery" class="toolbar-btn" title="Template Gallery">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14-4H3m16 8H1"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <p class="wizard-hint">Use <code>{'{variable_name}'}</code> syntax to create customizable parts of your prompt</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Variables Configuration -->
+    <div class="wizard-step" data-step="3">
+      <div class="glass-card rounded-2xl overflow-hidden">
+        <div class="bg-gradient-to-r from-primary-900/20 via-dark-800/30 to-accent-900/20 p-6 border-b border-dark-700/30">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+              <div class="w-12 h-12 bg-gradient-to-br from-success-500 to-success-600 rounded-xl flex items-center justify-center">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a4 4 0 004 4h4a2 2 0 002-2V5z"></path>
+                </svg>
+              </div>
+              <div>
+                <h2 class="text-xl font-bold text-gray-100">Variables Configuration</h2>
+                <p class="text-gray-400 text-sm mt-1">Define how users can customize your prompt</p>
+              </div>
+            </div>
+            <button type="button" id="auto-detect-variables" class="btn-secondary">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+              </svg>
+              Auto-detect
+            </button>
+          </div>
+        </div>
+        
+        <div class="p-6">
+          <div id="variables-container" class="space-y-4">
+            <div class="text-center py-8 border-2 border-dashed border-dark-600 rounded-xl">
+              <svg class="w-12 h-12 mx-auto text-gray-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a4 4 0 004 4h4a2 2 0 002-2V5z"></path>
+              </svg>
+              <p class="text-gray-400 mb-4">No variables detected yet</p>
+              <button type="button" id="add-variable" class="btn-primary">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                Add Variable
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: Review & Test -->
+    <div class="wizard-step" data-step="4">
+      <div class="glass-card rounded-2xl overflow-hidden">
+        <div class="bg-gradient-to-r from-primary-900/20 via-dark-800/30 to-accent-900/20 p-6 border-b border-dark-700/30">
+          <div class="flex items-center space-x-4">
+            <div class="w-12 h-12 bg-gradient-to-br from-warning-500 to-warning-600 rounded-xl flex items-center justify-center">
+              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path>
+              </svg>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-gray-100">Review & Test</h2>
+              <p class="text-gray-400 text-sm mt-1">Final review and testing before saving</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="p-6">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Summary Panel -->
+            <div class="space-y-6">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-100 mb-4">Prompt Summary</h3>
+                <div class="space-y-4">
+                  <div id="summary-basic" class="summary-card">
+                    <h4 class="font-medium text-gray-200">Basic Information</h4>
+                    <div class="text-sm text-gray-400 mt-2 space-y-1">
+                      <div>Name: <span id="summary-name" class="text-gray-200">-</span></div>
+                      <div>Category: <span id="summary-category" class="text-gray-200">-</span></div>
+                      <div>Author: <span id="summary-author" class="text-gray-200">-</span></div>
+                    </div>
+                  </div>
+                  
+                  <div id="summary-content" class="summary-card">
+                    <h4 class="font-medium text-gray-200">Content</h4>
+                    <div class="text-sm text-gray-400 mt-2">
+                      <div>Length: <span id="content-stats" class="text-gray-200">-</span></div>
+                      <div>Variables: <span id="variables-stats" class="text-gray-200">-</span></div>
+                    </div>
+                  </div>
+                  
+                  <div id="summary-tags" class="summary-card">
+                    <h4 class="font-medium text-gray-200">Tags</h4>
+                    <div id="tags-display" class="mt-2">
+                      <input 
+                        type="text" 
+                        id="tags" 
+                        name="tags"
+                        value={promptData.tags.join(', ')}
+                        class="wizard-input"
+                        placeholder="Add tags (comma separated)"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Preview Panel -->
+            <div>
+              <h3 class="text-lg font-semibold text-gray-100 mb-4">Live Preview</h3>
+              <div id="preview-container" class="bg-dark-800/30 border border-dark-700/50 rounded-xl p-4 min-h-[300px]">
+                <div class="text-gray-400 text-sm">
+                  Preview will appear here...
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="flex items-center justify-between pt-8">
+      <button type="button" id="prev-btn" class="btn-secondary" style="visibility: hidden;">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+        Previous
+      </button>
+      
+      <div class="flex space-x-3">
+        <button type="button" id="save-draft" class="btn-outline">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3-3m0 0l-3 3m3-3v12"></path>
+          </svg>
+          Save Draft
+        </button>
+        
+        <button type="button" id="next-btn" class="btn-primary">
+          Next
+          <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </button>
+        
+        <button type="submit" id="submit-btn" class="btn-success" style="display: none;">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+          {isEdit ? 'Update Prompt' : 'Create Prompt'}
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Template Gallery Modal -->
+<div id="template-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center z-50">
+  <div class="bg-dark-800 border border-dark-600 rounded-xl max-w-4xl w-full mx-4 max-h-[80vh] overflow-y-auto shadow-2xl">
+    <div class="p-6 border-b border-dark-700">
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-gray-100">Template Gallery</h3>
+        <button id="close-template-modal" class="text-gray-400 hover:text-gray-200 p-1">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="p-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="template-grid">
+        <!-- Templates will be populated here -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Wizard Styles */
+  .prompt-wizard {
+    @apply relative;
+  }
+
+  .glass-card {
+    @apply bg-dark-900/30 backdrop-blur-sm border border-dark-700/50 shadow-2xl;
+  }
+
+  .wizard-step {
+    @apply hidden;
+  }
+
+  .wizard-step.active {
+    @apply block;
+    animation: slideIn 0.3s ease-out;
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Step Indicators */
+  .step-indicator {
+    @apply w-12 h-12 rounded-xl border-2 border-dark-600 bg-dark-800 flex items-center justify-center text-gray-500 transition-all duration-300;
+  }
+
+  .step-indicator.active {
+    @apply border-primary-500 bg-primary-500 text-white shadow-lg shadow-primary-500/25;
+  }
+
+  .step-indicator.completed {
+    @apply border-success-500 bg-success-500 text-white shadow-lg shadow-success-500/25;
+  }
+
+  .step-connector {
+    @apply w-24 h-0.5 bg-dark-600 transition-all duration-300;
+  }
+
+  .step-connector.active {
+    @apply bg-primary-500;
+  }
+
+  /* Form Elements */
+  .wizard-label {
+    @apply block text-sm font-semibold text-gray-200 mb-3;
+  }
+
+  .wizard-input {
+    @apply block w-full px-4 py-3 bg-dark-800/50 border border-dark-600/50 rounded-xl text-gray-100 placeholder-gray-500;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500/50 transition-all duration-200;
+    @apply hover:bg-dark-700/50 hover:border-dark-500/50;
+  }
+
+  .wizard-textarea {
+    @apply wizard-input resize-none min-h-[300px] font-mono text-sm leading-relaxed;
+  }
+
+  .wizard-hint {
+    @apply text-xs text-gray-400 mt-2;
+  }
+
+  /* Category Selection */
+  .category-grid {
+    @apply grid grid-cols-1 sm:grid-cols-3 gap-3;
+  }
+
+  .category-card {
+    @apply flex items-center space-x-4 p-4 border-2 border-dark-600 rounded-xl cursor-pointer transition-all duration-200;
+    @apply hover:border-dark-500 hover:bg-dark-800/30;
+  }
+
+  .category-card:has(input:checked) {
+    @apply border-primary-500 bg-primary-900/20 ring-2 ring-primary-500/20;
+  }
+
+  .category-icon {
+    @apply w-12 h-12 rounded-lg flex items-center justify-center shadow-md;
+  }
+
+  /* Content Editor */
+  .content-editor-container {
+    @apply relative;
+  }
+
+  .editor-toolbar {
+    @apply absolute top-3 right-3 flex items-center space-x-1 bg-dark-800/90 backdrop-blur-sm border border-dark-600 rounded-lg p-1;
+  }
+
+  .toolbar-btn {
+    @apply p-2 text-gray-400 hover:text-gray-200 hover:bg-dark-700 rounded transition-colors duration-200;
+  }
+
+  .toolbar-separator {
+    @apply w-px h-6 bg-dark-600;
+  }
+
+  /* Summary Cards */
+  .summary-card {
+    @apply p-4 bg-dark-800/30 border border-dark-700/50 rounded-xl;
+  }
+
+  /* Button Styles */
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-6 py-3 text-sm font-semibold rounded-lg;
+    @apply bg-gradient-to-r from-primary-600 to-primary-700 text-white border border-primary-500/50;
+    @apply hover:from-primary-700 hover:to-primary-800 hover:border-primary-400/50 hover:shadow-lg hover:shadow-primary-500/25;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 focus:ring-offset-dark-900;
+    @apply transition-all duration-200 transform hover:scale-105 active:scale-95;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg;
+    @apply bg-dark-800/60 text-gray-300 border border-dark-600/50;
+    @apply hover:bg-dark-700/70 hover:text-gray-200 hover:border-dark-500/50 hover:shadow-md;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dark-500 focus:ring-offset-dark-900;
+    @apply transition-all duration-200;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg;
+    @apply bg-transparent text-gray-300 border border-gray-500/50;
+    @apply hover:bg-gray-500/10 hover:border-gray-400/60 hover:text-gray-200;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 focus:ring-offset-dark-900;
+    @apply transition-all duration-200;
+  }
+
+  .btn-success {
+    @apply inline-flex items-center justify-center px-6 py-3 text-sm font-semibold rounded-lg;
+    @apply bg-gradient-to-r from-success-600 to-success-700 text-white border border-success-500/50;
+    @apply hover:from-success-700 hover:to-success-800 hover:border-success-400/50 hover:shadow-lg hover:shadow-success-500/25;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-success-500 focus:ring-offset-dark-900;
+    @apply transition-all duration-200 transform hover:scale-105 active:scale-95;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 1024px) {
+    .category-grid {
+      @apply grid-cols-1;
+    }
+    
+    .step-indicator {
+      @apply w-10 h-10;
+    }
+    
+    .step-connector {
+      @apply w-16;
+    }
+  }
+</style>
+
+<script define:vars={{ isEdit, promptData }}>
+  document.addEventListener('DOMContentLoaded', () => {
+    let currentStep = 1;
+    const totalSteps = 4;
+    let variables = [];
+    
+    // DOM elements
+    const form = document.getElementById('wizard-form');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const submitBtn = document.getElementById('submit-btn');
+    const currentStepSpan = document.getElementById('current-step');
+    const progressBar = document.getElementById('progress-bar');
+    
+    // Initialize wizard
+    updateUI();
+    if (isEdit && promptData.variables) {
+      variables = promptData.variables;
+    }
+    
+    // Navigation
+    nextBtn?.addEventListener('click', () => {
+      if (validateCurrentStep()) {
+        if (currentStep < totalSteps) {
+          currentStep++;
+          showStep(currentStep);
+          updateUI();
+        }
+      }
+    });
+    
+    prevBtn?.addEventListener('click', () => {
+      if (currentStep > 1) {
+        currentStep--;
+        showStep(currentStep);
+        updateUI();
+      }
+    });
+    
+    // Auto-detect variables
+    document.getElementById('auto-detect-variables')?.addEventListener('click', () => {
+      const content = document.getElementById('content').value;
+      const detectedVars = extractVariables(content);
+      
+      // Create variable configurations for detected variables
+      variables = detectedVars.map(name => ({
+        name,
+        type: 'string',
+        description: `Description for ${name}`,
+        required: true,
+        defaultValue: ''
+      }));
+      
+      renderVariables();
+      showNotification(`Detected ${variables.length} variables!`, 'success');
+    });
+    
+    // Add variable manually
+    document.getElementById('add-variable')?.addEventListener('click', () => {
+      const name = prompt('Enter variable name (without {{}}):');
+      if (name && name.trim() && !variables.find(v => v.name === name.trim())) {
+        variables.push({
+          name: name.trim(),
+          type: 'string',
+          description: `Description for ${name.trim()}`,
+          required: true,
+          defaultValue: ''
+        });
+        renderVariables();
+      }
+    });
+    
+    // Template gallery
+    document.getElementById('template-gallery')?.addEventListener('click', () => {
+      showTemplateGallery();
+    });
+    
+    document.getElementById('close-template-modal')?.addEventListener('click', () => {
+      hideTemplateGallery();
+    });
+    
+    // Form submission
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await submitForm();
+    });
+    
+    // Auto-update summary and preview
+    form?.addEventListener('input', debounce(() => {
+      updateSummary();
+      updatePreview();
+    }, 300));
+    
+    function showStep(step) {
+      document.querySelectorAll('.wizard-step').forEach(el => {
+        el.classList.remove('active');
+      });
+      
+      const stepEl = document.querySelector(`[data-step="${step}"]`);
+      if (stepEl) {
+        stepEl.classList.add('active');
+      }
+      
+      // Update step indicators
+      document.querySelectorAll('.step-indicator').forEach((el, index) => {
+        const stepNum = index + 1;
+        el.classList.remove('active', 'completed');
+        
+        if (stepNum === step) {
+          el.classList.add('active');
+        } else if (stepNum < step) {
+          el.classList.add('completed');
+        }
+      });
+      
+      // Update connectors
+      document.querySelectorAll('.step-connector').forEach((el, index) => {
+        if (index + 1 < step) {
+          el.classList.add('active');
+        } else {
+          el.classList.remove('active');
+        }
+      });
+    }
+    
+    function updateUI() {
+      currentStepSpan.textContent = currentStep;
+      
+      // Update progress bar
+      const progress = (currentStep / totalSteps) * 100;
+      progressBar.style.width = `${progress}%`;
+      
+      // Update buttons
+      prevBtn.style.visibility = currentStep > 1 ? 'visible' : 'hidden';
+      
+      if (currentStep === totalSteps) {
+        nextBtn.style.display = 'none';
+        submitBtn.style.display = 'inline-flex';
+      } else {
+        nextBtn.style.display = 'inline-flex';
+        submitBtn.style.display = 'none';
+      }
+      
+      // Update step title
+      const titles = [
+        'Basic Information',
+        'Content Creation', 
+        'Variables Configuration',
+        'Review & Test'
+      ];
+      
+      document.querySelector('.step-title').textContent = titles[currentStep - 1];
+      
+      // Update based on current step
+      if (currentStep === 3) {
+        renderVariables();
+      } else if (currentStep === 4) {
+        updateSummary();
+        updatePreview();
+      }
+    }
+    
+    function validateCurrentStep() {
+      const currentStepEl = document.querySelector(`[data-step="${currentStep}"]`);
+      const requiredInputs = currentStepEl.querySelectorAll('input[required], textarea[required]');
+      
+      for (const input of requiredInputs) {
+        if (!input.value.trim()) {
+          input.focus();
+          showNotification(`Please fill in the ${input.previousElementSibling?.textContent || 'required field'}`, 'error');
+          return false;
+        }
+      }
+      
+      // Special validation for category
+      if (currentStep === 1) {
+        const categorySelected = document.querySelector('input[name="category"]:checked');
+        if (!categorySelected) {
+          showNotification('Please select a category', 'error');
+          return false;
+        }
+      }
+      
+      return true;
+    }
+    
+    function extractVariables(content) {
+      const regex = /{{\\s*([^\\s{}]+)\\s*}}/g;
+      const variables = new Set();
+      let match;
+      
+      while ((match = regex.exec(content)) !== null) {
+        variables.add(match[1]);
+      }
+      
+      return Array.from(variables);
+    }
+    
+    function renderVariables() {
+      const container = document.getElementById('variables-container');
+      
+      if (variables.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8 border-2 border-dashed border-dark-600 rounded-xl">
+            <svg class="w-12 h-12 mx-auto text-gray-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a4 4 0 004 4h4a2 2 0 002-2V5z"></path>
+            </svg>
+            <p class="text-gray-400 mb-4">No variables detected yet</p>
+            <button type="button" id="add-variable" class="btn-primary">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+              </svg>
+              Add Variable
+            </button>
+          </div>
+        `;
+        return;
+      }
+      
+      const variablesHTML = variables.map((variable, index) => `
+        <div class="variable-config glass-card rounded-xl p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center space-x-3">
+              <code class="bg-primary-900/30 text-primary-300 px-3 py-1 rounded-full text-sm font-mono">
+                {{${variable.name}}}
+              </code>
+              <span class="variable-type-badge ${variable.type}">${variable.type}</span>
+            </div>
+            <button type="button" onclick="removeVariable(${index})" class="text-red-400 hover:text-red-300 p-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7"></path>
+              </svg>
+            </button>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="wizard-label">Description</label>
+              <input type="text" value="${variable.description}" onchange="updateVariable(${index}, 'description', this.value)" class="wizard-input" placeholder="Describe this variable">
+            </div>
+            
+            <div>
+              <label class="wizard-label">Type</label>
+              <select onchange="updateVariable(${index}, 'type', this.value)" class="wizard-input">
+                <option value="string" ${variable.type === 'string' ? 'selected' : ''}>String</option>
+                <option value="number" ${variable.type === 'number' ? 'selected' : ''}>Number</option>
+                <option value="boolean" ${variable.type === 'boolean' ? 'selected' : ''}>Boolean</option>
+                <option value="array" ${variable.type === 'array' ? 'selected' : ''}>Array</option>
+              </select>
+            </div>
+            
+            <div>
+              <label class="wizard-label">Default Value</label>
+              <input type="text" value="${variable.defaultValue || ''}" onchange="updateVariable(${index}, 'defaultValue', this.value)" class="wizard-input" placeholder="Optional default">
+            </div>
+            
+            <div class="flex items-center">
+              <label class="flex items-center space-x-2 cursor-pointer">
+                <input type="checkbox" ${variable.required ? 'checked' : ''} onchange="updateVariable(${index}, 'required', this.checked)" class="rounded text-primary-500 focus:ring-primary-500">
+                <span class="text-sm text-gray-300">Required</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      `).join('');
+      
+      container.innerHTML = variablesHTML;
+      
+      // Re-bind add variable button
+      document.getElementById('add-variable')?.addEventListener('click', () => {
+        const name = prompt('Enter variable name (without {{}}):');
+        if (name && name.trim() && !variables.find(v => v.name === name.trim())) {
+          variables.push({
+            name: name.trim(),
+            type: 'string',
+            description: `Description for ${name.trim()}`,
+            required: true,
+            defaultValue: ''
+          });
+          renderVariables();
+        }
+      });
+    }
+    
+    // Global functions for variable management
+    window.updateVariable = (index, field, value) => {
+      if (variables[index]) {
+        variables[index][field] = value;
+      }
+    };
+    
+    window.removeVariable = (index) => {
+      if (confirm('Remove this variable?')) {
+        variables.splice(index, 1);
+        renderVariables();
+      }
+    };
+    
+    function updateSummary() {
+      const formData = new FormData(form);
+      
+      document.getElementById('summary-name').textContent = formData.get('name') || '-';
+      document.getElementById('summary-category').textContent = formData.get('category') || '-';
+      document.getElementById('summary-author').textContent = formData.get('author') || 'Anonymous';
+      
+      const content = formData.get('content') || '';
+      const wordCount = content.trim() ? content.trim().split(/\\s+/).length : 0;
+      document.getElementById('content-stats').textContent = `${wordCount} words, ${content.length} characters`;
+      document.getElementById('variables-stats').textContent = `${variables.length} variables defined`;
+    }
+    
+    function updatePreview() {
+      const content = document.getElementById('content').value || '';
+      let preview = content;
+      
+      // Replace variables with placeholder values
+      variables.forEach(variable => {
+        const regex = new RegExp(`{{\\\\s*${variable.name}\\\\s*}}`, 'g');
+        const placeholder = `[${variable.name.toUpperCase()}]`;
+        preview = preview.replace(regex, placeholder);
+      });
+      
+      document.getElementById('preview-container').innerHTML = `
+        <pre class="whitespace-pre-wrap text-sm text-gray-300 leading-relaxed">${preview || 'Preview will appear here...'}</pre>
+      `;
+    }
+    
+    function showTemplateGallery() {
+      document.getElementById('template-modal').classList.remove('hidden');
+      loadTemplates();
+    }
+    
+    function hideTemplateGallery() {
+      document.getElementById('template-modal').classList.add('hidden');
+    }
+    
+    function loadTemplates() {
+      const templates = [
+        {
+          name: 'Code Review Assistant',
+          category: 'work',
+          description: 'Comprehensive code review with security and performance analysis',
+          content: 'Please review the following {{language}} code for:\\n\\n{{code}}\\n\\nFocus on: {{review_focus}}'
+        },
+        {
+          name: 'Content Writer',
+          category: 'personal', 
+          description: 'Creative content generation for various formats',
+          content: 'Write a {{content_type}} about {{topic}} in {{tone}} tone. Target audience: {{audience}}'
+        },
+        {
+          name: 'Meeting Summarizer',
+          category: 'work',
+          description: 'Extract key points and action items from meeting notes',
+          content: 'Summarize this meeting:\\n\\n{{meeting_notes}}\\n\\nInclude: key decisions, action items, and next steps.'
+        }
+      ];
+      
+      const templateGrid = document.getElementById('template-grid');
+      templateGrid.innerHTML = templates.map(template => `
+        <div class="template-card glass-card rounded-xl p-4 cursor-pointer hover:border-primary-500 transition-all duration-200" 
+             onclick="applyTemplate(${JSON.stringify(template).replace(/"/g, '&quot;')})">
+          <h4 class="font-semibold text-gray-200 mb-2">${template.name}</h4>
+          <p class="text-sm text-gray-400 mb-3">${template.description}</p>
+          <span class="inline-block px-2 py-1 text-xs bg-${template.category === 'work' ? 'primary' : template.category === 'personal' ? 'accent' : 'success'}-900/30 text-${template.category === 'work' ? 'primary' : template.category === 'personal' ? 'accent' : 'success'}-300 rounded-full">
+            ${template.category}
+          </span>
+        </div>
+      `).join('');
+    }
+    
+    window.applyTemplate = (template) => {
+      if (confirm(`Apply the "${template.name}" template? This will replace your current content.`)) {
+        document.getElementById('content').value = template.content;
+        const categoryRadio = document.querySelector(`input[name="category"][value="${template.category}"]`);
+        if (categoryRadio) categoryRadio.checked = true;
+        
+        hideTemplateGallery();
+        showNotification(`Template "${template.name}" applied!`, 'success');
+        
+        // Auto-detect variables from template
+        const detectedVars = extractVariables(template.content);
+        variables = detectedVars.map(name => ({
+          name,
+          type: 'string',
+          description: `Description for ${name}`,
+          required: true,
+          defaultValue: ''
+        }));
+      }
+    };
+    
+    async function submitForm() {
+      if (!validateCurrentStep()) return;
+      
+      const formData = new FormData(form);
+      const promptData = {
+        name: formData.get('name'),
+        description: formData.get('description'),
+        content: formData.get('content'),
+        category: formData.get('category'),
+        author: formData.get('author'),
+        version: formData.get('version'),
+        tags: formData.get('tags') ? formData.get('tags').split(',').map(t => t.trim()).filter(t => t) : [],
+        variables: variables
+      };
+      
+      try {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<svg class="w-4 h-4 mr-2 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Saving...';
+        
+        const url = isEdit ? `/api/prompts/${promptData.id}` : '/api/prompts';
+        const method = isEdit ? 'PUT' : 'POST';
+        
+        const response = await fetch(url, {
+          method,
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(promptData)
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+          showNotification(`Prompt ${isEdit ? 'updated' : 'created'} successfully!`, 'success');
+          setTimeout(() => {
+            window.location.href = `/prompts/${result.id || promptData.id}`;
+          }, 1500);
+        } else {
+          throw new Error(result.error || 'Failed to save prompt');
+        }
+      } catch (error) {
+        console.error('Error saving prompt:', error);
+        showNotification(`Error: ${error.message}`, 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> ${isEdit ? 'Update Prompt' : 'Create Prompt'}`;
+      }
+    }
+    
+    function showNotification(message, type = 'info') {
+      const notification = document.createElement('div');
+      const colors = {
+        success: 'bg-success-500',
+        error: 'bg-red-500',
+        info: 'bg-blue-500',
+        warning: 'bg-amber-500'
+      };
+      
+      notification.className = `fixed top-4 right-4 ${colors[type]} text-white px-4 py-2 rounded-lg shadow-lg text-sm font-medium z-50 transform transition-all duration-300 translate-x-full opacity-0`;
+      notification.innerHTML = `
+        <div class="flex items-center">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+          ${message}
+        </div>
+      `;
+      
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.classList.remove('translate-x-full', 'opacity-0');
+      }, 100);
+      
+      setTimeout(() => {
+        notification.classList.add('translate-x-full', 'opacity-0');
+        setTimeout(() => notification.remove(), 300);
+      }, 3000);
+    }
+    
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    }
+  });
+</script>
