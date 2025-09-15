@@ -1,81 +1,174 @@
-# Prompt Craft
+# 🎯 Prompt Craft
 
-A TypeScript-based prompt management system with CLI, MCP (stdio and web/HTTP+WS), and REST APIs for organizing and rendering prompts.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-43853D?style=flat&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-brightgreen)](https://modelcontextprotocol.io/)
 
-## Quick Start
+A powerful TypeScript-based prompt management system with **CLI**, **MCP** (stdio and web/HTTP+WS), and **REST APIs** for organizing and rendering AI prompts.
 
-- Install dependencies:
-  - npm install
-- Build core + infrastructure + CLI:
-  - npm run clean && npm run build
-- Run CLI:
-  - npm start -- help
-- or: node dist/packages/apps/cli/index.js help
-- Web preview (APIs only):
-  - npm run web:build && npm run web:preview
+## ✨ Features
 
-## CLI Usage
+- 🎨 **Organize prompts** by categories (work, personal, shared)
+- 🚀 **CLI interface** with interactive variable entry and validation
+- 🌐 **Web APIs** with REST and MCP endpoints
+- 📡 **MCP Protocol** support (stdio + HTTP/WebSocket)
+- 💾 **Variable presets** and favorites tracking
+- 🔄 **Type-aware parsing** for numbers, booleans, arrays
+- 📋 **Copy to clipboard** with multiple output formats
+- 🔍 **Search and filtering** with tags and categories
 
-Commands:
-- list [category]           List prompts (optionally by category: work, personal, shared)
-- search <query> [flags]    Search prompts (flags: --category, --limit)
-- show <id>                 Show detailed prompt information and variables
-- render <id> [vars...]     Render prompt with variables
-- categories                Show category statistics
-- help                      Show help
+## 🚀 Quick Start
 
-Examples:
-- node dist/packages/apps/cli/index.js list work
-- node dist/packages/apps/cli/index.js search "code review"
-- node dist/packages/apps/cli/index.js render work_code_review_01 language=TypeScript code="const x=1"
+### Installation & Setup
+```bash
+# Install dependencies
+npm install
 
-## MCP (Web HTTP)
+# Build all packages
+npm run clean && npm run build
 
-Endpoints (Astro):
-- GET /api/mcp/tools          List tools (prompts + system tools)
-- POST /api/mcp/call          Call a tool
-- POST /api/mcp/render        Render a prompt via REST wrapper
-- GET /api/mcp                Server info
-- GET /api/mcp/ws             WebSocket endpoint (JSON-RPC 2.0)
+# Start CLI
+npm start -- help
+# or directly:
+node dist/packages/apps/cli/index.js help
+```
 
-Examples:
-- curl -s http://localhost:4321/api/mcp/tools | jq
-- curl -s -X POST http://localhost:4321/api/mcp/call \
+### Web Preview
+```bash
+npm run web:build && npm run web:preview
+```
+
+## 🎮 CLI Usage
+
+### Core Commands
+| Command | Description | Example |
+|---------|-------------|----------|
+| `list [category]` | List prompts by category | `npm start -- list work` |
+| `search <query>` | Search prompts with filters | `npm start -- search "code review" --category work` |
+| `show <id>` | Show detailed prompt info | `npm start -- show work_code_review_01` |
+| `render <id>` | Render prompt with variables | `npm start -- render work_code_review_01 language=TypeScript` |
+| `categories` | Show category statistics | `npm start -- categories` |
+| `favorites add <id>` | Add prompt to favorites | `npm start -- favorites add work_api_design_01` |
+| `recent` | Show recently used prompts | `npm start -- recent` |
+
+### Advanced Features
+```bash
+# Interactive variable prompting
+npm start -- render work_code_review_01
+
+# Dry-run validation
+npm start -- render work_api_design_01 --dry-run
+
+# Output formats
+npm start -- render work_code_review_01 language=TS code="..." --format=json
+npm start -- render work_code_review_01 language=TS code="..." --format=plain --copy
+
+# Save/load variable presets
+npm start -- render work_api_design_01 --save=api-preset.json service_name=MyAPI
+npm start -- render --load=api-preset.json
+```
+
+## 🌐 MCP (Model Context Protocol)
+
+### HTTP/WebSocket Server
+Exposes prompts as tools via web endpoints:
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/mcp/tools` | GET | List all available tools |
+| `/api/mcp/call` | POST | Call a tool (JSON-RPC 2.0) |
+| `/api/mcp/render` | POST | Render prompt via REST |
+| `/api/mcp/ws` | WS | WebSocket endpoint |
+| `/api/mcp` | GET | Server info and capabilities |
+
+**Example Usage:**
+```bash
+# List all tools
+curl -s http://localhost:4321/api/mcp/tools | jq
+
+# Call a prompt tool
+curl -s -X POST http://localhost:4321/api/mcp/call \
   -H 'Content-Type: application/json' \
-  -d '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"prompt_work_code_review_01","arguments":{"language":"TypeScript","code":"const x=1"}}}' | jq
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+      "name": "prompt_work_code_review_01",
+      "arguments": {
+        "language": "TypeScript",
+        "code": "const x = 1;"
+      }
+    }
+  }' | jq
+```
 
-## MCP (stdio)
+### stdio MCP Server
+```bash
+# Start stdio MCP server
+npm run mcp-server
+```
+Exposes each prompt as a tool named `prompt_<id>` for AI assistant integration.
 
-- Start: npm run mcp-server
-- This exposes each prompt as a tool named prompt_<id>
+## 🔌 REST APIs
 
-## REST APIs
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/prompts` | GET | List prompts (with optional category filter) |
+| `/api/prompts/:id` | GET | Get specific prompt by ID |
+| `/api/prompts` | POST | Create new prompt |
+| `/api/prompts/:id` | PUT | Update existing prompt |
+| `/api/prompts/:id` | DELETE | Delete prompt |
+| `/api/search` | GET | Search prompts (q, category, tags, author, limit) |
 
-- GET /api/prompts                  List prompts (optionally filter by category)
-- GET /api/prompts/:id              Get a prompt by id
-- POST /api/prompts                 Create a prompt
-- PUT /api/prompts/:id              Update a prompt
-- DELETE /api/prompts/:id           Delete a prompt
-- GET /api/search                   Search prompts (q, category, tags, author, limit)
+## 📁 Repository Structure
 
-## Repository Structure
+```
+prompt-manager/
+├── 📦 packages/
+│   ├── 🧠 core/                    # Domain and application layers
+│   ├── 🔧 infrastructure/          # File-system repository and adapters  
+│   └── 🚀 apps/
+│       ├── 💻 cli/                 # Command-line interface
+│       ├── 📡 mcp-server/          # MCP stdio server
+│       └── 🌐 web/                 # Astro-based web APIs
+├── 📝 prompts/                     # Prompt JSON files by category
+│   ├── 💼 work/                    # Work-related prompts
+│   ├── 👤 personal/                # Personal prompts  
+│   └── 🤝 shared/                  # Shared prompts
+└── ⚙️  config/                     # Configuration files
+```
 
-- packages/core                    Domain and application layers (Prompt, PromptUseCases)
-- packages/infrastructure          File-system repository and adapters
-- packages/apps/cli                CLI app
-- packages/apps/mcp-server         MCP stdio server
-- packages/apps/web                Astro-based web APIs (HTTP + WebSocket)
-- prompts                          Prompt JSON files organized by category
-- config                           Configuration files
+## 🛠️ Development
 
-## Development
+### Commands
+```bash
+# Type checking
+npm run lint
 
-- Type check: npm run lint
-- Unit tests: npm run test:unit
-- Integration tests: npm run test:integration
-- All tests: npm test
+# Testing
+npm test                    # All tests
+npm run test:unit          # Unit tests only
+npm run test:integration   # Integration tests only
+npm run test:coverage      # With coverage report
 
-## Notes
+# Building
+npm run build              # Build all packages
+npm run build:cli          # Build CLI only
+npm run clean              # Clean build artifacts
+```
 
-- CLI binary: after build, node dist/cli/index.js; bin mapping allows global usage as prompt-craft when installed or linked.
-- MCP web endpoints now include category/tags in tool descriptions and meta fields (errors, usedDefaults) in render results.
+### Architecture
+- **Clean Architecture** with clear separation of concerns
+- **Domain-Driven Design** with entities and use cases
+- **Repository Pattern** for data persistence
+- **TypeScript** throughout with strict type checking
+- **MCP Protocol** for AI assistant integration
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) file for details.
+
+---
+
+**Built with ❤️ using TypeScript, Node.js, and the Model Context Protocol**
