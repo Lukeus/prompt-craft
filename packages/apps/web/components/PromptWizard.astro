@@ -466,12 +466,12 @@ const promptData = prompt || defaultPrompt;
     @apply bg-dark-900/30 backdrop-blur-sm border border-dark-700/50 shadow-2xl;
   }
 
-  .wizard-step {
-    @apply hidden;
+  .prompt-wizard .wizard-step {
+    display: none !important;
   }
 
-  .wizard-step.active {
-    @apply block;
+  .prompt-wizard .wizard-step.active {
+    display: block !important;
     animation: slideIn 0.3s ease-out;
   }
 
@@ -659,6 +659,7 @@ const promptData = prompt || defaultPrompt;
     const progressBar = document.getElementById('progress-bar');
     
     // Initialize wizard
+    showStep(1);
     updateUI();
     if (isEdit && promptData.variables) {
       variables = promptData.variables;
