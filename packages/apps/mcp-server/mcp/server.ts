@@ -8,7 +8,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { getContainer } from '../../../core/infrastructure/Container';
 import { PromptUseCases } from '../../../core/application/usecases/PromptUseCases';
-import { FileSystemPromptRepository } from '../../../infrastructure/filesystem/FileSystemPromptRepository';
+import { RepositoryFactory } from '../../../infrastructure/RepositoryFactory';
 import { PromptCategory } from '../../../core/domain/entities/Prompt';
 import * as path from 'path';
 
@@ -34,8 +34,8 @@ export class PromptMcpServer {
 
   private async initializePromptManager(): Promise<PromptUseCases> {
     if (!this.promptManager) {
-      const promptsDirectory = path.join(process.cwd(), 'prompts');
-      const promptRepository = new FileSystemPromptRepository(promptsDirectory);
+      // Create repository with automatic type detection
+      const promptRepository = RepositoryFactory.createAuto();
       const container = getContainer({ promptRepository });
       this.promptManager = container.getPromptUseCases();
     }

@@ -1,0 +1,63 @@
+{
+  "id": "personal_brand_01",
+  "name": "Brand Identity Designer 1",
+  "description": "A comprehensive prompt for developing brand identity concepts, visual direction, and brand strategy",
+  "content": "I'm developing a brand identity for {{project_name}}, which is {{project_description}}.\n\n**Target Audience:** {{target_audience}}\n**Brand Values:** {{values}}\n**Competitive Landscape:** {{competitors}}\n**Desired Brand Personality:** {{personality}}\n\n{{additional_context}}\n\nPlease help me develop a comprehensive brand identity by addressing:\n\n**1. Brand Positioning**\n- Unique value proposition\n- Brand promise and mission statement\n- Key differentiators from competitors\n- Brand positioning statement\n\n**2. Visual Identity Concepts**\n- Logo concepts and rationale\n- Color palette suggestions with psychological reasoning\n- Typography recommendations (primary and secondary)\n- Visual style and aesthetic direction\n\n**3. Brand Voice & Messaging**\n- Tone of voice characteristics\n- Key messaging pillars\n- Tagline/slogan options\n- Brand storytelling framework\n\n**4. Visual Applications**\n- Business card design concepts\n- Website visual hierarchy suggestions\n- Social media visual guidelines\n- Marketing material design direction\n\n**5. Brand Guidelines Framework**\n- Logo usage guidelines\n- Color usage rules\n- Typography hierarchy\n- Imagery style guidelines\n- What to do/avoid in brand expression\n\n**6. Implementation Strategy**\n- Priority touchpoints for brand rollout\n- Timeline suggestions for brand development\n- Budget considerations for different elements\n- Metrics for measuring brand effectiveness\n\nPlease provide creative rationale for all suggestions and consider both artistic merit and practical business applications.",
+  "category": "personal",
+  "tags": [
+    "branding",
+    "design",
+    "marketing",
+    "visual-identity",
+    "creative"
+  ],
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2025-09-16T18:18:53.762Z",
+  "version": "1.0.0",
+  "author": "Prompt Manager",
+  "variables": [
+    {
+      "name": "project_name",
+      "description": "Name of the project/business being branded",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "project_description",
+      "description": "Brief description of what the project does",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "target_audience",
+      "description": "Primary target audience description",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "values",
+      "description": "Core brand values (3-5 key values)",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "competitors",
+      "description": "Key competitors or similar brands",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "personality",
+      "description": "Desired brand personality traits",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "additional_context",
+      "description": "Any additional context, constraints, or specific requirements",
+      "type": "string",
+      "required": false,
+      "defaultValue": ""
+    }
+  ]
+}

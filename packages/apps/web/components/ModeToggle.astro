@@ -1,0 +1,236 @@
+---
+// Placeholder component for Mode Toggle (Assistant vs Agent)
+---
+
+<div class="mode-toggle-component">
+  <div class="toggle-header">
+    <h4 class="toggle-title">Try Both Modes</h4>
+    <p class="toggle-subtitle">Switch between Assistant and Agent mode to see the difference</p>
+  </div>
+  
+  <div class="mode-switcher">
+    <button id="assistant-btn" class="mode-btn active" onclick="switchMode('assistant')">
+      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+      </svg>
+      Assistant Mode
+    </button>
+    <button id="agent-btn" class="mode-btn" onclick="switchMode('agent')">
+      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+      </svg>
+      Agent Mode
+    </button>
+  </div>
+  
+  <div class="mode-content">
+    <div id="assistant-mode" class="mode-panel active">
+      <div class="mode-example">
+        <div class="example-header">
+          <div class="mode-icon bg-blue-500">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+            </svg>
+          </div>
+          <h5 class="mode-title">Assistant Mode Response</h5>
+        </div>
+        <div class="conversation-example">
+          <div class="message user-message">
+            <strong>You:</strong> "Help me write a professional email to request a meeting"
+          </div>
+          <div class="message assistant-message">
+            <strong>Assistant:</strong> "Here's a professional email template you can use:
+            <br><br>
+            <em>Subject: Request for Meeting - [Your Topic]<br><br>
+            Dear [Name],<br><br>
+            I hope this email finds you well. I would like to schedule a meeting to discuss [topic]. Would you be available for a 30-minute meeting sometime next week?<br><br>
+            Best regards,<br>
+            [Your Name]</em>
+            <br><br>
+            👆 Copy this template and customize it for your needs"
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div id="agent-mode" class="mode-panel">
+      <div class="mode-example">
+        <div class="example-header">
+          <div class="mode-icon bg-cyan-500">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+            </svg>
+          </div>
+          <h5 class="mode-title">Agent Mode Response</h5>
+        </div>
+        <div class="conversation-example">
+          <div class="message user-message">
+            <strong>You:</strong> "Send an email to john@company.com requesting a meeting about the project proposal"
+          </div>
+          <div class="message agent-message">
+            <strong>Agent:</strong> "I'll help you send that email. Let me use the EmailTool to compose and send it.
+            <br><br>
+            🔧 <em>Using EmailTool...</em><br>
+            ✅ <strong>Email sent successfully!</strong>
+            <br><br>
+            <strong>Sent to:</strong> john@company.com<br>
+            <strong>Subject:</strong> Meeting Request - Project Proposal Discussion<br>
+            <strong>Content:</strong> Professional meeting request with your details
+            <br><br>
+            The email has been delivered to their inbox."
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Make switchMode globally accessible
+  window.switchMode = function(mode) {
+    try {
+      // Update buttons
+      const modeButtons = document.querySelectorAll('.mode-btn');
+      const targetButton = document.getElementById(`${mode}-btn`);
+      
+      if (modeButtons.length > 0) {
+        modeButtons.forEach(btn => btn.classList.remove('active'));
+      }
+      
+      if (targetButton) {
+        targetButton.classList.add('active');
+      } else {
+        console.warn(`Button with id '${mode}-btn' not found`);
+      }
+      
+      // Update panels
+      const modePanels = document.querySelectorAll('.mode-panel');
+      const targetPanel = document.getElementById(`${mode}-mode`);
+      
+      if (modePanels.length > 0) {
+        modePanels.forEach(panel => panel.classList.remove('active'));
+      }
+      
+      if (targetPanel) {
+        targetPanel.classList.add('active');
+      } else {
+        console.warn(`Panel with id '${mode}-mode' not found`);
+      }
+      
+    } catch (error) {
+      console.error('Error in switchMode function:', error);
+    }
+  };
+  
+  // Initialize when DOM is ready
+  document.addEventListener('DOMContentLoaded', function() {
+    // Set up click event listeners as backup (in case onclick doesn't work)
+    const assistantBtn = document.getElementById('assistant-btn');
+    const agentBtn = document.getElementById('agent-btn');
+    
+    if (assistantBtn) {
+      assistantBtn.addEventListener('click', () => window.switchMode('assistant'));
+    }
+    
+    if (agentBtn) {
+      agentBtn.addEventListener('click', () => window.switchMode('agent'));
+    }
+  });
+</script>
+
+<style>
+  .mode-toggle-component {
+    @apply bg-gradient-to-br from-dark-800/60 to-dark-700/60 rounded-2xl p-8 border border-dark-600/50;
+    /* Remove fixed min-height to allow natural content fitting */
+  }
+  
+  .toggle-header {
+    @apply text-center mb-8;
+  }
+  
+  .toggle-title {
+    @apply text-2xl font-bold text-gray-100 mb-3;
+    @apply bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent;
+  }
+  
+  .toggle-subtitle {
+    @apply text-gray-400 text-lg;
+  }
+  
+  .mode-switcher {
+    @apply flex justify-center mb-8 bg-dark-600/50 p-1 rounded-xl;
+    @apply border border-dark-500/30 backdrop-blur-sm;
+  }
+  
+  .mode-btn {
+    @apply flex items-center px-8 py-4 rounded-lg transition-all duration-300;
+    @apply text-gray-300 hover:text-white font-semibold;
+    @apply hover:bg-dark-500/30;
+  }
+  
+  .mode-btn.active {
+    @apply bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-xl;
+    @apply transform scale-105;
+  }
+  
+  .mode-content {
+    @apply relative;
+    /* Use natural height to fit content without extra space */
+  }
+  
+  .mode-panel {
+    @apply hidden opacity-0 transition-all duration-300;
+  }
+  
+  .mode-panel.active {
+    @apply block opacity-100;
+    animation: fadeIn 300ms ease-in-out;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .mode-example {
+    @apply space-y-6;
+  }
+  
+  .example-header {
+    @apply flex items-center space-x-4;
+  }
+  
+  .mode-icon {
+    @apply w-12 h-12 rounded-xl flex items-center justify-center shadow-lg;
+  }
+  
+  .mode-title {
+    @apply text-lg font-semibold text-gray-100;
+  }
+  
+  .conversation-example {
+    @apply space-y-4;
+  }
+  
+  .message {
+    @apply p-4 rounded-lg;
+  }
+  
+  .user-message {
+    @apply bg-blue-600/20 border border-blue-500/30 text-blue-200;
+  }
+  
+  .assistant-message {
+    @apply bg-gray-600/20 border border-gray-500/30 text-gray-200;
+  }
+  
+  .agent-message {
+    @apply bg-green-600/20 border border-green-500/30 text-green-200;
+  }
+</style>

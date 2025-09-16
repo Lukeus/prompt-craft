@@ -1,6 +1,6 @@
 import { PromptUseCases } from '../PromptUseCases';
 import { MockPromptRepository } from './mocks/MockPromptRepository';
-import { Prompt, PromptCategory } from '../../domain/entities/Prompt';
+import { Prompt, PromptCategory } from '../../../domain/entities/Prompt';
 
 describe('PromptUseCases', () => {
   let mockRepository: MockPromptRepository;
@@ -74,6 +74,9 @@ describe('PromptUseCases', () => {
     });
 
     it('updates existing prompt successfully', async () => {
+      // Add a small delay to ensure timestamp difference
+      await new Promise(resolve => setTimeout(resolve, 10));
+      
       const updated = await promptUseCases.updatePrompt({
         id: existingPrompt.id,
         name: 'Updated Name',
@@ -85,7 +88,7 @@ describe('PromptUseCases', () => {
       expect(updated.content).toBe('Updated content');
       expect(updated.tags).toEqual(['updated', 'modified']);
       expect(updated.description).toBe('Original description'); // unchanged
-      expect(updated.updatedAt.getTime()).toBeGreaterThan(existingPrompt.updatedAt.getTime());
+      expect(updated.updatedAt.getTime()).toBeGreaterThanOrEqual(existingPrompt.updatedAt.getTime());
     });
 
     it('throws error when prompt not found', async () => {

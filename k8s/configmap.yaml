@@ -1,0 +1,88 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prompt-craft-config
+  namespace: prompt-craft
+  labels:
+    app.kubernetes.io/name: prompt-craft
+    app.kubernetes.io/component: config
+    app.kubernetes.io/part-of: prompt-craft
+data:
+  NODE_ENV: "production"
+  PLATFORM_TYPE: "kubernetes"
+  REPOSITORY_TYPE: "database"
+  DATABASE_TYPE: "postgresql"
+  DATABASE_HOST: "prompt-craft-postgres"
+  DATABASE_PORT: "5432"
+  DATABASE_NAME: "prompts"
+  DATABASE_SSL: "true"
+  DATABASE_CONNECTION_LIMIT: "20"
+  DATABASE_POOL_MIN: "5"
+  DATABASE_POOL_MAX: "20"
+  
+  # Server Configuration
+  HOST: "0.0.0.0"
+  PORT: "3000"
+  CORS_ORIGIN: "*"
+  CORS_CREDENTIALS: "false"
+  RATE_LIMIT_WINDOW: "900000"
+  RATE_LIMIT_MAX: "1000"
+  SERVER_TIMEOUT: "30000"
+  BODY_LIMIT: "10mb"
+  
+  # Security Configuration
+  TRUST_PROXY: "true"
+  HELMET_ENABLED: "true"
+  CSP_ENABLED: "true"
+  ALLOWED_ORIGINS: "*"
+  
+  # Features
+  FEATURE_WEB: "true"
+  FEATURE_MCP: "true"
+  FEATURE_API: "true"
+  FEATURE_AUTH: "false"
+  FEATURE_MONITORING: "true"
+  FEATURE_CACHING: "true"
+  
+  # Logging
+  LOG_LEVEL: "info"
+  LOG_FORMAT: "json"
+  LOG_DESTINATION: "console"
+  
+  # Metrics
+  METRICS_ENABLED: "true"
+  METRICS_PROVIDER: "prometheus"
+  
+  # Platform specific
+  KUBERNETES_NAMESPACE: "prompt-craft"
+  TZ: "UTC"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prompt-craft-database-init
+  namespace: prompt-craft
+  labels:
+    app.kubernetes.io/name: prompt-craft
+    app.kubernetes.io/component: database-init
+    app.kubernetes.io/part-of: prompt-craft
+data:
+  init.sql: |
+    -- Initialize database for Prompt Craft
+    CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+    CREATE EXTENSION IF NOT EXISTS "pg_trgm";
+    
+    -- Create application user (if not exists)
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'prompt_craft_user') THEN
+        CREATE ROLE prompt_craft_user WITH LOGIN PASSWORD 'changeme';
+      END IF;
+    END
+    $$;
+    
+    -- Grant permissions
+    GRANT CONNECT ON DATABASE prompts TO prompt_craft_user;
+    GRANT USAGE ON SCHEMA public TO prompt_craft_user;
+    GRANT CREATE ON SCHEMA public TO prompt_craft_user;

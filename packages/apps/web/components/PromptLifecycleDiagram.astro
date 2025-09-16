@@ -1,0 +1,667 @@
+---
+// Interactive Prompt Lifecycle Diagram with animations
+const lifecycleSteps = [
+  {
+    id: 1,
+    title: "Draft",
+    icon: "✏️",
+    description: "Initial idea and rough concept",
+    color: "from-gray-500 to-gray-600",
+    bgColor: "bg-gray-500/20",
+    borderColor: "border-gray-500/50"
+  },
+  {
+    id: 2,
+    title: "Refine",
+    icon: "🔧",
+    description: "Test, improve, and add context",
+    color: "from-blue-500 to-blue-600",
+    bgColor: "bg-blue-500/20",
+    borderColor: "border-blue-500/50"
+  },
+  {
+    id: 3,
+    title: "Save",
+    icon: "💾",
+    description: "Store in prompt library",
+    color: "from-green-500 to-green-600",
+    bgColor: "bg-green-500/20",
+    borderColor: "border-green-500/50"
+  },
+  {
+    id: 4,
+    title: "Retrieve",
+    icon: "🔍",
+    description: "Search and find when needed",
+    color: "from-yellow-500 to-yellow-600",
+    bgColor: "bg-yellow-500/20",
+    borderColor: "border-yellow-500/50"
+  },
+  {
+    id: 5,
+    title: "Invoke",
+    icon: "🚀",
+    description: "Use with AI assistant or agent",
+    color: "from-purple-500 to-purple-600",
+    bgColor: "bg-purple-500/20",
+    borderColor: "border-purple-500/50"
+  },
+  {
+    id: 6,
+    title: "Tool Use",
+    icon: "🔧",
+    description: "Agent executes with tools",
+    color: "from-indigo-500 to-indigo-600",
+    bgColor: "bg-indigo-500/20",
+    borderColor: "border-indigo-500/50"
+  },
+  {
+    id: 7,
+    title: "Feedback",
+    icon: "📊",
+    description: "Evaluate results and performance",
+    color: "from-pink-500 to-pink-600",
+    bgColor: "bg-pink-500/20",
+    borderColor: "border-pink-500/50"
+  },
+  {
+    id: 8,
+    title: "Archive",
+    icon: "📚",
+    description: "Keep active or archive",
+    color: "from-teal-500 to-teal-600",
+    bgColor: "bg-teal-500/20",
+    borderColor: "border-teal-500/50"
+  }
+];
+---
+
+<div class="lifecycle-diagram">
+  <div class="diagram-container">
+    <div class="diagram-title">
+      <h3 class="title-text">Interactive Prompt Lifecycle</h3>
+      <p class="title-subtitle">Click any step to explore the journey</p>
+    </div>
+    
+    <!-- SVG Connection Lines -->
+    <svg class="connection-svg" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="connectionGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#EC4899;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#06B6D4;stop-opacity:1" />
+        </linearGradient>
+        
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+          <feMerge> 
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/> 
+          </feMerge>
+        </filter>
+      </defs>
+      
+      <!-- Flowing connection paths -->
+      <path id="flowPath" class="connection-path" 
+            d="M 120 180 Q 220 130 320 180 Q 420 230 520 180 Q 620 130 720 180 Q 770 230 800 280 Q 770 380 720 430 Q 620 480 520 430 Q 420 380 320 430 Q 220 480 120 430 Q 70 380 120 180" 
+            stroke="url(#connectionGradient)" 
+            stroke-width="3" 
+            fill="none" 
+            filter="url(#glow)"/>
+      
+      <!-- Animated flow particles -->
+      <circle class="flow-particle particle-1" r="4" fill="#8B5CF6">
+        <animateMotion dur="8s" repeatCount="indefinite">
+          <mpath href="#flowPath"/>
+        </animateMotion>
+        <animate attributeName="opacity" values="0;1;1;0" dur="8s" repeatCount="indefinite"/>
+      </circle>
+      
+      <circle class="flow-particle particle-2" r="3" fill="#EC4899">
+        <animateMotion dur="10s" repeatCount="indefinite" begin="2s">
+          <mpath href="#flowPath"/>
+        </animateMotion>
+        <animate attributeName="opacity" values="0;1;1;0" dur="10s" repeatCount="indefinite" begin="2s"/>
+      </circle>
+      
+      <circle class="flow-particle particle-3" r="2" fill="#06B6D4">
+        <animateMotion dur="12s" repeatCount="indefinite" begin="4s">
+          <mpath href="#flowPath"/>
+        </animateMotion>
+        <animate attributeName="opacity" values="0;1;1;0" dur="12s" repeatCount="indefinite" begin="4s"/>
+      </circle>
+    </svg>
+    
+    <!-- Interactive Step Nodes -->
+    <div class="steps-container">
+      {lifecycleSteps.map((step, index) => (
+        <div 
+          class={`step-node group ${step.bgColor} ${step.borderColor}`}
+          data-step={step.id}
+          style={`animation-delay: ${index * 0.2}s`}
+        >
+          <div class={`step-circle bg-gradient-to-br ${step.color}`}>
+            <span class="step-emoji">{step.icon}</span>
+            <div class="step-number">{step.id}</div>
+          </div>
+          
+          <div class="step-content">
+            <h4 class="step-title">{step.title}</h4>
+            <p class="step-description">{step.description}</p>
+          </div>
+          
+          <!-- Hover Details Panel -->
+          <div class="step-details">
+            <div class="details-arrow"></div>
+            <div class="details-content">
+              <h5 class="details-title">{step.title} Stage</h5>
+              <p class="details-text">{step.description}</p>
+              <div class="details-examples">
+                {step.id === 1 && (
+                  <ul>
+                    <li>• Brainstorm initial concept</li>
+                    <li>• Write rough first version</li>
+                    <li>• Identify core purpose</li>
+                  </ul>
+                )}
+                {step.id === 2 && (
+                  <ul>
+                    <li>• Add specific examples</li>
+                    <li>• Include context and constraints</li>
+                    <li>• Test with different inputs</li>
+                  </ul>
+                )}
+                {step.id === 3 && (
+                  <ul>
+                    <li>• Add tags and categories</li>
+                    <li>• Write clear description</li>
+                    <li>• Set metadata and variables</li>
+                  </ul>
+                )}
+                {step.id === 4 && (
+                  <ul>
+                    <li>• Search by keywords</li>
+                    <li>• Filter by category</li>
+                    <li>• Browse related prompts</li>
+                  </ul>
+                )}
+                {step.id === 5 && (
+                  <ul>
+                    <li>• Copy to AI assistant</li>
+                    <li>• Use via MCP protocol</li>
+                    <li>• Customize variables</li>
+                  </ul>
+                )}
+                {step.id === 6 && (
+                  <ul>
+                    <li>• Agent calls EmailTool</li>
+                    <li>• Executes CalculatorTool</li>
+                    <li>• Uses TranslationTool</li>
+                  </ul>
+                )}
+                {step.id === 7 && (
+                  <ul>
+                    <li>• Rate the output quality</li>
+                    <li>• Note what worked well</li>
+                    <li>• Identify improvements</li>
+                  </ul>
+                )}
+                {step.id === 8 && (
+                  <ul>
+                    <li>• Keep best performers active</li>
+                    <li>• Archive outdated versions</li>
+                    <li>• Create improved iterations</li>
+                  </ul>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          <!-- Progress Indicator -->
+          <div class="step-progress">
+            <div class="progress-fill"></div>
+          </div>
+        </div>
+      ))}
+    </div>
+    
+    <!-- Central Hub - Simplified without pulsing animation -->
+    <div class="central-hub">
+      <div class="hub-circle">
+        <div class="hub-icon">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <div class="status-item active">
+        <span class="status-dot"></span>
+        <span class="status-text">Interactive Mode</span>
+      </div>
+      <div class="status-item">
+        <span class="status-counter">8</span>
+        <span class="status-text">Lifecycle Stages</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Interactive diagram functionality
+  document.addEventListener('DOMContentLoaded', () => {
+    const stepNodes = document.querySelectorAll('.step-node');
+    const centralHub = document.querySelector('.central-hub');
+    let activeStep = null;
+    
+    // Step node interactions
+    stepNodes.forEach((node, index) => {
+      node.addEventListener('click', () => {
+        // Remove active state from all nodes
+        stepNodes.forEach(n => n.classList.remove('active'));
+        
+        // Add active state to clicked node
+        node.classList.add('active');
+        activeStep = node;
+        
+        // Update central hub
+        updateCentralHub(parseInt(node.dataset.step));
+        
+        // Trigger progress animation
+        animateProgress(index);
+      });
+      
+      // Hover effects
+      node.addEventListener('mouseenter', () => {
+        if (activeStep !== node) {
+          node.classList.add('hovered');
+        }
+      });
+      
+      node.addEventListener('mouseleave', () => {
+        node.classList.remove('hovered');
+      });
+    });
+    
+    // Central hub click - reset all
+    if (centralHub) {
+      centralHub.addEventListener('click', () => {
+        stepNodes.forEach(n => n.classList.remove('active', 'hovered'));
+        activeStep = null;
+        resetCentralHub();
+      });
+    }
+    
+    function updateCentralHub(stepId) {
+      const hubIcon = document.querySelector('.hub-icon');
+      
+      if (hubIcon) {
+        hubIcon.style.transform = 'scale(1.2)';
+        
+        setTimeout(() => {
+          hubIcon.style.transform = 'scale(1)';
+        }, 300);
+      }
+    }
+    
+    function resetCentralHub() {
+      // Central hub reset - no text to update
+    }
+    
+    function animateProgress(stepIndex) {
+      stepNodes.forEach((node, index) => {
+        const progressFill = node.querySelector('.progress-fill');
+        if (progressFill) {
+          if (index <= stepIndex) {
+            progressFill.style.width = '100%';
+          } else {
+            progressFill.style.width = '0%';
+          }
+        }
+      });
+    }
+    
+    // Initial animation sequence
+    setTimeout(() => {
+      stepNodes.forEach((node, index) => {
+        setTimeout(() => {
+          node.classList.add('animate-in');
+        }, index * 150);
+      });
+    }, 500);
+  });
+</script>
+
+<style>
+  .lifecycle-diagram {
+    @apply w-full;
+    perspective: 1000px;
+    /* Allow tooltips to extend beyond container */
+    overflow: visible;
+    /* Create new stacking context */
+    position: relative;
+    z-index: 0;
+  }
+  
+  .diagram-container {
+    @apply relative p-8 min-h-[650px];
+    @apply bg-gradient-to-br from-dark-900/50 via-purple-900/20 to-blue-900/30;
+    @apply border border-purple-500/20 rounded-3xl;
+    backdrop-filter: blur(10px);
+    /* Allow tooltips to extend beyond container */
+    overflow: visible;
+  }
+  
+  .diagram-title {
+    @apply text-center mb-12;
+  }
+  
+  .title-text {
+    @apply text-4xl font-black text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text mb-2;
+    @apply animate-pulse;
+  }
+  
+  .title-subtitle {
+    @apply text-gray-400 text-lg;
+    @apply opacity-80;
+  }
+  
+  /* SVG Connections */
+  .connection-svg {
+    @apply absolute inset-0 w-full h-full pointer-events-none;
+    z-index: 1; /* Keep SVG in background */
+  }
+  
+  .connection-path {
+    @apply opacity-60;
+    stroke-dasharray: 5, 5;
+    animation: dash 20s linear infinite;
+  }
+  
+  @keyframes dash {
+    to {
+      stroke-dashoffset: -200;
+    }
+  }
+  
+  /* Steps Container */
+  .steps-container {
+    @apply relative grid grid-cols-2 md:grid-cols-4 gap-6;
+    @apply max-w-6xl mx-auto;
+    /* Reduced padding to move cards up and align with flow path */
+    padding-top: 20px;
+    padding-bottom: 30px;
+    z-index: 10; /* Above SVG and central hub */
+  }
+  
+  /* Step Nodes */
+  .step-node {
+    @apply relative p-6 rounded-2xl border-2 backdrop-blur-sm;
+    @apply transform transition-all duration-500 ease-out;
+    @apply opacity-0 translate-y-8 scale-95;
+    @apply cursor-pointer;
+    z-index: 10; /* Base z-index for step nodes */
+    
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+    box-shadow: 
+      0 8px 32px rgba(0,0,0,0.3),
+      inset 0 1px 0 rgba(255,255,255,0.1);
+  }
+  
+  .step-node:hover {
+    z-index: 9999; /* Much higher z-index when hovered to bring tooltip forward */
+  }
+  
+  .step-node.animate-in {
+    @apply opacity-100 translate-y-0 scale-100;
+  }
+  
+  .step-node:hover,
+  .step-node.hovered {
+    @apply scale-105 shadow-2xl;
+    transform: translateY(-4px) scale(1.05);
+  }
+  
+  .step-node.active {
+    @apply scale-110 shadow-2xl;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(236, 72, 153, 0.2) 100%);
+    border-color: rgba(139, 92, 246, 0.8);
+    transform: translateY(-8px) scale(1.1);
+  }
+  
+  .step-circle {
+    @apply relative w-16 h-16 rounded-2xl flex items-center justify-center mb-4 mx-auto;
+    @apply shadow-lg transition-all duration-300;
+    overflow: hidden;
+  }
+  
+  .step-circle::before {
+    content: '';
+    @apply absolute inset-0 bg-white/20 rounded-2xl;
+    @apply transform scale-0 transition-transform duration-300;
+  }
+  
+  .step-node:hover .step-circle::before,
+  .step-node.active .step-circle::before {
+    @apply scale-100;
+  }
+  
+  .step-emoji {
+    @apply text-2xl relative z-10;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+  }
+  
+  .step-number {
+    @apply absolute -top-2 -right-2 w-6 h-6 bg-white text-dark-900 text-xs font-bold rounded-full;
+    @apply flex items-center justify-center shadow-md;
+  }
+  
+  .step-content {
+    @apply text-center;
+  }
+  
+  .step-title {
+    @apply text-lg font-bold text-gray-100 mb-2;
+    @apply group-hover:text-white transition-colors duration-300;
+  }
+  
+  .step-description {
+    @apply text-sm text-gray-400 leading-relaxed;
+    @apply group-hover:text-gray-300 transition-colors duration-300;
+  }
+  
+  /* Hover Details Panel */
+  .step-details {
+    @apply absolute left-1/2 bottom-full mb-4 w-72 p-4;
+    @apply bg-dark-800/95 border border-purple-500/30 rounded-xl shadow-2xl;
+    @apply opacity-0 invisible transform -translate-x-1/2 translate-y-2;
+    @apply transition-all duration-300;
+    backdrop-filter: blur(15px);
+    z-index: 99999; /* Very high z-index to ensure tooltips appear above everything */
+    pointer-events: none;
+    /* Ensure tooltip appears above all other elements */
+    position: absolute;
+  }
+  
+  .step-node:hover .step-details {
+    @apply opacity-100 visible translate-y-0;
+  }
+  
+  .details-arrow {
+    @apply absolute top-full left-1/2 transform -translate-x-1/2;
+    border: 8px solid transparent;
+    border-top-color: rgba(31, 41, 55, 0.95);
+  }
+  
+  .details-title {
+    @apply text-lg font-bold text-purple-300 mb-2;
+  }
+  
+  .details-text {
+    @apply text-gray-300 text-sm mb-3;
+  }
+  
+  .details-examples ul {
+    @apply space-y-1;
+  }
+  
+  .details-examples li {
+    @apply text-xs text-gray-400 leading-relaxed;
+  }
+  
+  /* Progress Indicator */
+  .step-progress {
+    @apply absolute bottom-2 left-4 right-4 h-1 bg-dark-600 rounded-full overflow-hidden;
+  }
+  
+  .progress-fill {
+    @apply h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full;
+    @apply transition-all duration-1000 ease-out;
+    width: 0%;
+  }
+  
+  /* Central Hub */
+  .central-hub {
+    @apply absolute left-1/2 transform -translate-x-1/2;
+    @apply cursor-pointer;
+    top: calc(50% - 20px); /* Moved up to align better with flow path through cards */
+    z-index: 5; /* Lower than step nodes but above SVG */
+  }
+  
+  .hub-circle {
+    @apply relative w-24 h-24 bg-gradient-to-br from-purple-500 to-pink-500;
+    @apply rounded-full flex items-center justify-center shadow-2xl;
+    @apply transition-all duration-300 hover:scale-110;
+  }
+  
+  .hub-icon {
+    @apply text-white relative z-10;
+    @apply transition-transform duration-300;
+  }
+  
+  /* Removed pulsing animations and hub text styles for cleaner look */
+  
+  /* Status Bar */
+  .status-bar {
+    @apply absolute bottom-4 left-4 right-4 flex justify-between items-center;
+    @apply bg-dark-800/80 backdrop-blur-sm border border-dark-600/50 rounded-full px-6 py-3;
+  }
+  
+  .status-item {
+    @apply flex items-center space-x-2;
+  }
+  
+  .status-item.active .status-dot {
+    @apply w-2 h-2 bg-green-400 rounded-full animate-pulse;
+  }
+  
+  .status-dot {
+    @apply w-2 h-2 bg-gray-500 rounded-full;
+  }
+  
+  .status-text {
+    @apply text-xs font-medium text-gray-400;
+  }
+  
+  .status-counter {
+    @apply text-lg font-bold text-purple-400;
+  }
+  
+  /* Handle tooltips for edge nodes */
+  .step-node:nth-child(1) .step-details,
+  .step-node:nth-child(2) .step-details {
+    /* Top row tooltips - position below instead of above */
+    @apply top-full bottom-auto mb-0 mt-4;
+  }
+  
+  .step-node:nth-child(1) .details-arrow {
+    @apply bottom-full top-auto;
+    border-top-color: transparent;
+    border-bottom-color: rgba(31, 41, 55, 0.95);
+  }
+  
+  .step-node:nth-child(2) .details-arrow {
+    @apply bottom-full top-auto;
+    border-top-color: transparent;
+    border-bottom-color: rgba(31, 41, 55, 0.95);
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .diagram-container {
+      @apply p-4 min-h-[600px];
+    }
+    
+    .steps-container {
+      @apply grid-cols-2 gap-4;
+      padding-top: 40px;
+      padding-bottom: 30px;
+    }
+    
+    .step-node {
+      @apply p-4;
+    }
+    
+    .step-details {
+      @apply w-64 text-sm;
+    }
+    
+    /* All tooltips below on mobile */
+    .step-details {
+      @apply top-full bottom-auto mb-0 mt-4;
+    }
+    
+    .details-arrow {
+      @apply bottom-full top-auto;
+      border-top-color: transparent;
+      border-bottom-color: rgba(31, 41, 55, 0.95);
+    }
+    
+    .central-hub {
+      @apply top-2/3;
+    }
+    
+    .hub-circle {
+      @apply w-16 h-16;
+    }
+    
+    .title-text {
+      @apply text-2xl;
+    }
+  }
+  
+  /* Animation Keyframes */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes pulse {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.05);
+      opacity: 0.8;
+    }
+  }
+  
+  @keyframes glow {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+    }
+    50% {
+      box-shadow: 0 0 30px rgba(139, 92, 246, 0.8);
+    }
+  }
+</style>

@@ -1,10 +1,19 @@
 import { Prompt, PromptCategory } from '../../core/domain/entities/Prompt';
 import { PromptRepository, PromptSearchCriteria } from '../../core/domain/repositories/PromptRepository';
+interface UsageStats {
+    favorites: string[];
+    recents: Array<{
+        promptId: string;
+        usedAt: string;
+    }>;
+}
 export declare class FileSystemPromptRepository implements PromptRepository {
     private readonly baseDirectory;
+    private readonly usageStatsProvider?;
     private prompts;
     private initialized;
-    constructor(baseDirectory: string);
+    private usageStats?;
+    constructor(baseDirectory: string, usageStatsProvider?: (() => UsageStats) | undefined);
     private ensureInitialized;
     private loadAllPrompts;
     private loadPromptsFromCategory;
@@ -13,6 +22,8 @@ export declare class FileSystemPromptRepository implements PromptRepository {
     private slugify;
     findById(id: string): Promise<Prompt | null>;
     findAll(): Promise<Prompt[]>;
+    private getUsageScore;
+    private calculateFuzzyScore;
     search(criteria: PromptSearchCriteria): Promise<Prompt[]>;
     save(prompt: Prompt): Promise<void>;
     delete(id: string): Promise<boolean>;
@@ -21,4 +32,5 @@ export declare class FileSystemPromptRepository implements PromptRepository {
     findByTags(tags: string[]): Promise<Prompt[]>;
     countByCategory(): Promise<Record<string, number>>;
 }
+export {};
 //# sourceMappingURL=FileSystemPromptRepository.d.ts.map

@@ -38,8 +38,9 @@ const fs = __importStar(require("fs/promises"));
 const path = __importStar(require("path"));
 const Prompt_1 = require("../../core/domain/entities/Prompt");
 class FileSystemPromptRepository {
-    constructor(baseDirectory) {
+    constructor(baseDirectory, usageStatsProvider) {
         this.baseDirectory = baseDirectory;
+        this.usageStatsProvider = usageStatsProvider;
         this.prompts = new Map();
         this.initialized = false;
     }
@@ -107,8 +108,91 @@ class FileSystemPromptRepository {
     }
     async findAll() {
         await this.ensureInitialized();
+        // Sort by usage patterns, then by updated date
         return Array.from(this.prompts.values())
-            .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+            .sort((a, b) => {
+            const usageScoreA = this.getUsageScore(a.id);
+            const usageScoreB = this.getUsageScore(b.id);
+            if (usageScoreB !== usageScoreA) {
+                return usageScoreB - usageScoreA;
+            }
+            return b.updatedAt.getTime() - a.updatedAt.getTime();
+        });
+    }
+    getUsageScore(promptId) {
+        if (!this.usageStats) {
+            this.usageStats = this.usageStatsProvider?.() || { favorites: [], recents: [] };
+        }
+        let score = 0;
+        // Favorite bonus
+        if (this.usageStats.favorites.includes(promptId)) {
+            score += 50;
+        }
+        // Recent usage bonus (decays over time)
+        const recentEntry = this.usageStats.recents.find(r => r.promptId === promptId);
+        if (recentEntry) {
+            const usedAt = new Date(recentEntry.usedAt);
+            const daysSinceUse = (Date.now() - usedAt.getTime()) / (1000 * 60 * 60 * 24);
+            // Recent usage score decays from 30 to 0 over 30 days
+            if (daysSinceUse < 30) {
+                score += Math.max(30 - daysSinceUse, 0);
+            }
+            // Frequency bonus based on position in recents list (more recent = higher)
+            const position = this.usageStats.recents.findIndex(r => r.promptId === promptId);
+            score += Math.max(10 - position, 0);
+        }
+        return score;
+    }
+    calculateFuzzyScore(prompt, query) {
+        if (!query)
+            return 0;
+        const queryLower = query.toLowerCase();
+        let score = 0;
+        // Exact matches get higher scores
+        const nameExactMatch = prompt.name.toLowerCase() === queryLower;
+        if (nameExactMatch)
+            score += 100;
+        const descExactMatch = prompt.description.toLowerCase() === queryLower;
+        if (descExactMatch)
+            score += 80;
+        const tagExactMatch = prompt.tags.some(tag => tag.toLowerCase() === queryLower);
+        if (tagExactMatch)
+            score += 90;
+        // Partial matches with position weighting
+        const nameIndex = prompt.name.toLowerCase().indexOf(queryLower);
+        if (nameIndex !== -1) {
+            // Earlier matches score higher
+            score += Math.max(50 - nameIndex * 2, 10);
+        }
+        const descIndex = prompt.description.toLowerCase().indexOf(queryLower);
+        if (descIndex !== -1) {
+            score += Math.max(30 - descIndex, 5);
+        }
+        // Tag partial matches
+        prompt.tags.forEach(tag => {
+            const tagIndex = tag.toLowerCase().indexOf(queryLower);
+            if (tagIndex !== -1) {
+                score += Math.max(40 - tagIndex, 8);
+            }
+        });
+        // Content matches (lower weight)
+        const contentIndex = prompt.content.toLowerCase().indexOf(queryLower);
+        if (contentIndex !== -1) {
+            score += Math.max(20 - Math.floor(contentIndex / 100), 2);
+        }
+        // Word boundary matches get bonus
+        const wordBoundaryRegex = new RegExp(`\\b${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i');
+        if (wordBoundaryRegex.test(prompt.name))
+            score += 15;
+        if (wordBoundaryRegex.test(prompt.description))
+            score += 10;
+        // Length similarity bonus (prefer shorter matches)
+        if (query.length >= 3) {
+            const nameLengthRatio = queryLower.length / prompt.name.length;
+            if (nameLengthRatio > 0.3)
+                score += Math.floor(nameLengthRatio * 10);
+        }
+        return score;
     }
     async search(criteria) {
         await this.ensureInitialized();
@@ -125,16 +209,37 @@ class FileSystemPromptRepository {
         if (criteria.author) {
             results = results.filter(prompt => prompt.author?.toLowerCase().includes(criteria.author.toLowerCase()));
         }
-        // Text search
+        // Text search with fuzzy scoring
         if (criteria.query) {
             const query = criteria.query.toLowerCase();
-            results = results.filter(prompt => prompt.name.toLowerCase().includes(query) ||
-                prompt.description.toLowerCase().includes(query) ||
-                prompt.content.toLowerCase().includes(query) ||
-                prompt.tags.some(tag => tag.toLowerCase().includes(query)));
+            // Filter and score results
+            const scoredResults = results
+                .map(prompt => ({
+                prompt,
+                fuzzyScore: this.calculateFuzzyScore(prompt, criteria.query),
+                usageScore: this.getUsageScore(prompt.id),
+                hasMatch: (prompt.name.toLowerCase().includes(query) ||
+                    prompt.description.toLowerCase().includes(query) ||
+                    prompt.content.toLowerCase().includes(query) ||
+                    prompt.tags.some(tag => tag.toLowerCase().includes(query)))
+            }))
+                .filter(item => item.hasMatch)
+                .sort((a, b) => {
+                // Combined score: fuzzy relevance + usage patterns
+                const totalScoreA = a.fuzzyScore + a.usageScore;
+                const totalScoreB = b.fuzzyScore + b.usageScore;
+                if (totalScoreB !== totalScoreA) {
+                    return totalScoreB - totalScoreA;
+                }
+                // Tie-breaker: updated date (newest first)
+                return b.prompt.updatedAt.getTime() - a.prompt.updatedAt.getTime();
+            });
+            results = scoredResults.map(item => item.prompt);
         }
-        // Sort by updated date (newest first)
-        results.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+        else {
+            // No query, just sort by updated date (newest first)
+            results.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+        }
         // Apply limit
         if (criteria.limit && criteria.limit > 0) {
             results = results.slice(0, criteria.limit);
@@ -186,7 +291,14 @@ class FileSystemPromptRepository {
         await this.ensureInitialized();
         return Array.from(this.prompts.values())
             .filter(prompt => prompt.category === category)
-            .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+            .sort((a, b) => {
+            const usageScoreA = this.getUsageScore(a.id);
+            const usageScoreB = this.getUsageScore(b.id);
+            if (usageScoreB !== usageScoreA) {
+                return usageScoreB - usageScoreA;
+            }
+            return b.updatedAt.getTime() - a.updatedAt.getTime();
+        });
     }
     async findByTags(tags) {
         await this.ensureInitialized();

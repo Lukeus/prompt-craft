@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prompt-craft
+  labels:
+    name: prompt-craft
+    app.kubernetes.io/name: prompt-craft
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/component: namespace
+    app.kubernetes.io/part-of: prompt-craft
+    app.kubernetes.io/managed-by: kubectl

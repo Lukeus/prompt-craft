@@ -614,6 +614,9 @@ const promptData = prompt || defaultPrompt;
     const totalSteps = 4;
     let variables = [];
     
+    // Debug logging
+    console.log('PromptWizard Debug:', { isEdit, promptData });
+    
     // DOM elements
     const form = document.getElementById('wizard-form');
     const prevBtn = document.getElementById('prev-btn');
@@ -624,7 +627,7 @@ const promptData = prompt || defaultPrompt;
     
     // Initialize wizard
     updateUI();
-    if (isEdit && promptData.variables) {
+    if (isEdit && promptData && promptData.variables) {
       variables = promptData.variables;
     }
     
@@ -1004,7 +1007,7 @@ const promptData = prompt || defaultPrompt;
       if (!validateCurrentStep()) return;
       
       const formData = new FormData(form);
-      const promptData = {
+      const submitData = {
         name: formData.get('name'),
         description: formData.get('description'),
         content: formData.get('content'),
@@ -1014,6 +1017,11 @@ const promptData = prompt || defaultPrompt;
         tags: formData.get('tags') ? formData.get('tags').split(',').map(t => t.trim()).filter(t => t) : [],
         variables: variables
       };
+      
+      // Add ID for edit operations
+      if (isEdit && promptData && promptData.id) {
+        submitData.id = promptData.id;
+      }
       
       try {
         submitBtn.disabled = true;
@@ -1027,7 +1035,7 @@ const promptData = prompt || defaultPrompt;
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(promptData)
+          body: JSON.stringify(submitData)
         });
         
         const result = await response.json();
@@ -1035,7 +1043,7 @@ const promptData = prompt || defaultPrompt;
         if (response.ok) {
           showNotification(`Prompt ${isEdit ? 'updated' : 'created'} successfully!`, 'success');
           setTimeout(() => {
-            window.location.href = `/prompts/${result.id || promptData.id}`;
+            window.location.href = `/prompts/${result.id || promptData?.id}`;
           }, 1500);
         } else {
           throw new Error(result.error || 'Failed to save prompt');

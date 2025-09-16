@@ -1,0 +1,217 @@
+version: '3.8'
+
+services:
+  # ================================
+  # Web Application (Full Stack)
+  # ================================
+  prompt-craft-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: web-server
+      args:
+        NODE_VERSION: 20
+        BUILD_WEB: true
+    container_name: prompt-craft-web
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:password@db:5432/prompts}
+      - REPOSITORY_TYPE=database
+      - PLATFORM_TYPE=docker
+      - FEATURE_WEB=true
+      - FEATURE_MCP=true
+      - FEATURE_API=true
+      - CORS_ORIGIN=*
+      - LOG_LEVEL=info
+      - LOG_FORMAT=json
+    volumes:
+      - prompts_data:/app/prompts
+      - logs_data:/app/logs
+      - app_data:/app/data
+    depends_on:
+      - db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - prompt-craft-network
+
+  # ================================
+  # CLI Container
+  # ================================
+  prompt-craft-cli:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: cli
+      args:
+        NODE_VERSION: 20
+        BUILD_WEB: false
+    container_name: prompt-craft-cli
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:password@db:5432/prompts}
+      - REPOSITORY_TYPE=database
+      - PLATFORM_TYPE=docker
+      - FEATURE_WEB=false
+      - FEATURE_MCP=true
+      - FEATURE_API=false
+    volumes:
+      - prompts_data:/app/prompts
+      - logs_data:/app/logs
+    depends_on:
+      - db
+    profiles:
+      - cli
+    networks:
+      - prompt-craft-network
+
+  # ================================
+  # MCP Server Container
+  # ================================
+  prompt-craft-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: mcp-server
+      args:
+        NODE_VERSION: 20
+        BUILD_WEB: false
+    container_name: prompt-craft-mcp
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:password@db:5432/prompts}
+      - REPOSITORY_TYPE=database
+      - PLATFORM_TYPE=docker
+      - FEATURE_WEB=false
+      - FEATURE_MCP=true
+      - FEATURE_API=false
+    volumes:
+      - prompts_data:/app/prompts
+      - logs_data:/app/logs
+    depends_on:
+      - db
+    profiles:
+      - mcp
+    networks:
+      - prompt-craft-network
+
+  # ================================
+  # PostgreSQL Database
+  # ================================
+  db:
+    image: postgres:16-alpine
+    container_name: prompt-craft-db
+    environment:
+      - POSTGRES_DB=prompts
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
+      - POSTGRES_INITDB_ARGS="--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d prompts"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - prompt-craft-network
+
+  # ================================
+  # Redis Cache (Optional)
+  # ================================
+  redis:
+    image: redis:7-alpine
+    container_name: prompt-craft-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    profiles:
+      - cache
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - prompt-craft-network
+
+  # ================================
+  # Monitoring Stack (Optional)
+  # ================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prompt-craft-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    profiles:
+      - monitoring
+    networks:
+      - prompt-craft-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: prompt-craft-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/grafana:/etc/grafana/provisioning:ro
+    restart: unless-stopped
+    profiles:
+      - monitoring
+    networks:
+      - prompt-craft-network
+
+# ================================
+# Volumes
+# ================================
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  prompts_data:
+    driver: local
+  logs_data:
+    driver: local
+  app_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+# ================================
+# Networks
+# ================================
+networks:
+  prompt-craft-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

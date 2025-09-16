@@ -1,0 +1,57 @@
+{
+  "platform": {
+    "type": "kubernetes"
+  },
+  "database": {
+    "type": "postgresql",
+    "ssl": true,
+    "connectionLimit": 20,
+    "poolMin": 5,
+    "poolMax": 20,
+    "timeout": 30000
+  },
+  "storage": {
+    "type": "database"
+  },
+  "server": {
+    "host": "0.0.0.0",
+    "port": 3000,
+    "trustProxy": true,
+    "cors": {
+      "origin": "*",
+      "credentials": false
+    },
+    "rateLimit": {
+      "windowMs": 900000,
+      "max": 1000
+    },
+    "bodyLimit": "10mb"
+  },
+  "security": {
+    "helmet": {
+      "enabled": true,
+      "contentSecurityPolicy": true
+    },
+    "authentication": {
+      "enabled": false,
+      "provider": "none"
+    }
+  },
+  "logging": {
+    "level": "info",
+    "format": "json",
+    "destination": "console"
+  },
+  "metrics": {
+    "enabled": true,
+    "provider": "prometheus"
+  },
+  "features": {
+    "webInterface": true,
+    "mcpServer": true,
+    "apiEndpoints": true,
+    "authentication": false,
+    "monitoring": true,
+    "caching": true
+  }
+}
