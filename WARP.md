@@ -1,24 +1,43 @@
 # WARP.md
 
-This file provides guidance to WARP (warp.dev) when working with code in this repository.
+This file provides comprehensive guidance to WARP (warp.dev) when working with the **Prompt Craft** codebase - a production-ready, enterprise-grade TypeScript prompt management system.
 
-## Development Commands
+## 🚀 **Development Commands**
 
-### Core Build and Development
+### **Core Build and Development**
 - `npm run build` - Compile TypeScript to JavaScript in the `dist/` directory
-- `npm run dev` - Run the main application in development mode using ts-node
+- `npm run clean` - Remove all build artifacts and start fresh
 - `npm start` - Start the compiled CLI application
-- `npm run lint` - Type check without emitting files (uses TypeScript compiler)
+- `npm run lint` - Type check without emitting files (strict TypeScript checking)
+- `npm run dev:cli` - Run CLI in development mode using ts-node
 
-### MCP Server
+### Database Management (PostgreSQL + Drizzle ORM)
+- `npm run db:generate` - Generate migration files from schema changes
+- `npm run db:migrate` - Apply database migrations
+- `npm run db:seed` - Import existing JSON prompts to database
+- `npm run db:reset` - Reset database (delete all prompts)
+- `npm run db:studio` - Open Drizzle Studio for database inspection
+
+### **Web Interface & MCP Server**
+- `npm run mcp-web:dev` - Start the web interface in development mode (includes MCP server)
+- `npm run mcp-web:build` - Build the web interface for production
+- `npm run mcp-web:preview` - Preview the production build
 - `npm run mcp-server` - Start the CLI-based MCP server (stdio transport)
-- `npm run mcp-web:dev` - Start the web-accessible MCP server in development mode
-- `npm run mcp-web:build` - Build the web MCP server for production
-- `npm run mcp-web:preview` - Preview the production build of web MCP server
-- `npm run dev:mcp-web` - Start both build process and web MCP development server
+- `npm run dev:mcp-web` - Start both build process and web development server
 
-### Testing
-- `npm test` - Run Jest tests (though no test files currently exist in the codebase)
+### **Testing & Quality**
+- `npm test` - Run Jest test suite with coverage
+- `npm run test:unit` - Run unit tests only
+- `npm run test:integration` - Run integration tests only
+- `npm run test:coverage` - Generate detailed coverage report
+- `npm run test:watch` - Run tests in watch mode
+
+### **Deployment & Platform Management**
+- `./scripts/deploy.sh docker` - Deploy with Docker Compose
+- `./scripts/deploy.sh kubernetes` - Deploy to Kubernetes cluster
+- `./scripts/deploy.sh azure` - Deploy to Azure Container Apps
+- `./scripts/deploy.sh vercel` - Deploy to Vercel
+- `./scripts/deploy.sh --help` - View all deployment options
 
 ### CLI Usage
 After building, the CLI can be used with:
@@ -55,15 +74,19 @@ This is a TypeScript-based prompt management system that organizes AI prompts in
 
 ### Data Flow Architecture
 1. **Configuration**: System loads from `config/prompts.json` with fallback to defaults
-2. **Prompt Storage**: JSON files organized in category directories (`prompts/work/`, `prompts/personal/`, `prompts/shared/`)
+2. **Prompt Storage**: 
+   - **File System**: JSON files organized in category directories (`prompts/work/`, `prompts/personal/`, `prompts/shared/`)
+   - **Database**: PostgreSQL with Drizzle ORM for scalable, concurrent access
 3. **Variable Interpolation**: Templates use `{{variable}}` syntax with type validation
-4. **Search & Retrieval**: Multi-field search across name, description, content, and tags
+4. **Search & Retrieval**: Multi-field search with PostgreSQL full-text search (database mode) or in-memory filtering (file mode)
 
 ### Key Design Patterns
 - **Manager Pattern**: PromptManager centralizes all prompt operations
 - **Strategy Pattern**: Different prompt categories (work, personal, shared) with specialized types
 - **Template Pattern**: Variable interpolation with validation and default values
-- **Repository Pattern**: File-based storage with in-memory caching via Map
+- **Repository Pattern**: Pluggable storage backends:
+  - `FileSystemPromptRepository`: File-based storage with in-memory caching
+  - `DrizzlePromptRepository`: PostgreSQL with Drizzle ORM
 
 ## Prompt System Details
 
@@ -114,13 +137,67 @@ The system provides two MCP server implementations:
 
 ## Development Guidance
 
+### Repository Configuration
+
+The system supports two storage backends that can be switched via environment configuration:
+
+#### Environment Variables
+```bash
+# Repository type selection
+REPOSITORY_TYPE=filesystem  # Use JSON files (default)
+REPOSITORY_TYPE=database    # Use PostgreSQL
+
+# Database configuration (required for database mode)
+DATABASE_URL=postgresql://username:password@host:5432/database
+
+# Optional: Custom prompts directory (filesystem mode)
+PROMPTS_DIRECTORY=./my-prompts
+```
+
+#### Repository Selection Logic
+1. **Environment Variable**: `REPOSITORY_TYPE=database` switches to PostgreSQL
+2. **Automatic Fallback**: Falls back to filesystem if `DATABASE_URL` is not configured
+3. **Default**: Filesystem repository with JSON files
+
+### Database Setup (PostgreSQL + Neon)
+
+1. **Get Neon Database URL**:
+   - Sign up at [neon.tech](https://neon.tech)
+   - Create a new project
+   - Copy the connection string
+
+2. **Configure Environment**:
+   ```bash
+   # Create .env file
+   cp .env.example .env
+   
+   # Edit .env with your database URL
+   DATABASE_URL=postgresql://username:password@ep-xxx.us-east-1.aws.neon.tech/neondb?sslmode=require
+   REPOSITORY_TYPE=database
+   ```
+
+3. **Setup Database**:
+   ```bash
+   # Generate and apply migrations
+   npm run db:generate
+   npm run db:migrate
+   
+   # Import existing prompts (optional)
+   npm run db:seed
+   
+   # Or import from custom directory
+   npm run db:seed -- --source-dir ./backup-prompts
+   ```
+
 ### File Organization
-- `src/managers/` - Business logic and data management
-- `src/mcp/` - Model Context Protocol server implementation
-- `src/types/` - TypeScript type definitions and interfaces
-- `src/utils/` - Utility classes (FileUtils, StringUtils, ValidationUtils)
-- `prompts/` - Organized prompt storage by category
-- `config/` - System configuration files
+- `packages/core/` - Domain entities, use cases, and interfaces
+- `packages/infrastructure/` - Repository implementations and external integrations
+  - `filesystem/` - FileSystemPromptRepository for JSON file storage
+  - `database/` - DrizzlePromptRepository and PostgreSQL schema
+- `packages/apps/` - Application interfaces (CLI, MCP servers, web)
+- `prompts/` - Default prompt storage directory (filesystem mode)
+- `scripts/` - Database management and migration scripts
+- `drizzle/` - Generated database migration files
 
 ### Adding New Prompts
 1. Create JSON file in appropriate category directory (`prompts/work/`, `prompts/personal/`, `prompts/shared/`)
@@ -147,3 +224,106 @@ The system provides two MCP server implementations:
 - Config stored in `config/prompts.json`
 - Supports runtime config updates through PromptManager API
 - MCP server configuration includes name, version, and optional port
+- Repository type can be switched via `REPOSITORY_TYPE` environment variable
+- Automatic fallback from database to filesystem if DATABASE_URL is not configured
+
+### Database Migration Workflow
+
+1. **Development**:
+   ```bash
+   # Make schema changes in packages/infrastructure/database/schema.ts
+   npm run db:generate    # Generate migration files
+   npm run db:migrate     # Apply to your database
+   ```
+
+2. **Data Migration**:
+   ```bash
+   # Preview what will be migrated
+   npm run db:seed -- --dry-run
+   
+   # Import existing JSON prompts
+   npm run db:seed
+   
+   # Reset and re-import (caution: deletes all data)
+   npm run db:reset -- --force
+   npm run db:seed
+   ```
+
+3. **Production Deployment**:
+   - Set `REPOSITORY_TYPE=database` and `DATABASE_URL` environment variables
+   - Run `npm run db:migrate` to apply schema
+   - Optionally run `npm run db:seed` to import initial data
+
+### **Multi-Platform Deployment**
+
+The system supports deployment across multiple platforms with automatic configuration:
+
+#### **Local Development**
+```bash
+# Docker Compose (with PostgreSQL, Redis, monitoring)
+docker-compose up -d
+
+# Access services:
+# - Web Interface: http://localhost:3000
+# - Database: localhost:5432
+# - Grafana: http://localhost:3001
+# - Prometheus: http://localhost:9090
+```
+
+#### **Production Kubernetes**
+```bash
+# Deploy to Kubernetes with health checks, scaling, monitoring
+kubectl apply -f k8s/
+
+# Or use deployment script
+./scripts/deploy.sh kubernetes --environment production
+```
+
+#### **Enterprise Azure**
+```bash
+# Deploy to Azure Container Apps with Azure AD, Azure SQL
+./scripts/deploy.sh azure --environment production
+
+# Automatically configures:
+# - Azure AD authentication
+# - Azure SQL Database
+# - Application Insights monitoring
+# - Container scaling
+```
+
+#### **Configuration Management**
+
+The system uses environment-aware configuration with automatic platform detection:
+
+```bash
+# Environment Variables (automatically loaded)
+NODE_ENV=production                    # Environment
+PLATFORM_TYPE=kubernetes               # Platform detection
+REPOSITORY_TYPE=database               # Storage backend
+DATABASE_URL=postgresql://...          # Database connection
+
+# Feature Flags
+FEATURE_WEB=true                       # Enable web interface
+FEATURE_MCP=true                       # Enable MCP server
+FEATURE_AUTH=true                      # Enable authentication
+FEATURE_MONITORING=true                # Enable health checks
+```
+
+### **Performance Considerations**
+
+#### **File System Repository**
+- **Pros**: Simple, no external dependencies, works offline
+- **Cons**: No concurrent access, limited search capabilities
+- **Best for**: Development, single-user scenarios, small prompt collections
+
+#### **Database Repository (PostgreSQL)**
+- **Pros**: Concurrent access, full-text search, ACID transactions, scalable
+- **Cons**: Requires external database, network dependency
+- **Best for**: Production, multi-user access, large prompt collections
+
+#### **Enterprise Features**
+- **Authentication**: Azure AD, OAuth2, LDAP integration
+- **Monitoring**: Prometheus metrics, health check endpoints
+- **Security**: Helmet.js security headers, CORS configuration
+- **Scaling**: Kubernetes horizontal pod autoscaling
+- **Caching**: Redis integration for improved performance

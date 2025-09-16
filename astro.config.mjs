@@ -36,6 +36,8 @@ export default defineConfig({
         '@core/infrastructure/Container',
         '@core/application/usecases/PromptUseCases',
         '@infrastructure/filesystem/FileSystemPromptRepository',
+        '@infrastructure/database/DrizzlePromptRepository',
+        '@infrastructure/RepositoryFactory',
         '@core/domain/entities/Prompt'
       ]
     },

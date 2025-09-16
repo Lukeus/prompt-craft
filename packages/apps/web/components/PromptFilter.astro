@@ -1,0 +1,734 @@
+---
+/**
+ * Client-side prompt filtering component
+ * Handles category switching, search filtering, and DOM updates without page navigation
+ * Follows the existing architecture patterns with proper TypeScript support
+ */
+
+export interface Props {
+  initialCategory?: string;
+  initialQuery?: string;
+  initialStats?: {
+    total: number;
+    work: number;
+    personal: number;
+    shared: number;
+  };
+}
+
+const { 
+  initialCategory = '', 
+  initialQuery = '',
+  initialStats = { total: 0, work: 0, personal: 0, shared: 0 }
+} = Astro.props;
+---
+
+<!-- Loading Overlay -->
+<div id="filter-loading-overlay" class="hidden fixed inset-0 bg-dark-900/50 backdrop-blur-sm z-50 flex items-center justify-center">
+  <div class="glass-card rounded-xl shadow-2xl p-8 flex items-center space-x-4">
+    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+    <div>
+      <p class="text-lg font-semibold text-gray-100">Loading prompts...</p>
+      <p class="text-sm text-gray-400">Please wait while we fetch your data</p>
+    </div>
+  </div>
+</div>
+
+<!-- Beautiful Filter Tabs with Glass Effect -->
+<div class="mb-8 animate-slide-up" style="animation-delay: 0.1s;" id="filter-tabs-container">
+  <div class="glass-card rounded-xl shadow-xl p-2">
+    <nav class="flex flex-wrap gap-1">
+      <button 
+        type="button"
+        data-category=""
+        class={`filter-tab group ${
+          !initialCategory ? 'filter-tab-active' : 'filter-tab-inactive'
+        }`}
+        id="filter-all"
+        aria-label="Show all prompts"
+      >
+        <div class="flex items-center space-x-2">
+          <div class="filter-tab-icon bg-gradient-to-br from-primary-500 to-primary-600">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14-4H3m16 8H1"></path>
+            </svg>
+          </div>
+          <div class="filter-tab-content">
+            <span class="font-semibold">All Prompts</span>
+            <span class="filter-tab-count" id="count-total">{initialStats.total}</span>
+          </div>
+        </div>
+        <div class="filter-tab-indicator"></div>
+      </button>
+      
+      <button 
+        type="button"
+        data-category="work"
+        class={`filter-tab group ${
+          initialCategory === 'work' ? 'filter-tab-active' : 'filter-tab-inactive'
+        }`}
+        id="filter-work"
+        aria-label="Show work category prompts"
+      >
+        <div class="flex items-center space-x-2">
+          <div class="filter-tab-icon bg-gradient-to-br from-blue-500 to-blue-600">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2h8z"></path>
+            </svg>
+          </div>
+          <div class="filter-tab-content">
+            <span class="font-semibold">Work</span>
+            <span class="filter-tab-count" id="count-work">{initialStats.work}</span>
+          </div>
+        </div>
+        <div class="filter-tab-indicator"></div>
+      </button>
+      
+      <button 
+        type="button"
+        data-category="personal"
+        class={`filter-tab group ${
+          initialCategory === 'personal' ? 'filter-tab-active' : 'filter-tab-inactive'
+        }`}
+        id="filter-personal"
+        aria-label="Show personal category prompts"
+      >
+        <div class="flex items-center space-x-2">
+          <div class="filter-tab-icon bg-gradient-to-br from-accent-500 to-accent-600">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+            </svg>
+          </div>
+          <div class="filter-tab-content">
+            <span class="font-semibold">Personal</span>
+            <span class="filter-tab-count" id="count-personal">{initialStats.personal}</span>
+          </div>
+        </div>
+        <div class="filter-tab-indicator"></div>
+      </button>
+      
+      <button 
+        type="button"
+        data-category="shared"
+        class={`filter-tab group ${
+          initialCategory === 'shared' ? 'filter-tab-active' : 'filter-tab-inactive'
+        }`}
+        id="filter-shared"
+        aria-label="Show shared category prompts"
+      >
+        <div class="flex items-center space-x-2">
+          <div class="filter-tab-icon bg-gradient-to-br from-success-500 to-success-600">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
+            </svg>
+          </div>
+          <div class="filter-tab-content">
+            <span class="font-semibold">Shared</span>
+            <span class="filter-tab-count" id="count-shared">{initialStats.shared}</span>
+          </div>
+        </div>
+        <div class="filter-tab-indicator"></div>
+      </button>
+    </nav>
+  </div>
+</div>
+
+<style>
+  /* Filter Tab Styles - Following existing patterns */
+  .filter-tab {
+    @apply relative flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 ease-out;
+    @apply hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-dark-900;
+    @apply border border-transparent hover:border-dark-600/30;
+  }
+
+  .filter-tab-active {
+    @apply bg-gradient-to-r from-primary-600/20 via-primary-500/15 to-accent-500/10;
+    @apply border-primary-500/30 shadow-lg shadow-primary-500/10;
+    @apply ring-1 ring-primary-500/20;
+  }
+
+  .filter-tab-inactive {
+    @apply bg-dark-800/30 hover:bg-dark-700/40 text-gray-400 hover:text-gray-200;
+  }
+
+  .filter-tab-icon {
+    @apply w-8 h-8 rounded-lg flex items-center justify-center shadow-md;
+    @apply group-hover:scale-110 transition-transform duration-200;
+  }
+
+  .filter-tab-content {
+    @apply flex flex-col;
+  }
+
+  .filter-tab-count {
+    @apply text-xs font-bold opacity-75;
+  }
+
+  .filter-tab-indicator {
+    @apply absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-primary-500 to-accent-500;
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .filter-tab-active .filter-tab-indicator {
+    @apply w-3/4;
+  }
+
+  /* Loading states */
+  .filter-loading {
+    @apply opacity-50 pointer-events-none;
+  }
+
+  /* Glass card effect - Following existing pattern */
+  .glass-card {
+    @apply bg-dark-900/30 backdrop-blur-sm border border-dark-700/50 shadow-2xl;
+  }
+</style>
+
+<script>
+  /**
+   * PromptFilter - Client-side filtering implementation
+   * Handles category switching, API calls, and DOM updates
+   * Following the existing TypeScript patterns and architecture
+   */
+
+  // TypeScript interfaces matching core domain entities
+  interface PromptVariable {
+    name: string;
+    description: string;
+    type: 'string' | 'number' | 'boolean' | 'array';
+    required: boolean;
+    defaultValue?: any;
+  }
+
+  interface SerializedPrompt {
+    id: string;
+    name: string;
+    description: string;
+    content: string;
+    category: 'work' | 'personal' | 'shared';
+    tags: string[];
+    createdAt: string;
+    updatedAt: string;
+    version: string;
+    author?: string;
+    variables?: PromptVariable[];
+  }
+
+  interface FilterState {
+    category: string;
+    query: string;
+    loading: boolean;
+    prompts: SerializedPrompt[];
+    allPrompts: SerializedPrompt[];
+    stats: {
+      total: number;
+      work: number;
+      personal: number;
+      shared: number;
+    };
+  }
+
+  interface APIResponse {
+    results?: SerializedPrompt[];
+    count?: number;
+    error?: string;
+  }
+
+  class PromptFilterManager {
+    private state: FilterState;
+    private cache: Map<string, SerializedPrompt[]> = new Map();
+    private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+    private loadingOverlay: HTMLElement | null = null;
+    private filterTabs: NodeListOf<HTMLButtonElement> | null = null;
+    private promptsContainer: HTMLElement | null = null;
+
+    constructor() {
+      this.state = {
+        category: '',
+        query: '',
+        loading: false,
+        prompts: [],
+        allPrompts: [],
+        stats: { total: 0, work: 0, personal: 0, shared: 0 }
+      };
+
+      this.initializeElements();
+      this.attachEventListeners();
+      this.initializeFromURL();
+    }
+
+    private initializeElements(): void {
+      this.loadingOverlay = document.getElementById('filter-loading-overlay');
+      this.filterTabs = document.querySelectorAll('[data-category]');
+      this.promptsContainer = document.querySelector('.prompts-grid') || 
+                              document.querySelector('[id$="results-container"]') ||
+                              document.querySelector('.glass-card');
+    }
+
+    private attachEventListeners(): void {
+      // Filter tab click handlers
+      this.filterTabs?.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+          e.preventDefault();
+          const category = (e.currentTarget as HTMLButtonElement).dataset.category || '';
+          this.handleCategoryChange(category);
+        });
+
+        // Keyboard accessibility
+        tab.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            const category = (e.currentTarget as HTMLButtonElement).dataset.category || '';
+            this.handleCategoryChange(category);
+          }
+        });
+      });
+
+      // Browser back/forward button support
+      window.addEventListener('popstate', () => {
+        this.initializeFromURL();
+      });
+
+      // Listen for search events from other components
+      window.addEventListener('searchUpdate', ((e: CustomEvent) => {
+        this.handleSearchUpdate(e.detail.searchParams);
+      }) as EventListener);
+    }
+
+    private initializeFromURL(): void {
+      const urlParams = new URLSearchParams(window.location.search);
+      const category = urlParams.get('category') || '';
+      const query = urlParams.get('q') || '';
+      
+      this.state.category = category;
+      this.state.query = query;
+      
+      this.updateActiveTab(category);
+      this.loadPrompts();
+    }
+
+    private async handleCategoryChange(category: string): Promise<void> {
+      if (this.state.loading || this.state.category === category) {
+        return;
+      }
+
+      this.state.category = category;
+      this.updateURL();
+      this.updateActiveTab(category);
+      await this.loadPrompts();
+      
+      // Announce change to screen readers
+      this.announceToScreenReader(
+        category ? `Showing ${category} category prompts` : 'Showing all prompts'
+      );
+    }
+
+    private async handleSearchUpdate(searchParams: string): Promise<void> {
+      const params = new URLSearchParams(searchParams);
+      const query = params.get('q') || '';
+      const category = params.get('category') || '';
+
+      this.state.query = query;
+      this.state.category = category;
+      
+      this.updateActiveTab(category);
+      await this.loadPrompts();
+    }
+
+    private updateURL(): void {
+      const url = new URL(window.location.href);
+      
+      if (this.state.category) {
+        url.searchParams.set('category', this.state.category);
+      } else {
+        url.searchParams.delete('category');
+      }
+
+      if (this.state.query) {
+        url.searchParams.set('q', this.state.query);
+      } else {
+        url.searchParams.delete('q');
+      }
+
+      const newUrl = url.pathname + (url.search || '');
+      window.history.pushState({}, '', newUrl);
+    }
+
+    private updateActiveTab(category: string): void {
+      this.filterTabs?.forEach(tab => {
+        const tabCategory = tab.dataset.category || '';
+        const isActive = tabCategory === category;
+        
+        if (isActive) {
+          tab.classList.remove('filter-tab-inactive');
+          tab.classList.add('filter-tab-active');
+          tab.setAttribute('aria-pressed', 'true');
+        } else {
+          tab.classList.remove('filter-tab-active');
+          tab.classList.add('filter-tab-inactive');
+          tab.setAttribute('aria-pressed', 'false');
+        }
+      });
+    }
+
+    private async loadPrompts(): Promise<void> {
+      this.setLoadingState(true);
+
+      try {
+        const cacheKey = `${this.state.category}-${this.state.query}`;
+        const cached = this.getCachedData(cacheKey);
+
+        if (cached) {
+          this.state.prompts = cached;
+          this.renderPrompts();
+          this.setLoadingState(false);
+          return;
+        }
+
+        // Fetch data from API
+        const response = await this.fetchPrompts();
+        if (response.error) {
+          throw new Error(response.error);
+        }
+
+        this.state.prompts = response.results || [];
+        this.setCachedData(cacheKey, this.state.prompts);
+        
+        // Update stats if we loaded all prompts
+        if (!this.state.category && !this.state.query) {
+          this.updateStats(this.state.prompts);
+        }
+
+        this.renderPrompts();
+        this.dispatchResultsEvent(this.state.prompts.length);
+
+      } catch (error) {
+        console.error('Error loading prompts:', error);
+        this.renderError(error instanceof Error ? error.message : 'Failed to load prompts');
+      } finally {
+        this.setLoadingState(false);
+      }
+    }
+
+    private async fetchPrompts(): Promise<APIResponse> {
+      const searchParams = new URLSearchParams();
+      
+      if (this.state.category) {
+        searchParams.set('category', this.state.category);
+      }
+      
+      if (this.state.query) {
+        searchParams.set('q', this.state.query);
+      }
+
+      const endpoint = searchParams.toString() ? '/api/search' : '/api/prompts';
+      const url = searchParams.toString() ? 
+        `${endpoint}?${searchParams.toString()}` : 
+        endpoint;
+
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      // Handle different API response formats
+      if (Array.isArray(data)) {
+        return { results: data };
+      }
+      
+      return data;
+    }
+
+    private getCachedData(key: string): SerializedPrompt[] | null {
+      const cached = this.cache.get(key);
+      return cached || null;
+    }
+
+    private setCachedData(key: string, data: SerializedPrompt[]): void {
+      this.cache.set(key, data);
+      
+      // Clean old cache entries
+      setTimeout(() => {
+        this.cache.delete(key);
+      }, this.CACHE_DURATION);
+    }
+
+    private updateStats(prompts: SerializedPrompt[]): void {
+      this.state.stats = {
+        total: prompts.length,
+        work: prompts.filter(p => p.category === 'work').length,
+        personal: prompts.filter(p => p.category === 'personal').length,
+        shared: prompts.filter(p => p.category === 'shared').length
+      };
+
+      // Update count displays
+      document.getElementById('count-total')!.textContent = this.state.stats.total.toString();
+      document.getElementById('count-work')!.textContent = this.state.stats.work.toString();
+      document.getElementById('count-personal')!.textContent = this.state.stats.personal.toString();
+      document.getElementById('count-shared')!.textContent = this.state.stats.shared.toString();
+    }
+
+    private renderPrompts(): void {
+      if (!this.promptsContainer) return;
+
+      if (this.state.prompts.length === 0) {
+        this.renderEmptyState();
+        return;
+      }
+
+      // If this is a prompts grid, update it
+      const promptsGrid = document.querySelector('.prompts-grid');
+      if (promptsGrid) {
+        this.renderPromptsGrid(promptsGrid as HTMLElement);
+        return;
+      }
+
+      // Otherwise render as a simple list
+      this.renderPromptsList();
+    }
+
+    private renderPromptsGrid(container: HTMLElement): void {
+      container.innerHTML = '';
+      container.classList.add('prompts-grid');
+
+      this.state.prompts.forEach(prompt => {
+        const card = this.createPromptCard(prompt);
+        container.appendChild(card);
+      });
+
+      // Trigger animations
+      setTimeout(() => {
+        container.querySelectorAll('.prompt-card').forEach((card, index) => {
+          (card as HTMLElement).style.animationDelay = `${index * 0.05}s`;
+          card.classList.add('animate-slide-up');
+        });
+      }, 50);
+    }
+
+    private createPromptCard(prompt: SerializedPrompt): HTMLElement {
+      const card = document.createElement('div');
+      card.className = 'prompt-card glass-card rounded-xl shadow-xl p-6 hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer border border-dark-700/30 hover:border-primary-500/30';
+      
+      card.innerHTML = `
+        <div class="flex items-start justify-between mb-4">
+          <div class="flex-1 min-w-0">
+            <h3 class="text-lg font-semibold text-gray-100 truncate">${this.escapeHtml(prompt.name)}</h3>
+            <p class="text-sm text-gray-400 mt-1 line-clamp-2">${this.escapeHtml(prompt.description)}</p>
+          </div>
+          <span class="ml-3 px-3 py-1 text-xs font-semibold rounded-full category-${prompt.category}">
+            ${prompt.category}
+          </span>
+        </div>
+        
+        <div class="flex items-center justify-between text-xs text-gray-500">
+          <span>Updated ${this.formatDate(prompt.updatedAt)}</span>
+          ${prompt.tags.length > 0 ? `<span>${prompt.tags.length} tags</span>` : ''}
+        </div>
+      `;
+
+      card.addEventListener('click', () => {
+        window.location.href = `/prompts/${prompt.id}`;
+      });
+
+      return card;
+    }
+
+    private renderPromptsList(): void {
+      if (!this.promptsContainer) return;
+
+      this.promptsContainer.innerHTML = `
+        <div class="space-y-4">
+          ${this.state.prompts.map(prompt => `
+            <div class="glass-card rounded-lg p-4 hover:shadow-lg transition-all duration-200">
+              <a href="/prompts/${prompt.id}" class="block hover:text-primary-400 transition-colors">
+                <h3 class="font-semibold text-gray-100">${this.escapeHtml(prompt.name)}</h3>
+                <p class="text-sm text-gray-400 mt-1">${this.escapeHtml(prompt.description)}</p>
+              </a>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    private renderEmptyState(): void {
+      if (!this.promptsContainer) return;
+
+      const category = this.state.category;
+      const query = this.state.query;
+
+      this.promptsContainer.innerHTML = `
+        <div class="glass-card rounded-xl shadow-xl p-12 text-center animate-slide-up">
+          <div class="relative mx-auto w-32 h-32 mb-8">
+            <div class="absolute inset-0 bg-gradient-to-br from-primary-500/20 to-accent-500/20 rounded-full animate-pulse"></div>
+            <div class="absolute inset-2 bg-gradient-to-br from-dark-800 to-dark-900 rounded-full border border-dark-600/50"></div>
+            <div class="absolute inset-0 flex items-center justify-center">
+              ${this.getEmptyStateIcon(category, query)}
+            </div>
+          </div>
+          
+          <h3 class="text-xl font-bold text-gray-100 mb-3">
+            ${this.getEmptyStateTitle(category, query)}
+          </h3>
+          
+          <p class="text-gray-300 mb-2 max-w-md mx-auto">
+            ${this.getEmptyStateDescription(category, query)}
+          </p>
+          
+          <div class="flex flex-col sm:flex-row gap-4 items-center justify-center mt-8">
+            ${this.getEmptyStateActions(category, query)}
+          </div>
+        </div>
+      `;
+    }
+
+    private renderError(message: string): void {
+      if (!this.promptsContainer) return;
+
+      this.promptsContainer.innerHTML = `
+        <div class="glass-card rounded-xl shadow-xl p-12 text-center">
+          <div class="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-red-600 to-red-700 rounded-full flex items-center justify-center">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-200 mb-3">Error Loading Prompts</h3>
+          <p class="text-gray-400 mb-6">${this.escapeHtml(message)}</p>
+          <button onclick="window.location.reload()" class="btn-primary">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            Retry
+          </button>
+        </div>
+      `;
+    }
+
+    private setLoadingState(loading: boolean): void {
+      this.state.loading = loading;
+      
+      if (this.loadingOverlay) {
+        if (loading) {
+          this.loadingOverlay.classList.remove('hidden');
+        } else {
+          this.loadingOverlay.classList.add('hidden');
+        }
+      }
+
+      // Update filter tabs
+      const container = document.getElementById('filter-tabs-container');
+      if (container) {
+        if (loading) {
+          container.classList.add('filter-loading');
+        } else {
+          container.classList.remove('filter-loading');
+        }
+      }
+    }
+
+    private dispatchResultsEvent(count: number): void {
+      window.dispatchEvent(new CustomEvent('searchResults', { 
+        detail: { count } 
+      }));
+    }
+
+    private announceToScreenReader(message: string): void {
+      const announcement = document.createElement('div');
+      announcement.setAttribute('aria-live', 'polite');
+      announcement.setAttribute('aria-atomic', 'true');
+      announcement.className = 'sr-only';
+      announcement.textContent = message;
+      
+      document.body.appendChild(announcement);
+      setTimeout(() => {
+        document.body.removeChild(announcement);
+      }, 1000);
+    }
+
+    private escapeHtml(text: string): string {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    private formatDate(dateString: string): string {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    }
+
+    private getEmptyStateIcon(category: string, query: string): string {
+      if (query) {
+        return '<svg class="w-12 h-12 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>';
+      }
+
+      switch (category) {
+        case 'work':
+          return '<svg class="w-12 h-12 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2h8z"></path></svg>';
+        case 'personal':
+          return '<svg class="w-12 h-12 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>';
+        case 'shared':
+          return '<svg class="w-12 h-12 text-success-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path></svg>';
+        default:
+          return '<svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>';
+      }
+    }
+
+    private getEmptyStateTitle(category: string, query: string): string {
+      if (query) return 'No matching prompts';
+      if (category) return `No ${category} prompts found`;
+      return 'Your prompt library awaits';
+    }
+
+    private getEmptyStateDescription(category: string, query: string): string {
+      if (query) return `We couldn't find any prompts matching "${query}". Try different keywords or explore our categories.`;
+      if (category) return `Ready to create your first ${category} prompt? These are perfect for specialized workflows and targeted AI interactions.`;
+      return 'This is where your AI prompt collection will live. Start by creating your first prompt or exploring examples.';
+    }
+
+    private getEmptyStateActions(category: string, query: string): string {
+      if (query) {
+        return `
+          <a href="/prompts" class="btn-secondary">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            View All Prompts
+          </a>
+          <a href="/search" class="btn-secondary">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+            Try Advanced Search
+          </a>
+        `;
+      }
+
+      return `
+        <a href="/prompts/new" class="btn-primary">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+          </svg>
+          Create First Prompt
+        </a>
+        ${category ? `
+          <button type="button" onclick="document.getElementById('filter-all').click()" class="btn-secondary">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14-4H3m16 8H1"></path>
+            </svg>
+            Browse All Categories
+          </button>
+        ` : ''}
+      `;
+    }
+  }
+
+  // Initialize the filter manager when the DOM is ready
+  document.addEventListener('DOMContentLoaded', () => {
+    new PromptFilterManager();
+  });
+</script>

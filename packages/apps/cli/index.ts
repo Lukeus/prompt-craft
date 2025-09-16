@@ -2,7 +2,7 @@
 
 import { getContainer } from '../../core/infrastructure/Container';
 import { PromptCategory } from '../../core/domain/entities/Prompt';
-import { FileSystemPromptRepository } from '../../infrastructure/filesystem/FileSystemPromptRepository';
+import { RepositoryFactory } from '../../infrastructure/RepositoryFactory';
 import * as path from 'path';
 import * as readline from 'readline';
 import { execSync } from 'child_process';
@@ -244,11 +244,9 @@ function addToRecents(promptId: string): void {
 
 async function main() {
   try {
-const promptsDirectory = path.join(process.cwd(), 'prompts');
-    const promptRepository = new FileSystemPromptRepository(
-      promptsDirectory,
-      () => loadState() // Provide usage stats for sorting
-    );
+    // Create repository with automatic type detection
+    const promptRepository = RepositoryFactory.createAuto(() => loadState());
+    
     const container = getContainer({
       promptRepository,
       generateId: () => crypto.randomUUID()

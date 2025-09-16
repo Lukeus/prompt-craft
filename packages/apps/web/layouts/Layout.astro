@@ -394,6 +394,91 @@ const imageUrl = new URL(image, baseUrl).href;
 				transform: translateY(0);
 				opacity: 1;
 			}
+
+			/* Global Button Styles */
+			.btn-primary {
+				@apply inline-flex items-center px-6 py-3 text-sm font-semibold rounded-lg;
+				@apply bg-gradient-to-r from-primary-600 to-primary-700 text-white border border-primary-500/50;
+				@apply hover:from-primary-700 hover:to-primary-800 hover:border-primary-400/50;
+				@apply hover:shadow-lg hover:shadow-primary-500/25;
+				@apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 focus:ring-offset-dark-900;
+				@apply transition-all duration-200 transform hover:scale-105 active:scale-95;
+			}
+
+			.btn-secondary {
+				@apply inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg;
+				@apply bg-dark-800/60 text-gray-300 border border-dark-600/50;
+				@apply hover:bg-dark-700/70 hover:text-gray-200 hover:border-dark-500/50 hover:shadow-md;
+				@apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dark-500 focus:ring-offset-dark-900;
+				@apply transition-all duration-200;
+			}
+
+			/* Prompt Grid Styles */
+			.prompts-grid {
+				@apply grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6;
+			}
+
+			/* Category Pills */
+			.category-work {
+				@apply bg-blue-600/20 text-blue-300 border border-blue-500/30;
+			}
+
+			.category-personal {
+				@apply bg-accent-600/20 text-accent-300 border border-accent-500/30;
+			}
+
+			.category-shared {
+				@apply bg-success-600/20 text-success-300 border border-success-500/30;
+			}
+
+			/* Animations */
+			@keyframes fade-in {
+				from {
+					opacity: 0;
+				}
+				to {
+					opacity: 1;
+				}
+			}
+
+			@keyframes slide-up {
+				from {
+					opacity: 0;
+					transform: translateY(20px);
+				}
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
+			}
+
+			.animate-fade-in {
+				animation: fade-in 0.6s ease-out;
+			}
+
+			.animate-slide-up {
+				animation: slide-up 0.6s ease-out;
+			}
+
+			/* Utility Classes */
+			.sr-only {
+				position: absolute;
+				width: 1px;
+				height: 1px;
+				padding: 0;
+				margin: -1px;
+				overflow: hidden;
+				clip: rect(0, 0, 0, 0);
+				white-space: nowrap;
+				border: 0;
+			}
+
+			.line-clamp-2 {
+				overflow: hidden;
+				display: -webkit-box;
+				-webkit-box-orient: vertical;
+				-webkit-line-clamp: 2;
+			}
 		</style>
 
 		<!-- Mobile Navigation Script -->

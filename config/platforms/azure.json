@@ -1,0 +1,57 @@
+{
+  "platform": {
+    "type": "azure",
+    "region": "East US 2"
+  },
+  "database": {
+    "type": "azure-sql",
+    "ssl": true,
+    "connectionLimit": 50,
+    "poolMin": 10,
+    "poolMax": 50,
+    "timeout": 60000,
+    "authentication": "ActiveDirectoryPassword"
+  },
+  "storage": {
+    "type": "azure-blob",
+    "region": "eastus2"
+  },
+  "server": {
+    "trustProxy": true,
+    "cors": {
+      "origin": ["https://*.azurewebsites.net", "https://*.azure.com"],
+      "credentials": true
+    },
+    "rateLimit": {
+      "windowMs": 900000,
+      "max": 1000
+    }
+  },
+  "security": {
+    "helmet": {
+      "enabled": true,
+      "contentSecurityPolicy": true
+    },
+    "authentication": {
+      "enabled": true,
+      "provider": "azure-ad"
+    }
+  },
+  "logging": {
+    "level": "info",
+    "format": "json",
+    "destination": "azure-insights"
+  },
+  "metrics": {
+    "enabled": true,
+    "provider": "azure-insights"
+  },
+  "features": {
+    "webInterface": true,
+    "mcpServer": true,
+    "apiEndpoints": true,
+    "authentication": true,
+    "monitoring": true,
+    "caching": true
+  }
+}

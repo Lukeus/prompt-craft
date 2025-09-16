@@ -23,20 +23,46 @@ describe('FileSystemPromptRepository', () => {
     }
   });
 
-  const createTestPrompt = (overrides: Partial<ConstructorParameters<typeof Prompt>[0]> = {}) => {
+  const createTestPrompt = (overrides: Partial<{
+    id: string;
+    name: string;
+    description: string;
+    content: string;
+    category: PromptCategory;
+    tags: string[];
+    createdAt: Date;
+    updatedAt: Date;
+    version: string;
+    author: string;
+    variables: any[];
+  }> = {}) => {
+    const defaults = {
+      id: 'test-id',
+      name: 'Test Prompt',
+      description: 'A test prompt',
+      content: 'Hello {{name}}',
+      category: PromptCategory.WORK,
+      tags: ['test'],
+      createdAt: new Date('2023-01-01T00:00:00Z'),
+      updatedAt: new Date('2023-01-02T00:00:00Z'),
+      version: '1.0.0',
+      author: 'Tester',
+      variables: [{ name: 'name', description: 'User name', type: 'string', required: true }]
+    };
+    
+    const merged = { ...defaults, ...overrides };
     return new Prompt(
-      'test-id',
-      'Test Prompt',
-      'A test prompt',
-      'Hello {{name}}',
-      PromptCategory.WORK,
-      ['test'],
-      new Date('2023-01-01T00:00:00Z'),
-      new Date('2023-01-02T00:00:00Z'),
-      '1.0.0',
-      'Tester',
-      [{ name: 'name', description: 'User name', type: 'string', required: true }],
-      ...overrides
+      merged.id,
+      merged.name,
+      merged.description,
+      merged.content,
+      merged.category,
+      merged.tags,
+      merged.createdAt,
+      merged.updatedAt,
+      merged.version,
+      merged.author,
+      merged.variables
     );
   };
 

@@ -4,40 +4,66 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-43853D?style=flat&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-brightgreen)](https://modelcontextprotocol.io/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue?logo=docker)](https://www.docker.com/)
+[![Kubernetes](https://img.shields.io/badge/Kubernetes-Ready-326CE5?logo=kubernetes&logoColor=white)](https://kubernetes.io/)
 
-A powerful TypeScript-based prompt management system with **CLI**, **MCP** (stdio and web/HTTP+WS), and **REST APIs** for organizing and rendering AI prompts.
+A **production-ready, enterprise-grade** TypeScript prompt management system with multi-platform deployment support. Features **CLI**, **Web Interface**, **MCP Protocol**, and **REST APIs** for organizing and rendering AI prompts across any infrastructure.
 
 ## ✨ Features
 
-- 🎨 **Organize prompts** by categories (work, personal, shared)
-- 🚀 **CLI interface** with interactive variable entry and validation
-- 🌐 **Web APIs** with REST and MCP endpoints
+### 🏢 **Enterprise Ready**
+- 🚀 **Multi-platform deployment** (Docker, Kubernetes, Azure, AWS, GCP, Vercel)
+- 🔒 **Authentication & Security** (Azure AD, OAuth2, LDAP)
+- 📊 **Health checks & monitoring** (Prometheus, Grafana, Azure Insights)
+- 🗄️ **Database flexibility** (PostgreSQL, Azure SQL, MySQL, SQLite)
+- 🔧 **Environment-aware configuration** with validation
+
+### 🎨 **Core Features**
+- 📚 **Organize prompts** by categories (work, personal, shared)
+- 💻 **CLI interface** with interactive variable entry and validation
+- 🌐 **Modern web interface** with client-side filtering
 - 📡 **MCP Protocol** support (stdio + HTTP/WebSocket)
 - 💾 **Variable presets** and favorites tracking
 - 🔄 **Type-aware parsing** for numbers, booleans, arrays
 - 📋 **Copy to clipboard** with multiple output formats
-- 🔍 **Search and filtering** with tags and categories
+- 🔍 **Advanced search** with full-text search and filtering
 
 ## 🚀 Quick Start
 
-### Installation & Setup
+### 📦 **Local Development**
 ```bash
 # Install dependencies
 npm install
 
 # Build all packages
-npm run clean && npm run build
+npm run build
 
 # Start CLI
 npm start -- help
-# or directly:
-node dist/packages/apps/cli/index.js help
+
+# Start web interface
+npm run mcp-web:dev
 ```
 
-### Web Preview
+### 🌍 **Deployment (Production)**
+
+Choose your deployment method:
+
 ```bash
-npm run web:build && npm run web:preview
+# 🐳 Docker (local/testing)
+./scripts/deploy.sh docker
+
+# ☸️ Kubernetes (production)
+./scripts/deploy.sh kubernetes --environment production
+
+# 🔵 Azure Container Apps
+./scripts/deploy.sh azure --environment production
+
+# ⚡ Vercel (serverless)
+./scripts/deploy.sh vercel
 ```
+
+> **Need help choosing?** See our [complete deployment guide](docs/DEPLOYMENT_GUIDE.md) for detailed instructions.
 
 ## 🎮 CLI Usage
 
@@ -121,54 +147,132 @@ Exposes each prompt as a tool named `prompt_<id>` for AI assistant integration.
 | `/api/prompts/:id` | DELETE | Delete prompt |
 | `/api/search` | GET | Search prompts (q, category, tags, author, limit) |
 
-## 📁 Repository Structure
+## 📊 **Architecture & Repository Structure**
 
+### 🏠 **Clean Architecture**
+- **Domain Layer**: Core business logic and entities
+- **Application Layer**: Use cases and application services  
+- **Infrastructure Layer**: Database, file system, external services
+- **Interface Layer**: CLI, Web UI, MCP servers, REST APIs
+
+### 📋 **Directory Structure**
 ```
 prompt-manager/
-├── 📦 packages/
-│   ├── 🧠 core/                    # Domain and application layers
-│   ├── 🔧 infrastructure/          # File-system repository and adapters  
-│   └── 🚀 apps/
+├── 📦 packages/                    # Main application code
+│   ├── 🧠 core/                    # Domain & application layers
+│   ├── 🔧 infrastructure/          # Repository implementations
+│   └── 🚀 apps/                    # User interfaces
 │       ├── 💻 cli/                 # Command-line interface
 │       ├── 📡 mcp-server/          # MCP stdio server
-│       └── 🌐 web/                 # Astro-based web APIs
-├── 📝 prompts/                     # Prompt JSON files by category
+│       └── 🌐 web/                 # Web interface & APIs
+├── 🐳 docker-compose.yml           # Multi-service Docker setup
+├── 📜 Dockerfile                  # Production container image
+├── ☸️  k8s/                         # Kubernetes manifests
+├── 📋 docs/                       # Comprehensive documentation
+├── 📝d prompts/                     # Default prompt storage
 │   ├── 💼 work/                    # Work-related prompts
-│   ├── 👤 personal/                # Personal prompts  
+│   ├── 👤 personal/                # Personal prompts
 │   └── 🤝 shared/                  # Shared prompts
-└── ⚙️  config/                     # Configuration files
+├── ⚙️  config/                     # Environment configurations
+└── 🛠️  scripts/                     # Deployment & utility scripts
 ```
 
-## 🛠️ Development
+## 📚 **Documentation**
 
-### Commands
+Comprehensive guides for different aspects of the system:
+
+| Document | Description |
+|----------|-------------|
+| **[Deployment Guide](docs/DEPLOYMENT_GUIDE.md)** | 🚀 Complete multi-platform deployment instructions |
+| **[MCP Web Server](docs/MCP_WEB_SERVER.md)** | 📡 HTTP/WebSocket MCP server documentation |
+| **[Client-Side Filtering](docs/CLIENT_SIDE_FILTERING.md)** | ⚡ Performance improvements and filtering |
+| **[WARP.md](WARP.md)** | 🛠️ Complete development reference |
+
+## 🔧 **Development**
+
+### **Core Commands**
 ```bash
-# Type checking
-npm run lint
+# Development workflow
+npm run build              # Build all packages  
+npm run lint               # TypeScript type checking
+npm run test               # Run test suite
+npm run test:coverage      # Tests with coverage report
 
-# Testing
-npm test                    # All tests
-npm run test:unit          # Unit tests only
-npm run test:integration   # Integration tests only
-npm run test:coverage      # With coverage report
+# Database operations (if using database mode)
+npm run db:migrate         # Apply database migrations
+npm run db:seed           # Import prompts to database
+npm run db:studio         # Open database GUI
 
-# Building
-npm run build              # Build all packages
-npm run build:cli          # Build CLI only
-npm run clean              # Clean build artifacts
+# Clean up
+npm run clean             # Remove build artifacts
 ```
 
-### Architecture
-- **Clean Architecture** with clear separation of concerns
-- **Domain-Driven Design** with entities and use cases
-- **Repository Pattern** for data persistence
-- **TypeScript** throughout with strict type checking
-- **MCP Protocol** for AI assistant integration
+### **Environment Setup**
+```bash
+# File-based storage (default)
+REPOSITORY_TYPE=filesystem
 
-## 📄 License
+# Database storage (PostgreSQL/Neon)
+REPOSITORY_TYPE=database
+DATABASE_URL=postgresql://user:password@host:5432/dbname
+
+# Platform configuration
+PLATFORM_TYPE=docker     # or kubernetes, azure, vercel
+```
+
+### **Architecture Principles**
+- 🏠 **Clean Architecture** with clear separation of concerns
+- 🎯 **Domain-Driven Design** with rich domain entities
+- 📚 **Repository Pattern** for pluggable data storage
+- 🔒 **TypeScript** throughout with strict type checking
+- 🚀 **Enterprise patterns** (Factory, Strategy, Manager)
+- 📡 **MCP Protocol** integration for AI assistants
+
+## 👥 **Contributing**
+
+We welcome contributions! Here's how to get started:
+
+1. **Fork the repository**
+2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
+3. **Make your changes** and add tests
+4. **Run the test suite**: `npm test`
+5. **Submit a pull request**
+
+See [WARP.md](WARP.md) for detailed development guidance.
+
+## 💬 **Support & Community**
+
+- **Issues**: [GitHub Issues](https://github.com/your-org/prompt-craft/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/your-org/prompt-craft/discussions) 
+- **Documentation**: [Complete Docs](docs/)
+
+## 📚 **Related Projects**
+
+- **[Model Context Protocol](https://modelcontextprotocol.io/)** - The protocol this system implements
+- **[Astro](https://astro.build/)** - Powers the web interface
+- **[Drizzle ORM](https://orm.drizzle.team/)** - Database layer
+
+## 📌 **Roadmap**
+
+- ✅ Multi-platform deployment support
+- ✅ Enterprise authentication (Azure AD, LDAP)
+- ✅ Health checks and monitoring
+- 🚧 Real-time collaboration features
+- 🚧 Plugin system for custom prompt types
+- 🚧 Advanced analytics and usage insights
+
+## 📄 **License**
 
 MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-**Built with ❤️ using TypeScript, Node.js, and the Model Context Protocol**
+<div align="center">
+
+**Built with ❤️ by the Prompt Craft team**
+
+**Powered by TypeScript, Node.js, and the Model Context Protocol**
+
+[🚀 Deploy Now](docs/DEPLOYMENT_GUIDE.md) • [📚 Read Docs](docs/) • [🐛 Report Bug](https://github.com/your-org/prompt-craft/issues)
+
+</div>

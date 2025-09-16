@@ -1,5 +1,5 @@
-import { Prompt, PromptCategory } from '../../../domain/entities/Prompt';
-import { PromptRepository, PromptSearchCriteria } from '../../../domain/repositories/PromptRepository';
+import { Prompt, PromptCategory } from '../../../../domain/entities/Prompt';
+import { PromptRepository, PromptSearchCriteria } from '../../../../domain/repositories/PromptRepository';
 
 export class MockPromptRepository implements PromptRepository {
   private prompts: Map<string, Prompt> = new Map();
@@ -36,7 +36,7 @@ export class MockPromptRepository implements PromptRepository {
 
     if (criteria.tags && criteria.tags.length > 0) {
       results = results.filter(prompt => 
-        criteria.tags!.some(tag => prompt.tags.includes(tag))
+        criteria.tags!.some((tag: string) => prompt.tags.includes(tag))
       );
     }
 
@@ -52,7 +52,7 @@ export class MockPromptRepository implements PromptRepository {
         prompt.name.toLowerCase().includes(query) ||
         prompt.description.toLowerCase().includes(query) ||
         prompt.content.toLowerCase().includes(query) ||
-        prompt.tags.some(tag => tag.toLowerCase().includes(query))
+        prompt.tags.some((tag: string) => tag.toLowerCase().includes(query))
       );
     }
 
@@ -85,7 +85,7 @@ export class MockPromptRepository implements PromptRepository {
 
   async findByTags(tags: string[]): Promise<Prompt[]> {
     return Array.from(this.prompts.values())
-      .filter(prompt => tags.some(tag => prompt.tags.includes(tag)))
+      .filter(prompt => tags.some((tag: string) => prompt.tags.includes(tag)))
       .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
   }
 
