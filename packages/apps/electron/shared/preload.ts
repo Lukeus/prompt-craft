@@ -1,5 +1,116 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import { IPC_CHANNELS, IPCResponse, PromptData, PromptStats, MCPServerStatus, AppSettings } from './ipcChannels';
+
+// Inline IPC channels to avoid module resolution issues in sandboxed preload
+const IPC_CHANNELS = {
+  // Prompt operations
+  PROMPTS: {
+    GET_ALL: 'prompts:get-all',
+    GET_BY_ID: 'prompts:get-by-id',
+    GET_BY_CATEGORY: 'prompts:get-by-category',
+    SEARCH: 'prompts:search',
+    CREATE: 'prompts:create',
+    UPDATE: 'prompts:update',
+    DELETE: 'prompts:delete',
+    RENDER: 'prompts:render',
+  },
+  // MCP Server operations
+  MCP: {
+    START_SERVER: 'mcp:start-server',
+    STOP_SERVER: 'mcp:stop-server',
+    GET_STATUS: 'mcp:get-status',
+    SERVER_STATUS_CHANGED: 'mcp:server-status-changed',
+  },
+  // Database operations
+  DATABASE: {
+    GET_STATS: 'database:get-stats',
+    EXPORT: 'database:export',
+    IMPORT: 'database:import',
+    RESET: 'database:reset',
+  },
+  // File operations
+  FILE: {
+    EXPORT_PROMPTS: 'file:export-prompts',
+    IMPORT_PROMPTS: 'file:import-prompts',
+    SELECT_FILE: 'file:select-file',
+    SELECT_DIRECTORY: 'file:select-directory',
+  },
+  // System operations
+  SYSTEM: {
+    GET_APP_VERSION: 'system:get-app-version',
+    GET_PLATFORM: 'system:get-platform',
+    MINIMIZE_TO_TRAY: 'system:minimize-to-tray',
+    SHOW_FROM_TRAY: 'system:show-from-tray',
+  },
+  // Navigation
+  NAVIGATION: {
+    GO_TO: 'navigation:go-to',
+    NAVIGATE_TO: 'navigate-to',
+  },
+  // Notifications
+  NOTIFICATIONS: {
+    SHOW: 'notifications:show',
+    CLEAR: 'notifications:clear',
+  },
+  // Settings
+  SETTINGS: {
+    GET: 'settings:get',
+    SET: 'settings:set',
+    RESET: 'settings:reset',
+  },
+};
+
+// Type definitions (inline to avoid import issues)
+interface IPCResponse<T = any> {
+  success: boolean;
+  data?: T;
+  error?: string;
+}
+
+interface PromptData {
+  id: string;
+  name: string;
+  description: string;
+  content: string;
+  category: string;
+  tags: string[];
+  author?: string;
+  version: string;
+  createdAt: string;
+  updatedAt: string;
+  variables: Array<{
+    name: string;
+    type: 'string' | 'number' | 'boolean' | 'array';
+    required: boolean;
+    description?: string;
+    defaultValue?: any;
+  }>;
+}
+
+interface PromptStats {
+  total: number;
+  categories: Record<string, number>;
+  recentActivity: Array<{
+    id: string;
+    name: string;
+    action: 'created' | 'updated' | 'deleted';
+    timestamp: string;
+  }>;
+}
+
+interface MCPServerStatus {
+  isRunning: boolean;
+  port?: number;
+  startTime?: string;
+  connections: number;
+}
+
+interface AppSettings {
+  theme: 'light' | 'dark' | 'system';
+  autoStart: boolean;
+  minimizeToTray: boolean;
+  notifications: boolean;
+  defaultCategory: string;
+}
 
 // Define the API that will be available in the renderer process
 export interface ElectronAPI {

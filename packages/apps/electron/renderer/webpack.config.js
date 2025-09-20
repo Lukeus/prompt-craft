@@ -1,22 +1,18 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const webpack = require('webpack');
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
 module.exports = {
   mode: isDevelopment ? 'development' : 'production',
   entry: './src/index.tsx',
-  target: 'electron-renderer',
+  target: 'web', // Change from electron-renderer to web to avoid Node.js externalization
   devtool: isDevelopment ? 'source-map' : false,
   
-  resolve: {
-    extensions: ['.tsx', '.ts', '.js', '.jsx'],
-    alias: {
-      '@': path.resolve(__dirname, 'src'),
-      '@core': path.resolve(__dirname, '../../../core'),
-      '@infrastructure': path.resolve(__dirname, '../../../infrastructure'),
-      '@electron-shared': path.resolve(__dirname, '../shared'),
-    }
+  node: {
+    __dirname: false,
+    __filename: false
   },
   
   module: {
@@ -48,13 +44,6 @@ module.exports = {
     clean: true
   },
   
-  plugins: [
-    new HtmlWebpackPlugin({
-      template: './public/index.html',
-      inject: true
-    })
-  ],
-  
   devServer: {
     port: 3000,
     hot: true,
@@ -65,8 +54,39 @@ module.exports = {
     }
   },
   
-  externals: {
-    // Exclude electron from bundle
-    electron: 'commonjs2 electron'
-  }
+  resolve: {
+    extensions: ['.tsx', '.ts', '.js', '.jsx'],
+    fallback: {
+      "events": require.resolve("events"),
+      "global": false
+    },
+    alias: {
+      '@': path.resolve(__dirname, 'src'),
+      '@core': path.resolve(__dirname, '../../../core'),
+      '@infrastructure': path.resolve(__dirname, '../../../infrastructure'),
+      '@electron-shared': path.resolve(__dirname, '../shared'),
+      // Force events to be bundled instead of treated as external
+      'events': require.resolve('events')
+    }
+  },
+  
+  plugins: [
+    new HtmlWebpackPlugin({
+      template: './public/index.html',
+      inject: true
+    }),
+    
+    // Define global variables for Node.js compatibility in Electron renderer
+    new webpack.DefinePlugin({
+      global: 'globalThis',
+      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+    }),
+    
+    // Provide global polyfills
+    new webpack.ProvidePlugin({
+      global: 'globalThis',
+    }),
+  ],
+  
+  // No externals - bundle everything including Node.js modules
 };

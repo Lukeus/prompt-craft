@@ -29,6 +29,14 @@
       -webkit-app-region: no-drag;
     }
   </style>
+  
+  <!-- Global polyfills for Electron renderer -->
+  <script>
+    // Global polyfill
+    if (typeof global === 'undefined') {
+      window.global = globalThis;
+    }
+  </script>
 </head>
 <body class="h-full bg-gradient-to-br from-dark-950 via-dark-900 to-dark-850 font-sans text-gray-100 overflow-hidden">
   <div id="root" class="h-full"></div>
