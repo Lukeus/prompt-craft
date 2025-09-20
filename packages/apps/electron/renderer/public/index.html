@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prompt Craft - Desktop</title>
+  
+  <!-- Preconnect for performance -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Prevent drag and drop -->
+  <style>
+    * {
+      -webkit-user-drag: none;
+      -webkit-app-region: no-drag;
+    }
+    
+    /* Make the title bar draggable */
+    .titlebar-drag {
+      -webkit-app-region: drag;
+    }
+    
+    /* Prevent draggable elements in the title bar from being draggable */
+    .titlebar-drag button,
+    .titlebar-drag input,
+    .titlebar-drag select {
+      -webkit-app-region: no-drag;
+    }
+  </style>
+</head>
+<body class="h-full bg-gradient-to-br from-dark-950 via-dark-900 to-dark-850 font-sans text-gray-100 overflow-hidden">
+  <div id="root" class="h-full"></div>
+</body>
+</html>
