@@ -140,5 +140,4 @@ contextBridge.exposeInMainWorld('electronEnv', {
   platform: process.platform,
 });
 
-// Export types for use in renderer
-export type { ElectronAPI };
+// Types are automatically available through context bridge

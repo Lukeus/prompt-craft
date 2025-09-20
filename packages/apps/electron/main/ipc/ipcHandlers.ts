@@ -1,19 +1,41 @@
 import { ipcMain, BrowserWindow } from 'electron';
-import { Container } from '@core/infrastructure/Container';
-import { PromptUseCases } from '@core/application/usecases/PromptUseCases';
-import { Prompt } from '@core/domain/entities/Prompt';
 import { IPC_CHANNELS } from '../../shared/ipcChannels';
 
 export const setupIpcHandlers = (mainWindow: BrowserWindow | null) => {
-  // Initialize the container and use cases
-  const container = new Container();
-  const promptUseCases = container.resolve<PromptUseCases>('PromptUseCases');
+  // Mock data for testing
+  const mockPrompts = [
+    {
+      id: '1',
+      name: 'Code Review Assistant',
+      description: 'A prompt for conducting thorough code reviews',
+      content: 'Please review this code for {{language}} and provide feedback on {{aspects}}.',
+      category: 'work',
+      tags: ['code-review', 'development'],
+      author: 'Test User',
+      version: '1.0.0',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      variables: []
+    },
+    {
+      id: '2',
+      name: 'Creative Writing Helper',
+      description: 'Assist with creative writing projects',
+      content: 'Help me write a {{genre}} story about {{topic}} with {{tone}} tone.',
+      category: 'personal',
+      tags: ['writing', 'creative'],
+      author: 'Test User',
+      version: '1.0.0',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      variables: []
+    }
+  ];
 
   // Prompt CRUD operations
   ipcMain.handle(IPC_CHANNELS.PROMPTS.GET_ALL, async () => {
     try {
-      const prompts = await promptUseCases.getAllPrompts();
-      return { success: true, data: prompts };
+      return { success: true, data: mockPrompts };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -21,62 +43,26 @@ export const setupIpcHandlers = (mainWindow: BrowserWindow | null) => {
 
   ipcMain.handle(IPC_CHANNELS.PROMPTS.GET_BY_ID, async (_, promptId: string) => {
     try {
-      const prompt = await promptUseCases.getPromptById(promptId);
-      return { success: true, data: prompt };
+      const prompt = mockPrompts.find(p => p.id === promptId);
+      if (prompt) {
+        return { success: true, data: prompt };
+      } else {
+        return { success: false, error: 'Prompt not found' };
+      }
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   });
 
-  ipcMain.handle(IPC_CHANNELS.PROMPTS.GET_BY_CATEGORY, async (_, category: string) => {
+  ipcMain.handle(IPC_CHANNELS.DATABASE.GET_STATS, async () => {
     try {
-      const prompts = await promptUseCases.getPromptsByCategory(category);
-      return { success: true, data: prompts };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  });
-
-  ipcMain.handle(IPC_CHANNELS.PROMPTS.SEARCH, async (_, query: string, category?: string) => {
-    try {
-      const prompts = await promptUseCases.searchPrompts(query, category);
-      return { success: true, data: prompts };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  });
-
-  ipcMain.handle(IPC_CHANNELS.PROMPTS.CREATE, async (_, promptData: Omit<Prompt, 'id' | 'createdAt' | 'updatedAt'>) => {
-    try {
-      const prompt = await promptUseCases.createPrompt(promptData);
-      return { success: true, data: prompt };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  });
-
-  ipcMain.handle(IPC_CHANNELS.PROMPTS.UPDATE, async (_, promptId: string, promptData: Partial<Prompt>) => {
-    try {
-      const prompt = await promptUseCases.updatePrompt(promptId, promptData);
-      return { success: true, data: prompt };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  });
-
-  ipcMain.handle(IPC_CHANNELS.PROMPTS.DELETE, async (_, promptId: string) => {
-    try {
-      await promptUseCases.deletePrompt(promptId);
-      return { success: true };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  });
-
-  ipcMain.handle(IPC_CHANNELS.PROMPTS.RENDER, async (_, promptId: string, variables: Record<string, any>) => {
-    try {
-      const renderedPrompt = await promptUseCases.renderPrompt(promptId, variables);
-      return { success: true, data: renderedPrompt };
+      const stats = {
+        total: mockPrompts.length,
+        work: mockPrompts.filter((p: any) => p.category === 'work').length,
+        personal: mockPrompts.filter((p: any) => p.category === 'personal').length,
+        shared: mockPrompts.filter((p: any) => p.category === 'shared').length,
+      };
+      return { success: true, data: stats };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -85,8 +71,7 @@ export const setupIpcHandlers = (mainWindow: BrowserWindow | null) => {
   // MCP Server operations
   ipcMain.handle(IPC_CHANNELS.MCP.START_SERVER, async () => {
     try {
-      // TODO: Implement MCP server startup
-      return { success: true, message: 'MCP Server started' };
+      return { success: true, message: 'MCP Server started (mock)' };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -94,8 +79,7 @@ export const setupIpcHandlers = (mainWindow: BrowserWindow | null) => {
 
   ipcMain.handle(IPC_CHANNELS.MCP.STOP_SERVER, async () => {
     try {
-      // TODO: Implement MCP server shutdown
-      return { success: true, message: 'MCP Server stopped' };
+      return { success: true, message: 'MCP Server stopped (mock)' };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -103,43 +87,7 @@ export const setupIpcHandlers = (mainWindow: BrowserWindow | null) => {
 
   ipcMain.handle(IPC_CHANNELS.MCP.GET_STATUS, async () => {
     try {
-      // TODO: Get MCP server status
       return { success: true, data: { running: false, port: 3000 } };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  });
-
-  // Database operations
-  ipcMain.handle(IPC_CHANNELS.DATABASE.GET_STATS, async () => {
-    try {
-      const allPrompts = await promptUseCases.getAllPrompts();
-      const stats = {
-        total: allPrompts.length,
-        work: allPrompts.filter(p => p.category === 'work').length,
-        personal: allPrompts.filter(p => p.category === 'personal').length,
-        shared: allPrompts.filter(p => p.category === 'shared').length,
-      };
-      return { success: true, data: stats };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  });
-
-  // File operations
-  ipcMain.handle(IPC_CHANNELS.FILE.EXPORT_PROMPTS, async (_, filePath: string) => {
-    try {
-      // TODO: Implement prompt export
-      return { success: true, message: `Prompts exported to ${filePath}` };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  });
-
-  ipcMain.handle(IPC_CHANNELS.FILE.IMPORT_PROMPTS, async (_, filePath: string) => {
-    try {
-      // TODO: Implement prompt import
-      return { success: true, message: `Prompts imported from ${filePath}` };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -163,7 +111,7 @@ export const setupIpcHandlers = (mainWindow: BrowserWindow | null) => {
     }
   });
 
-  // Navigation events (one-way communication)
+  // Navigation events
   ipcMain.on(IPC_CHANNELS.NAVIGATION.GO_TO, (_, route: string) => {
     mainWindow?.webContents.send('navigate-to', route);
   });

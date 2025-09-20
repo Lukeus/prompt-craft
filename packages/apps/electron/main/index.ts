@@ -61,7 +61,7 @@ class PromptCraftElectronApp {
       webPreferences: {
         nodeIntegration: false,
         contextIsolation: true,
-        enableRemoteModule: false,
+        // enableRemoteModule: false, // Deprecated in newer Electron versions
         preload: path.join(__dirname, '../shared/preload.js'),
       },
     });
@@ -83,17 +83,9 @@ class PromptCraftElectronApp {
       this.mainWindow = null;
     });
 
-    // Handle minimize to tray
-    this.mainWindow.on('minimize', (event) => {
-      if (this.tray) {
-        event.preventDefault();
-        this.mainWindow?.hide();
-      }
-    });
-
-    // Handle close to tray
-    this.mainWindow.on('close', (event) => {
-      if (!app.isQuiting && this.tray) {
+    // Handle close to tray (minimize functionality can be added later)
+    this.mainWindow.on('close', (event: Electron.Event) => {
+      if (!(app as any).isQuiting && this.tray) {
         event.preventDefault();
         this.mainWindow?.hide();
       }
@@ -146,7 +138,7 @@ class PromptCraftElectronApp {
         {
           label: 'Quit',
           click: () => {
-            app.isQuiting = true;
+            (app as any).isQuiting = true;
             app.quit();
           }
         }

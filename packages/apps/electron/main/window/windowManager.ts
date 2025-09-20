@@ -21,7 +21,7 @@ export const createWindow = (config: WindowConfig): BrowserWindow => {
     show: false, // Don't show until ready
     autoHideMenuBar: true,
     titleBarStyle: 'hiddenInset' as const,
-    vibrancy: 'under-window', // macOS translucency
+    vibrancy: 'under-window' as 'under-window', // macOS translucency
     visualEffectState: 'active' as const,
     webPreferences: {
       nodeIntegration: false,

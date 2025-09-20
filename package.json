@@ -39,7 +39,7 @@
     "db:reset": "ts-node -P scripts/tsconfig.json scripts/reset.ts",
     "db:studio": "drizzle-kit studio",
     "electron:build:main": "tsc -p packages/apps/electron/tsconfig.main.json",
-    "electron:build:preload": "tsc packages/apps/electron/shared/preload.ts --target es2020 --module commonjs --outDir dist/electron/shared",
+    "electron:build:preload": "tsc packages/apps/electron/shared/preload.ts --target es2020 --module commonjs --outDir dist/electron/shared --skipLibCheck",
     "electron:build:renderer": "cd packages/apps/electron/renderer && webpack --mode production",
     "electron:build": "npm run build && npm run electron:build:main && npm run electron:build:preload && npm run electron:build:renderer",
     "electron:dev:main": "tsc -p packages/apps/electron/tsconfig.main.json --watch",

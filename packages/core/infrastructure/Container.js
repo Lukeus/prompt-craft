@@ -50,3 +50,4 @@ function getContainer(config) {
 function resetContainer() {
     globalContainer = null;
 }
+//# sourceMappingURL=Container.js.map
