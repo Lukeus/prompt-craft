@@ -1,10 +1,10 @@
 import { ipcMain, BrowserWindow, dialog, app } from 'electron';
 import { IPC_CHANNELS } from '../../shared/ipcChannels';
-import { Prompt } from '../../../../core/domain/entities/Prompt';
-import { getContainer } from '../../../../core/infrastructure/Container';
-import { RepositoryFactory } from '../../../../infrastructure/RepositoryFactory';
-import { seedSQLiteDatabase } from '../../../../infrastructure/database/sqliteSeeder';
-import { testSQLiteConnection } from '../../../../infrastructure/database/sqliteConnection';
+import { Prompt } from '@core/domain/entities/Prompt';
+import { getContainer } from '@core/infrastructure/Container';
+import { RepositoryFactory } from '@infrastructure/RepositoryFactory';
+import { seedSQLiteDatabase } from '@infrastructure/database/sqliteSeeder';
+import { testSQLiteConnection } from '@infrastructure/database/sqliteConnection';
 import { v4 as uuidv4 } from 'uuid';
 
 // Initialize container with SQLite repository for Electron
