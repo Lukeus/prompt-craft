@@ -212,7 +212,7 @@ jobs:
           echo "" >> docs.md
           echo "## CLI Usage" >> docs.md
           npm run build
-          node dist/packages/apps/cli/index.js help >> docs.md
+          node packages/apps/cli/bootstrap.js help >> docs.md
           echo "" >> docs.md
           echo "## Features" >> docs.md
           echo "- ✅ Prompt validation and consistency checking" >> docs.md
