@@ -5,7 +5,7 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "outDir": "../../../dist/electron",
-    "rootDir": "./",
+    "rootDir": "../../../",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -15,12 +15,12 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "types": ["node", "electron"],
-    "baseUrl": "./",
+    "baseUrl": "../../../",
     "paths": {
-      "@core/*": ["../../core/*"],
-      "@infrastructure/*": ["../../infrastructure/*"],
-      "@apps/*": ["../../apps/*"],
-      "@electron-shared/*": ["./shared/*"]
+      "@core/*": ["packages/core/*"],
+      "@infrastructure/*": ["packages/infrastructure/*"],
+      "@apps/*": ["packages/apps/*"],
+      "@electron-shared/*": ["packages/apps/electron/shared/*"]
     }
   },
   "include": [
@@ -29,6 +29,10 @@
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "renderer",
+    "**/__tests__/**/*",
+    "**/*.test.ts",
+    "**/*.spec.ts"
   ]
 }

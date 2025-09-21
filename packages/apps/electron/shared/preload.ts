@@ -243,7 +243,7 @@ const electronAPI: ElectronAPI = {
 // Expose the API to the renderer process
 contextBridge.exposeInMainWorld('electronAPI', electronAPI);
 
-// Expose environment info
+// Also expose electronEnv
 contextBridge.exposeInMainWorld('electronEnv', {
   isElectron: true,
   nodeVersion: process.versions.node,

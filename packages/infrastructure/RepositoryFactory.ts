@@ -1,13 +1,14 @@
 import { PromptRepository } from '../core/domain/repositories/PromptRepository';
 import { FileSystemPromptRepository } from './filesystem/FileSystemPromptRepository';
 import { DrizzlePromptRepository } from './database/DrizzlePromptRepository';
+import { DrizzleSQLitePromptRepository } from './database/DrizzleSQLitePromptRepository';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 
 // Load environment variables
 dotenv.config();
 
-export type RepositoryType = 'filesystem' | 'database';
+export type RepositoryType = 'filesystem' | 'database' | 'sqlite';
 
 export interface RepositoryConfig {
   type?: RepositoryType;
@@ -23,6 +24,8 @@ export class RepositoryFactory {
     switch (repositoryType) {
       case 'database':
         return RepositoryFactory.createDatabaseRepository(config);
+      case 'sqlite':
+        return RepositoryFactory.createSQLiteRepository(config);
       case 'filesystem':
       default:
         return RepositoryFactory.createFileSystemRepository(config);
@@ -30,7 +33,7 @@ export class RepositoryFactory {
   }
 
   private static determineType(config: RepositoryConfig): RepositoryType {
-    // Priority: 1. Config override, 2. Environment variable, 3. Default to filesystem
+    // Priority: 1. Config override, 2. Environment variable, 3. Auto-detect based on environment
     if (config.type) {
       return config.type;
     }
@@ -46,6 +49,16 @@ export class RepositoryFactory {
       }
       return 'database';
     }
+    
+    if (envType === 'sqlite') {
+      return 'sqlite';
+    }
+
+    // Auto-detect: Use SQLite for Electron environments
+    if (RepositoryFactory.isElectronEnvironment()) {
+      console.log('🔧 Detected Electron environment, using SQLite repository');
+      return 'sqlite';
+    }
 
     return 'filesystem';
   }
@@ -60,6 +73,11 @@ export class RepositoryFactory {
     }
 
     return new DrizzlePromptRepository(config.usageStatsProvider);
+  }
+
+  private static createSQLiteRepository(config: RepositoryConfig): DrizzleSQLitePromptRepository {
+    console.log('🗄 Creating SQLite repository (Local Database)');
+    return new DrizzleSQLitePromptRepository(config.usageStatsProvider);
   }
 
   private static createFileSystemRepository(config: RepositoryConfig): FileSystemPromptRepository {
@@ -102,5 +120,26 @@ export class RepositoryFactory {
       databaseUrl,
       usageStatsProvider
     }) as DrizzlePromptRepository;
+  }
+
+  /**
+   * Create SQLite repository explicitly
+   * Useful for desktop applications or when SQLite is specifically needed
+   */
+  static createSQLite(usageStatsProvider?: () => { favorites: string[]; recents: Array<{ promptId: string; usedAt: string }> }): DrizzleSQLitePromptRepository {
+    return RepositoryFactory.create({
+      type: 'sqlite',
+      usageStatsProvider
+    }) as DrizzleSQLitePromptRepository;
+  }
+
+  /**
+   * Check if we're running in an Electron environment
+   */
+  private static isElectronEnvironment(): boolean {
+    // Check for Electron-specific globals
+    return typeof process !== 'undefined' && 
+           typeof process.versions === 'object' && 
+           process.versions.electron !== undefined;
   }
 }

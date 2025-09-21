@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import toast, { Toaster } from 'react-hot-toast';
 
 // Components
 import Layout from './components/Layout/Layout';
@@ -93,30 +94,58 @@ function App() {
   }
 
   return (
-    <Layout>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={location.pathname}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.2 }}
-          className="h-full"
-        >
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/prompts" element={<PromptsPage />} />
-            <Route path="/prompts/new" element={<NewPromptPage />} />
-            <Route path="/prompts/:id" element={<PromptViewPage />} />
-            <Route path="/prompts/:id/edit" element={<EditPromptPage />} />
-            <Route path="/search" element={<SearchPage />} />
-            <Route path="/mcp" element={<MCPPage />} />
-            {/* Catch-all route for unknown paths */}
-            <Route path="*" element={<Dashboard />} />
-          </Routes>
-        </motion.div>
-      </AnimatePresence>
-    </Layout>
+    <>
+      <Layout>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.2 }}
+            className="h-full"
+          >
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/prompts" element={<PromptsPage />} />
+              <Route path="/prompts/new" element={<NewPromptPage />} />
+              <Route path="/prompts/:id" element={<PromptViewPage />} />
+              <Route path="/prompts/:id/edit" element={<EditPromptPage />} />
+              <Route path="/search" element={<SearchPage />} />
+              <Route path="/mcp" element={<MCPPage />} />
+              {/* Catch-all route for unknown paths */}
+              <Route path="*" element={<Dashboard />} />
+            </Routes>
+          </motion.div>
+        </AnimatePresence>
+      </Layout>
+      
+      {/* Toast Notifications */}
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: 'rgba(31, 41, 55, 0.95)',
+            color: '#f9fafb',
+            border: '1px solid rgba(75, 85, 99, 0.5)',
+            backdropFilter: 'blur(10px)',
+          },
+          success: {
+            iconTheme: {
+              primary: '#10b981',
+              secondary: '#f9fafb',
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: '#ef4444',
+              secondary: '#f9fafb',
+            },
+          },
+        }}
+      />
+    </>
   );
 }
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { toast } from 'react-hot-toast';
 import { 
   DocumentTextIcon, 
   BriefcaseIcon, 
@@ -14,6 +15,8 @@ import {
   ArrowRightIcon
 } from '@heroicons/react/24/outline';
 import { useDatabase, usePrompts } from '../hooks/useElectronAPI';
+import { PromptCreationWizard } from '../components/PromptCreationWizard/PromptCreationWizard';
+import { PromptFormData } from '../components/PromptCreationWizard/types';
 
 interface PromptStats {
   total: number;
@@ -26,20 +29,84 @@ const Dashboard: React.FC = () => {
   const [stats, setStats] = useState<PromptStats>({ total: 0, work: 0, personal: 0, shared: 0 });
   const [recentPrompts, setRecentPrompts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showWizard, setShowWizard] = useState(false);
 
   const { getStats } = useDatabase();
-  const { getAllPrompts } = usePrompts();
+  const { getAllPrompts, createPrompt } = usePrompts();
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
+        console.log('🔄 Fetching dashboard data...');
+        console.log('🔍 Direct window.electronAPI check:', !!window.electronAPI);
+        if (window.electronAPI) {
+          console.log('🔍 Available APIs:', Object.keys(window.electronAPI));
+        }
+        
         // Fetch statistics
+        console.log('📊 Fetching stats...');
+        const statsResponse = await getStats();
+        console.log('📊 Stats response:', statsResponse);
+        if (statsResponse.success) {
+          setStats(statsResponse.data);
+        } else {
+          console.error('❌ Failed to fetch stats:', statsResponse.error);
+        }
+
+        // Fetch recent prompts
+        console.log('📝 Fetching prompts...');
+        const promptsResponse = await getAllPrompts();
+        console.log('📝 Prompts response:', promptsResponse);
+        if (promptsResponse.success) {
+          const sortedPrompts = promptsResponse.data
+            .sort((a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+            .slice(0, 6);
+          console.log('📝 Sorted prompts:', sortedPrompts.length, 'prompts');
+          setRecentPrompts(sortedPrompts);
+        } else {
+          console.error('❌ Failed to fetch prompts:', promptsResponse.error);
+        }
+      } catch (error) {
+        console.error('💥 Failed to fetch dashboard data:', error);
+      } finally {
+        console.log('✅ Dashboard data fetch complete');
+        setIsLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  const handleWizardComplete = async (promptData: PromptFormData) => {
+    try {
+      const result = await createPrompt({
+        name: promptData.name,
+        description: promptData.description,
+        category: promptData.category,
+        content: promptData.content,
+        tags: promptData.tags,
+        variables: promptData.variables.reduce((acc, variable) => {
+          acc[variable.name] = {
+            type: variable.type,
+            description: variable.description || '',
+            required: variable.required,
+            defaultValue: variable.defaultValue,
+            validation: variable.validation,
+          };
+          return acc;
+        }, {} as Record<string, any>),
+        author: promptData.author,
+        version: promptData.version,
+      });
+
+      if (result.success) {
+        toast.success('Prompt created successfully!');
+        setShowWizard(false);
+        // Refresh dashboard data
         const statsResponse = await getStats();
         if (statsResponse.success) {
           setStats(statsResponse.data);
         }
-
-        // Fetch recent prompts
         const promptsResponse = await getAllPrompts();
         if (promptsResponse.success) {
           const sortedPrompts = promptsResponse.data
@@ -47,15 +114,18 @@ const Dashboard: React.FC = () => {
             .slice(0, 6);
           setRecentPrompts(sortedPrompts);
         }
-      } catch (error) {
-        console.error('Failed to fetch dashboard data:', error);
-      } finally {
-        setIsLoading(false);
+      } else {
+        toast.error(`Failed to create prompt: ${result.error}`);
       }
-    };
+    } catch (error) {
+      console.error('Error creating prompt:', error);
+      toast.error('An unexpected error occurred');
+    }
+  };
 
-    fetchDashboardData();
-  }, []);
+  const handleWizardClose = () => {
+    setShowWizard(false);
+  };
 
   const statCards = [
     {
@@ -98,7 +168,7 @@ const Dashboard: React.FC = () => {
       description: 'Build & test cutting-edge prompts',
       icon: PlusIcon,
       color: 'from-primary-500 to-primary-600',
-      link: '/prompts/new'
+      action: () => setShowWizard(true)
     },
     {
       title: 'Work Arsenal',
@@ -175,10 +245,13 @@ const Dashboard: React.FC = () => {
         </p>
         
         <div className="mt-8 flex flex-col sm:flex-row gap-4 items-center sm:items-start justify-center sm:justify-start">
-          <Link to="/prompts/new" className="btn-primary">
+          <button 
+            onClick={() => setShowWizard(true)}
+            className="btn-primary"
+          >
             <SparklesIcon className="w-5 h-5 mr-2" />
             Start Crafting
-          </Link>
+          </button>
           <Link to="/prompts" className="btn-secondary">
             <FolderIcon className="w-5 h-5 mr-2" />
             Explore Library
@@ -242,16 +315,29 @@ const Dashboard: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.6 + index * 0.1 }}
             >
-              <Link to={action.link} className="action-card group">
-                <div className={`action-icon bg-gradient-to-br ${action.color}`}>
-                  <action.icon className="w-5 h-5 text-white group-hover:scale-110 transition-transform duration-200" />
-                </div>
-                <div className="action-content">
-                  <h3 className="action-title">{action.title}</h3>
-                  <p className="action-desc">{action.description}</p>
-                </div>
-                <ArrowRightIcon className="action-arrow" />
-              </Link>
+              {action.action ? (
+                <button onClick={action.action} className="action-card group text-left">
+                  <div className={`action-icon bg-gradient-to-br ${action.color}`}>
+                    <action.icon className="w-5 h-5 text-white group-hover:scale-110 transition-transform duration-200" />
+                  </div>
+                  <div className="action-content">
+                    <h3 className="action-title">{action.title}</h3>
+                    <p className="action-desc">{action.description}</p>
+                  </div>
+                  <ArrowRightIcon className="action-arrow" />
+                </button>
+              ) : (
+                <Link to={action.link} className="action-card group">
+                  <div className={`action-icon bg-gradient-to-br ${action.color}`}>
+                    <action.icon className="w-5 h-5 text-white group-hover:scale-110 transition-transform duration-200" />
+                  </div>
+                  <div className="action-content">
+                    <h3 className="action-title">{action.title}</h3>
+                    <p className="action-desc">{action.description}</p>
+                  </div>
+                  <ArrowRightIcon className="action-arrow" />
+                </Link>
+              )}
             </motion.div>
           ))}
         </div>
@@ -325,11 +411,22 @@ const Dashboard: React.FC = () => {
           <DocumentTextIcon className="mx-auto h-12 w-12 text-gray-500 mb-4" />
           <h3 className="text-sm font-medium text-gray-200 mb-2">No prompts yet</h3>
           <p className="text-sm text-gray-400 mb-6">Get started by creating your first prompt.</p>
-          <Link to="/prompts/new" className="btn-primary">
+          <button 
+            onClick={() => setShowWizard(true)}
+            className="btn-primary"
+          >
             <PlusIcon className="w-4 h-4 mr-2" />
             Create New Prompt
-          </Link>
+          </button>
         </motion.div>
+      )}
+
+      {/* Prompt Creation Wizard */}
+      {showWizard && (
+        <PromptCreationWizard
+          onComplete={handleWizardComplete}
+          onClose={handleWizardClose}
+        />
       )}
     </div>
   );

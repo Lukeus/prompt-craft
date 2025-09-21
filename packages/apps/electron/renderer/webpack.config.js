@@ -7,7 +7,7 @@ const isDevelopment = process.env.NODE_ENV !== 'production';
 module.exports = {
   mode: isDevelopment ? 'development' : 'production',
   entry: './src/index.tsx',
-  target: 'web', // Change from electron-renderer to web to avoid Node.js externalization
+  target: isDevelopment ? 'web' : 'electron-renderer', // Use web for dev server, electron-renderer for production
   devtool: isDevelopment ? 'source-map' : false,
   
   node: {
@@ -88,5 +88,11 @@ module.exports = {
     }),
   ],
   
-  // No externals - bundle everything including Node.js modules
+  // Externalize Node.js modules only in production (for actual Electron build)
+  externals: isDevelopment ? {} : {
+    'electron': 'commonjs electron',
+    'fs': 'commonjs fs',
+    'path': 'commonjs path',
+    'os': 'commonjs os',
+  }
 };

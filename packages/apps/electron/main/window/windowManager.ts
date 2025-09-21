@@ -28,6 +28,12 @@ export const createWindow = (config: WindowConfig): BrowserWindow => {
       contextIsolation: true,
       enableRemoteModule: false,
       backgroundThrottling: false,
+      devTools: process.env.NODE_ENV === 'development',
+      additionalArguments: [
+        '--disable-features=VizDisplayCompositor',
+        '--disable-web-security',
+        '--disable-autofill-keyboard-accessory-view'
+      ],
       ...config.webPreferences,
     },
     icon: path.join(__dirname, '../../assets/app-icon.png'), // App icon

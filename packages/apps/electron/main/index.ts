@@ -53,6 +53,8 @@ class PromptCraftElectronApp {
   }
 
   private createMainWindow(): void {
+    const preloadPath = path.join(__dirname, '../shared/preload.js');
+    
     this.mainWindow = createWindow({
       width: 1400,
       height: 900,
@@ -61,15 +63,16 @@ class PromptCraftElectronApp {
       webPreferences: {
         nodeIntegration: false,
         contextIsolation: true,
-        // enableRemoteModule: false, // Deprecated in newer Electron versions
-        preload: path.join(__dirname, '../shared/preload.js'),
+        preload: preloadPath,
+        webSecurity: true,
+        sandbox: false,
       },
     });
 
     // Load the React app
     const startUrl = isDev() 
       ? 'http://localhost:3000' 
-      : `file://${path.join(__dirname, '../renderer/build/index.html')}`;
+      : `file://${path.join(__dirname, '../renderer/index.html')}`;
     
     this.mainWindow.loadURL(startUrl);
 

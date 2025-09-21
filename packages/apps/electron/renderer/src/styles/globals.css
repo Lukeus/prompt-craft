@@ -151,6 +151,51 @@
   .nav-link.active {
     @apply text-primary-300 bg-primary-900/30 shadow-sm ring-1 ring-primary-700/30;
   }
+
+  .sidebar-nav-link {
+    @apply flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200;
+    @apply text-gray-300 hover:text-primary-300 hover:bg-dark-800/50;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary-500/50;
+    @apply border border-transparent hover:border-dark-600/30;
+  }
+  
+  .sidebar-nav-link.active {
+    @apply text-primary-300 bg-gradient-to-r from-primary-900/40 to-primary-800/30;
+    @apply shadow-lg shadow-primary-900/20 border-primary-700/30;
+    @apply ring-1 ring-primary-600/20;
+  }
+  
+  .sidebar-nav-link:hover {
+    @apply transform translate-x-1;
+  }
+  
+  .sidebar-nav-link.active:hover {
+    @apply from-primary-800/50 to-primary-700/40;
+  }
+}
+
+/* Glass effect utilities */
+@layer utilities {
+  .glass {
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(71, 85, 105, 0.2);
+  }
+  
+  .glass-card {
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(71, 85, 105, 0.1);
+  }
+  
+  .glass-light {
+    background: rgba(30, 41, 59, 0.3);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(71, 85, 105, 0.1);
+  }
 }
 
 /* Animation classes */

@@ -1,18 +1,12 @@
-import { useEffect, useState } from 'react';
+// React hooks for Electron API integration
 
 export const useElectronAPI = () => {
-  const [electronAPI, setElectronAPI] = useState<any>(null);
-
-  useEffect(() => {
-    // Check if we're running in Electron and the API is available
-    if (window.electronAPI) {
-      setElectronAPI(window.electronAPI);
-    } else {
-      console.warn('Electron API not available - running in web mode');
-    }
-  }, []);
-
-  return electronAPI;
+  // Check window.electronAPI directly each time to ensure synchronous access
+  if (typeof window !== 'undefined' && window.electronAPI) {
+    return window.electronAPI;
+  }
+  
+  return null;
 };
 
 // Type-safe wrapper functions for common operations
@@ -20,8 +14,18 @@ export const usePrompts = () => {
   const electronAPI = useElectronAPI();
 
   const getAllPrompts = async () => {
-    if (!electronAPI) return { success: false, error: 'Electron API not available' };
-    return electronAPI.prompts.getAll();
+    if (!electronAPI) {
+      return { success: false, error: 'Electron API not available' };
+    }
+    if (!electronAPI.prompts) {
+      return { success: false, error: 'Prompts API not available' };
+    }
+    try {
+      const result = await electronAPI.prompts.getAll();
+      return result;
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
   };
 
   const getPromptById = async (id: string) => {
@@ -69,8 +73,18 @@ export const useDatabase = () => {
   const electronAPI = useElectronAPI();
 
   const getStats = async () => {
-    if (!electronAPI) return { success: false, error: 'Electron API not available' };
-    return electronAPI.database.getStats();
+    if (!electronAPI) {
+      return { success: false, error: 'Electron API not available' };
+    }
+    if (!electronAPI.database) {
+      return { success: false, error: 'Database API not available' };
+    }
+    try {
+      const result = await electronAPI.database.getStats();
+      return result;
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
   };
 
   const exportData = async (filePath: string) => {
