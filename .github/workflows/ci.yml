@@ -48,12 +48,23 @@ jobs:
           # Build and verify CLI exists before testing
           npm run build
           
+          # Find CLI file for validation
           if [ -f "dist/packages/apps/cli/index.js" ]; then
-            echo "✅ CLI built successfully, testing validation..."
-            node dist/packages/apps/cli/index.js validate || echo "⚠️ Validation test completed with warnings"
+            CLI_PATH="dist/packages/apps/cli/index.js"
+          elif [ -f "dist/apps/cli/index.js" ]; then
+            CLI_PATH="dist/apps/cli/index.js"
+          elif [ -f "dist/cli/index.js" ]; then
+            CLI_PATH="dist/cli/index.js"
           else
-            echo "❌ CLI build failed - dist/packages/apps/cli/index.js not found"
-            ls -la dist/ || echo "dist/ directory not found"
+            CLI_PATH=""
+          fi
+          
+          if [ -n "$CLI_PATH" ]; then
+            echo "✅ CLI built successfully at: $CLI_PATH"
+            node "$CLI_PATH" validate || echo "⚠️ Validation test completed with warnings"
+          else
+            echo "❌ CLI build failed - no CLI found in dist/"
+            find dist -name "index.js" -type f || echo "No index.js files found"
             exit 1
           fi
 
@@ -100,12 +111,25 @@ jobs:
           ls -la dist/packages/apps/
           ls -la dist/packages/apps/cli/
           
-          # Verify CLI file exists and is executable
-          if [ ! -f "dist/packages/apps/cli/index.js" ]; then
-            echo "❌ CLI file not found at dist/packages/apps/cli/index.js"
+          # Find CLI file in build output
+          CLI_PATH=""
+          if [ -f "dist/packages/apps/cli/index.js" ]; then
+            CLI_PATH="dist/packages/apps/cli/index.js"
+            echo "✅ CLI found at: $CLI_PATH"
+          elif [ -f "dist/apps/cli/index.js" ]; then
+            CLI_PATH="dist/apps/cli/index.js"
+            echo "✅ CLI found at: $CLI_PATH"
+          elif [ -f "dist/cli/index.js" ]; then
+            CLI_PATH="dist/cli/index.js"
+            echo "✅ CLI found at: $CLI_PATH"
+          else
+            echo "❌ CLI file not found in any expected location:"
+            echo "  - dist/packages/apps/cli/index.js"
+            echo "  - dist/apps/cli/index.js"
+            echo "  - dist/cli/index.js"
+            find dist -name "index.js" -type f || echo "No index.js files found in dist/"
             exit 1
           fi
-          echo "✅ CLI file found"
           
           # Create test prompts directory
           mkdir -p prompts/work prompts/personal prompts/shared
@@ -116,13 +140,13 @@ jobs:
           echo "🧪 Testing CLI commands..."
           
           echo "Testing help command..."
-          node dist/packages/apps/cli/index.js help || echo "Help command failed"
+          node "$CLI_PATH" help || echo "Help command failed"
           
           echo "Testing list command..."
-          node dist/packages/apps/cli/index.js list || echo "List command failed"
+          node "$CLI_PATH" list || echo "List command failed"
           
           echo "Testing categories command..."
-          node dist/packages/apps/cli/index.js categories || echo "Categories command failed"
+          node "$CLI_PATH" categories || echo "Categories command failed"
           
           echo "✅ CLI tests completed successfully!"
 

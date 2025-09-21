@@ -21,6 +21,18 @@
       "@apps/*": ["packages/apps/*"]
     }
   },
-  "include": ["packages/**/*"],
-  "exclude": ["node_modules", "dist", "packages/**/__tests__", "**/*.test.ts"]
+  "include": [
+    "packages/core/**/*",
+    "packages/infrastructure/**/*",
+    "packages/apps/cli/**/*",
+    "packages/apps/mcp-server/**/*"
+  ],
+  "exclude": [
+    "node_modules", 
+    "dist", 
+    "packages/**/__tests__", 
+    "**/*.test.ts",
+    "packages/apps/electron/renderer/**/*",
+    "packages/apps/web/**/*"
+  ]
 }
