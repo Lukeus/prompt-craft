@@ -1,6 +1,6 @@
 import { eq, and, desc, like, or, sql, count, SQL } from 'drizzle-orm';
-import { Prompt, PromptCategory } from '../../core/domain/entities/Prompt';
-import { PromptRepository, PromptSearchCriteria } from '../../core/domain/repositories/PromptRepository';
+import { Prompt, PromptCategory } from '@core/domain/entities/Prompt';
+import { PromptRepository, PromptSearchCriteria } from '@core/domain/repositories/PromptRepository';
 import { getSQLiteDatabase } from './sqliteConnection';
 import { prompts, SelectPrompt, InsertPrompt, PromptVariable, SQLitePromptRow, PromptData } from './sqliteSchema';
 

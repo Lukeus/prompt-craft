@@ -1,6 +1,6 @@
 import { eq, and, desc, ilike, or, inArray, sql, count, SQL } from 'drizzle-orm';
-import { Prompt, PromptCategory } from '../../core/domain/entities/Prompt';
-import { PromptRepository, PromptSearchCriteria } from '../../core/domain/repositories/PromptRepository';
+import { Prompt, PromptCategory } from '@core/domain/entities/Prompt';
+import { PromptRepository, PromptSearchCriteria } from '@core/domain/repositories/PromptRepository';
 import { getDatabase } from './connection';
 import { prompts, SelectPrompt, InsertPrompt } from './schema';
 

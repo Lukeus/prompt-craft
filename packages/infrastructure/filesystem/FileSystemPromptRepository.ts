@@ -1,7 +1,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { Prompt, PromptCategory } from '../../core/domain/entities/Prompt';
-import { PromptRepository, PromptSearchCriteria } from '../../core/domain/repositories/PromptRepository';
+import { Prompt, PromptCategory } from '@core/domain/entities/Prompt';
+import { PromptRepository, PromptSearchCriteria } from '@core/domain/repositories/PromptRepository';
 
 interface UsageStats {
   favorites: string[];

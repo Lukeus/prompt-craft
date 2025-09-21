@@ -1,6 +1,6 @@
 import { sqliteTable, text, integer, index } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
-import { PromptCategory } from '../../core/domain/entities/Prompt';
+import { PromptCategory } from '@core/domain/entities/Prompt';
 
 export const prompts = sqliteTable('prompts', {
   id: text('id').primaryKey(),

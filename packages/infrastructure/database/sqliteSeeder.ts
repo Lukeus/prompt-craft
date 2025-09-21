@@ -1,5 +1,5 @@
 import { getSQLiteConnection } from './sqliteConnection';
-import { Prompt, PromptCategory } from '../../core/domain/entities/Prompt';
+import { Prompt, PromptCategory } from '@core/domain/entities/Prompt';
 import { DrizzleSQLitePromptRepository } from './DrizzleSQLitePromptRepository';
 import { v4 as uuidv4 } from 'uuid';
 

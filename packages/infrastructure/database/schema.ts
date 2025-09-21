@@ -1,6 +1,6 @@
 import { pgTable, text, timestamp, jsonb, index } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
-import { PromptCategory } from '../../core/domain/entities/Prompt';
+import { PromptCategory } from '@core/domain/entities/Prompt';
 
 export const prompts = pgTable('prompts', {
   id: text('id').primaryKey(),

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-import { getContainer } from '../../core/infrastructure/Container';
-import { PromptCategory } from '../../core/domain/entities/Prompt';
-import { RepositoryFactory } from '../../infrastructure/RepositoryFactory';
+import { getContainer } from '@core/infrastructure/Container';
+import { PromptCategory } from '@core/domain/entities/Prompt';
+import { RepositoryFactory } from '@infrastructure/RepositoryFactory';
 import * as path from 'path';
 import * as readline from 'readline';
 import { execSync } from 'child_process';
