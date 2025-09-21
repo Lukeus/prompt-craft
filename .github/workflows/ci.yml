@@ -35,9 +35,8 @@ jobs:
           npm run build
           echo "TypeScript build successful!"
 
-      - name: Run unit tests (if available)
-        run: npm test || echo "No tests configured yet"
-        continue-on-error: true
+      - name: Run unit tests
+        run: npm test
 
       - name: Validate prompt consistency
         run: |
