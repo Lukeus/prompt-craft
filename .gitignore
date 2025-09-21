@@ -6,6 +6,8 @@ yarn-error.log*
 
 # Build outputs
 dist/
+dist-web/
+dist-electron/
 build/
 *.tsbuildinfo
 
@@ -35,6 +37,9 @@ logs/
 # Coverage
 coverage/
 *.lcov
+
+# Cache directories
+.astro/
 
 # Temporary files
 *.tmp
