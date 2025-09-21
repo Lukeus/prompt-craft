@@ -48,23 +48,14 @@ jobs:
           # Build and verify CLI exists before testing
           npm run build
           
-          # Find CLI file for validation
-          if [ -f "dist/packages/apps/cli/index.js" ]; then
-            CLI_PATH="dist/packages/apps/cli/index.js"
-          elif [ -f "dist/apps/cli/index.js" ]; then
-            CLI_PATH="dist/apps/cli/index.js"
-          elif [ -f "dist/cli/index.js" ]; then
-            CLI_PATH="dist/cli/index.js"
-          else
-            CLI_PATH=""
-          fi
+          # Use the CLI bootstrap script which handles path mapping
+          CLI_BOOTSTRAP="packages/apps/cli/bootstrap.js"
           
-          if [ -n "$CLI_PATH" ]; then
-            echo "✅ CLI built successfully at: $CLI_PATH"
-            node "$CLI_PATH" validate || echo "⚠️ Validation test completed with warnings"
+          if [ -f "$CLI_BOOTSTRAP" ]; then
+            echo "✅ CLI bootstrap script found at: $CLI_BOOTSTRAP"
+            node "$CLI_BOOTSTRAP" validate || echo "⚠️ Validation test completed with warnings"
           else
-            echo "❌ CLI build failed - no CLI found in dist/"
-            find dist -name "index.js" -type f || echo "No index.js files found"
+            echo "❌ CLI bootstrap script not found at: $CLI_BOOTSTRAP"
             exit 1
           fi
 
@@ -126,23 +117,13 @@ jobs:
           ls -la dist/packages/apps/
           ls -la dist/packages/apps/cli/
           
-          # Find CLI file in build output
-          CLI_PATH=""
-          if [ -f "dist/packages/apps/cli/index.js" ]; then
-            CLI_PATH="dist/packages/apps/cli/index.js"
-            echo "✅ CLI found at: $CLI_PATH"
-          elif [ -f "dist/apps/cli/index.js" ]; then
-            CLI_PATH="dist/apps/cli/index.js"
-            echo "✅ CLI found at: $CLI_PATH"
-          elif [ -f "dist/cli/index.js" ]; then
-            CLI_PATH="dist/cli/index.js"
-            echo "✅ CLI found at: $CLI_PATH"
+          # Use the CLI bootstrap script which handles path mapping
+          CLI_BOOTSTRAP="packages/apps/cli/bootstrap.js"
+          
+          if [ -f "$CLI_BOOTSTRAP" ]; then
+            echo "✅ CLI bootstrap script found at: $CLI_BOOTSTRAP"
           else
-            echo "❌ CLI file not found in any expected location:"
-            echo "  - dist/packages/apps/cli/index.js"
-            echo "  - dist/apps/cli/index.js"
-            echo "  - dist/cli/index.js"
-            find dist -name "index.js" -type f || echo "No index.js files found in dist/"
+            echo "❌ CLI bootstrap script not found at: $CLI_BOOTSTRAP"
             exit 1
           fi
           
@@ -155,13 +136,13 @@ jobs:
           echo "🧪 Testing CLI commands..."
           
           echo "Testing help command..."
-          node "$CLI_PATH" help || echo "Help command failed"
+          node "$CLI_BOOTSTRAP" help || echo "Help command failed"
           
           echo "Testing list command..."
-          node "$CLI_PATH" list || echo "List command failed"
+          node "$CLI_BOOTSTRAP" list || echo "List command failed"
           
           echo "Testing categories command..."
-          node "$CLI_PATH" categories || echo "Categories command failed"
+          node "$CLI_BOOTSTRAP" categories || echo "Categories command failed"
           
           echo "✅ CLI tests completed successfully!"
 
