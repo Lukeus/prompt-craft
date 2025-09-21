@@ -4,7 +4,7 @@
     "module": "ESNext",
     "moduleResolution": "node",
     "lib": ["ES2020"],
-    "outDir": "./dist",
+    "outDir": "./dist/packages",
     "rootDir": "./packages",
     "strict": true,
     "esModuleInterop": true,
