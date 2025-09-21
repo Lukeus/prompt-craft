@@ -15,9 +15,7 @@ export default defineConfig({
   integrations: [tailwind()],
   srcDir: './packages/apps/web',
   publicDir: './packages/apps/web/public',
-  build: {
-    outDir: './dist-web'
-  },
+  outDir: './dist-web',
   server: {
     port: 3000,
     host: true
