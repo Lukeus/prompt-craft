@@ -1,13 +1,15 @@
 # 🎯 Prompt Craft
 
+[![CI/CD](https://github.com/Lukeus/prompt-craft/actions/workflows/ci.yml/badge.svg)](https://github.com/Lukeus/prompt-craft/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-43853D?style=flat&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-18+-43853D?style=flat&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Electron](https://img.shields.io/badge/Electron-Ready-47848F?style=flat&logo=electron&logoColor=white)](https://www.electronjs.org/)
 [![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-brightgreen)](https://modelcontextprotocol.io/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue?logo=docker)](https://www.docker.com/)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-Ready-326CE5?logo=kubernetes&logoColor=white)](https://kubernetes.io/)
 
-A **production-ready, enterprise-grade** TypeScript prompt management system with multi-platform deployment support. Features **CLI**, **Web Interface**, **MCP Protocol**, and **REST APIs** for organizing and rendering AI prompts across any infrastructure.
+A **production-ready, enterprise-grade** TypeScript prompt management system with multi-platform deployment support. Features **Desktop App (Electron)**, **CLI**, **Web Interface**, **MCP Protocol**, and **REST APIs** for organizing and rendering AI prompts across any infrastructure.
 
 ## ✨ Features
 
@@ -19,6 +21,7 @@ A **production-ready, enterprise-grade** TypeScript prompt management system wit
 - 🔧 **Environment-aware configuration** with validation
 
 ### 🎨 **Core Features**
+- 🖥️ **Native Desktop App** (Electron) with modern React UI and system integration
 - 📚 **Organize prompts** by categories (work, personal, shared)
 - 💻 **CLI interface** with interactive variable entry and validation
 - 🌐 **Modern web interface** with client-side filtering
@@ -27,6 +30,21 @@ A **production-ready, enterprise-grade** TypeScript prompt management system wit
 - 🔄 **Type-aware parsing** for numbers, booleans, arrays
 - 📋 **Copy to clipboard** with multiple output formats
 - 🔍 **Advanced search** with full-text search and filtering
+- 🎯 **Step-by-step prompt creation wizard** with validation
+
+## 📦 Installation
+
+### Prerequisites
+- **Node.js** 18+ (recommended: 20+)
+- **npm** or **yarn**
+- **Git**
+
+### Clone & Install
+```bash
+git clone https://github.com/Lukeus/prompt-craft.git
+cd prompt-craft
+npm install
+```
 
 ## 🚀 Quick Start
 
@@ -43,6 +61,9 @@ npm start -- help
 
 # Start web interface
 npm run mcp-web:dev
+
+# Start desktop app (Electron)
+npm run electron:dev
 ```
 
 ### 🌍 **Deployment (Production)**
@@ -64,6 +85,34 @@ Choose your deployment method:
 ```
 
 > **Need help choosing?** See our [complete deployment guide](docs/DEPLOYMENT_GUIDE.md) for detailed instructions.
+
+## 🖥️ Desktop Application (Electron)
+
+The **native desktop app** provides the best user experience with:
+- 🎨 **Modern React UI** with dark theme and smooth animations
+- 🔒 **Secure IPC communication** between main and renderer processes
+- 📋 **System clipboard integration** and native notifications
+- ⚡ **Hot reload development** workflow
+- 📦 **Cross-platform packaging** (Windows, macOS, Linux)
+
+### Quick Start
+```bash
+# Development mode (with hot reload)
+npm run electron:dev
+
+# Build for production
+npm run electron:build
+
+# Package for distribution
+npm run electron:pack
+```
+
+### Features
+- **Dashboard**: Overview of prompts, categories, and recent activity
+- **Prompt Management**: Create, edit, and organize prompts with validation
+- **Variable Testing**: Interactive prompt rendering with real-time preview
+- **Search & Filter**: Advanced search across all prompts with instant results
+- **MCP Integration**: Built-in Model Context Protocol server management
 
 ## 🎮 CLI Usage
 
@@ -163,17 +212,22 @@ prompt-manager/
 │   ├── 🔧 infrastructure/          # Repository implementations
 │   └── 🚀 apps/                    # User interfaces
 │       ├── 💻 cli/                 # Command-line interface
+│       ├── 🖥️  electron/            # Desktop application (Electron)
+│       │   ├── main/               # Main process (Node.js backend)
+│       │   ├── renderer/           # Renderer process (React frontend)
+│       │   └── shared/             # Shared utilities & preload
 │       ├── 📡 mcp-server/          # MCP stdio server
 │       └── 🌐 web/                 # Web interface & APIs
 ├── 🐳 docker-compose.yml           # Multi-service Docker setup
 ├── 📜 Dockerfile                  # Production container image
 ├── ☸️  k8s/                         # Kubernetes manifests
 ├── 📋 docs/                       # Comprehensive documentation
-├── 📝d prompts/                     # Default prompt storage
+├── 📝 prompts/                     # Default prompt storage
 │   ├── 💼 work/                    # Work-related prompts
 │   ├── 👤 personal/                # Personal prompts
 │   └── 🤝 shared/                  # Shared prompts
 ├── ⚙️  config/                     # Environment configurations
+├── 🧹 CLEANUP_SUMMARY.md          # Project maintenance guidelines
 └── 🛠️  scripts/                     # Deployment & utility scripts
 ```
 
@@ -186,25 +240,36 @@ Comprehensive guides for different aspects of the system:
 | **[Deployment Guide](docs/DEPLOYMENT_GUIDE.md)** | 🚀 Complete multi-platform deployment instructions |
 | **[MCP Web Server](docs/MCP_WEB_SERVER.md)** | 📡 HTTP/WebSocket MCP server documentation |
 | **[Client-Side Filtering](docs/CLIENT_SIDE_FILTERING.md)** | ⚡ Performance improvements and filtering |
-| **[WARP.md](WARP.md)** | 🛠️ Complete development reference |
+|| **[WARP.md](WARP.md)** | 🛠️ Complete development reference |
+|| **[Cleanup Summary](CLEANUP_SUMMARY.md)** | 🧹 Project maintenance and cleanup guidelines |
 
 ## 🔧 **Development**
 
 ### **Core Commands**
 ```bash
 # Development workflow
-npm run build              # Build all packages  
-npm run lint               # TypeScript type checking
+npm run build              # Build CLI and core packages  
+npm run build:all          # Build all packages (CLI + Web)
+npm run lint               # TypeScript type checking (CLI/Core only)
 npm run test               # Run test suite
 npm run test:coverage      # Tests with coverage report
+npm run clean              # Remove all build artifacts
+
+# Electron Desktop App
+npm run electron:build     # Build all Electron components
+npm run electron:dev       # Start development mode with hot reload
+npm run electron:pack      # Package for current platform
+npm run electron:dist      # Build and package for distribution
+
+# Web Interface
+npm run web:build          # Build Astro web application
+npm run web:dev            # Start web development server
+npm run mcp-web:dev        # Start MCP-enabled web interface
 
 # Database operations (if using database mode)
 npm run db:migrate         # Apply database migrations
 npm run db:seed           # Import prompts to database
 npm run db:studio         # Open database GUI
-
-# Clean up
-npm run clean             # Remove build artifacts
 ```
 
 ### **Environment Setup**
@@ -242,8 +307,8 @@ See [WARP.md](WARP.md) for detailed development guidance.
 
 ## 💬 **Support & Community**
 
-- **Issues**: [GitHub Issues](https://github.com/your-org/prompt-craft/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-org/prompt-craft/discussions) 
+- **Issues**: [GitHub Issues](https://github.com/Lukeus/prompt-craft/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Lukeus/prompt-craft/discussions) 
 - **Documentation**: [Complete Docs](docs/)
 
 ## 📚 **Related Projects**
@@ -254,12 +319,20 @@ See [WARP.md](WARP.md) for detailed development guidance.
 
 ## 📌 **Roadmap**
 
-- ✅ Multi-platform deployment support
-- ✅ Enterprise authentication (Azure AD, LDAP)
-- ✅ Health checks and monitoring
-- 🚧 Real-time collaboration features
-- 🚧 Plugin system for custom prompt types
-- 🚧 Advanced analytics and usage insights
+### ✅ **Completed**
+- ✅ **Native Desktop Application** (Electron with React UI)
+- ✅ **Multi-platform deployment** support (Docker, Kubernetes, Azure, Vercel)
+- ✅ **Enterprise authentication** (Azure AD, LDAP integration)
+- ✅ **Health checks and monitoring** (Prometheus, Grafana, Azure Insights)
+- ✅ **Comprehensive project maintenance** (cleanup procedures, dependency management)
+- ✅ **Step-by-step prompt creation wizard** with validation
+- ✅ **Dual storage backends** (File system + PostgreSQL with Drizzle ORM)
+
+### 🚧 **In Progress**
+- 🚧 **Real-time collaboration** features for team prompt management
+- 🚧 **Plugin system** for custom prompt types and integrations
+- 🚧 **Advanced analytics** and usage insights dashboard
+- 🚧 **AI-powered prompt suggestions** and optimization recommendations
 
 ## 📄 **License**
 
@@ -273,6 +346,6 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 **Powered by TypeScript, Node.js, and the Model Context Protocol**
 
-[🚀 Deploy Now](docs/DEPLOYMENT_GUIDE.md) • [📚 Read Docs](docs/) • [🐛 Report Bug](https://github.com/your-org/prompt-craft/issues)
+[🚀 Deploy Now](docs/DEPLOYMENT_GUIDE.md) • [📚 Read Docs](docs/) • [🐛 Report Bug](https://github.com/Lukeus/prompt-craft/issues)
 
 </div>
