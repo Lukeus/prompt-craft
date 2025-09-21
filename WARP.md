@@ -6,24 +6,40 @@ This file provides comprehensive guidance to WARP (warp.dev) when working with t
 
 ### **Core Build and Development**
 - `npm run build` - Compile TypeScript to JavaScript in the `dist/` directory
-- `npm run clean` - Remove all build artifacts and start fresh
+- `npm run build:all` - Build both CLI and web components
+- `npm run clean` - Remove all build artifacts and start fresh (dist/, dist-web/, coverage/)
 - `npm start` - Start the compiled CLI application
 - `npm run lint` - Type check without emitting files (strict TypeScript checking)
 - `npm run dev:cli` - Run CLI in development mode using ts-node
 
-### Database Management (PostgreSQL + Drizzle ORM)
+### **Database Management (PostgreSQL + Drizzle ORM)**
 - `npm run db:generate` - Generate migration files from schema changes
 - `npm run db:migrate` - Apply database migrations
 - `npm run db:seed` - Import existing JSON prompts to database
+- `npm run db:export` - Export database prompts to JSON files
 - `npm run db:reset` - Reset database (delete all prompts)
 - `npm run db:studio` - Open Drizzle Studio for database inspection
 
+### **Electron Desktop Application**
+- `npm run electron:build` - Build all Electron components (main, preload, renderer)
+- `npm run electron:build:main` - Build Electron main process only
+- `npm run electron:build:preload` - Build Electron preload script only  
+- `npm run electron:build:renderer` - Build Electron renderer (React frontend) only
+- `npm run electron:dev` - Start Electron in development mode with hot reload
+- `npm run electron:start` - Start the built Electron application
+- `npm run electron:pack` - Package Electron app for current platform
+- `npm run electron:dist` - Build and package Electron app for distribution
+
 ### **Web Interface & MCP Server**
-- `npm run mcp-web:dev` - Start the web interface in development mode (includes MCP server)
-- `npm run mcp-web:build` - Build the web interface for production
-- `npm run mcp-web:preview` - Preview the production build
+- `npm run web:dev` - Start the Astro web interface in development mode
+- `npm run web:build` - Build the Astro web interface for production
+- `npm run web:preview` - Preview the production build
+- `npm run mcp-web:dev` - Start MCP-enabled web interface in development mode
+- `npm run mcp-web:build` - Build the MCP-enabled web interface for production
+- `npm run mcp-web:preview` - Preview the MCP-enabled production build
 - `npm run mcp-server` - Start the CLI-based MCP server (stdio transport)
-- `npm run dev:mcp-web` - Start both build process and web development server
+- `npm run dev:web` - Start both build process and web development server
+- `npm run dev:mcp-web` - Start both build process and MCP web development server
 
 ### **Testing & Quality**
 - `npm test` - Run Jest test suite with coverage
@@ -67,10 +83,11 @@ This is a TypeScript-based prompt management system that organizes AI prompts in
 
 **Primary Components:**
 - **Core Domain & Application** (`packages/core/`) - Entities, repositories, and use cases (Prompt, PromptUseCases)
-- **Infrastructure** (`packages/infrastructure/`) - FileSystemPromptRepository and adapters
+- **Infrastructure** (`packages/infrastructure/`) - FileSystemPromptRepository, DrizzlePromptRepository, and adapters
 - **CLI Interface** (`packages/apps/cli/`) - Command-line interface for prompt management
 - **MCP Server (stdio)** (`packages/apps/mcp-server/`) - Model Context Protocol server exposing prompts as tools
-- **Web MCP + REST APIs** (`packages/apps/web/`) - HTTP/WS MCP endpoints and REST APIs
+- **Web Interface** (`packages/apps/web/`) - Astro-based web interface with HTTP/WS MCP endpoints and REST APIs
+- **Electron Desktop App** (`packages/apps/electron/`) - Cross-platform desktop application with React frontend
 
 ### Data Flow Architecture
 1. **Configuration**: System loads from `config/prompts.json` with fallback to defaults
@@ -135,6 +152,31 @@ The system provides two MCP server implementations:
 - Custom handlers for prompt search and category listing
 - Comprehensive error handling with appropriate MCP error codes
 
+## Desktop Application (Electron)
+
+### Architecture
+The Electron app provides a native desktop experience with:
+- **Main Process** (`packages/apps/electron/main/`) - Node.js backend handling file system, database, and window management
+- **Preload Script** (`packages/apps/electron/shared/preload.ts`) - Secure bridge exposing APIs to renderer
+- **Renderer Process** (`packages/apps/electron/renderer/`) - React-based frontend with modern UI
+
+### Key Features
+- Native desktop integration with system notifications
+- Secure IPC communication between main and renderer processes
+- React-based UI with TypeScript support
+- Hot reload during development
+- Cross-platform packaging (Windows, macOS, Linux)
+
+### Development Workflow
+1. **Start Development**: `npm run electron:dev` (builds and starts with hot reload)
+2. **Build for Testing**: `npm run electron:build && npm run electron:start`
+3. **Package for Distribution**: `npm run electron:pack` or `npm run electron:dist`
+
+### Troubleshooting
+- **Preload Issues**: Ensure preload script is built and copied to correct path (`dist/electron/packages/apps/electron/shared/preload.js`)
+- **API Not Available**: Check that `window.electronAPI` is properly exposed in renderer
+- **IPC Communication**: Verify main process event handlers match renderer calls
+
 ## Development Guidance
 
 ### Repository Configuration
@@ -194,10 +236,17 @@ PROMPTS_DIRECTORY=./my-prompts
 - `packages/infrastructure/` - Repository implementations and external integrations
   - `filesystem/` - FileSystemPromptRepository for JSON file storage
   - `database/` - DrizzlePromptRepository and PostgreSQL schema
-- `packages/apps/` - Application interfaces (CLI, MCP servers, web)
+- `packages/apps/` - Application interfaces
+  - `cli/` - Command-line interface
+  - `mcp-server/` - MCP server (stdio transport)
+  - `web/` - Astro web interface with MCP endpoints
+  - `electron/` - Desktop application (main, preload, renderer)
 - `prompts/` - Default prompt storage directory (filesystem mode)
 - `scripts/` - Database management and migration scripts
 - `drizzle/` - Generated database migration files
+- `dist/` - Compiled TypeScript output
+- `dist-web/` - Built Astro web application
+- `dist-electron/` - Packaged Electron application
 
 ### Adding New Prompts
 1. Create JSON file in appropriate category directory (`prompts/work/`, `prompts/personal/`, `prompts/shared/`)
@@ -321,9 +370,74 @@ FEATURE_MONITORING=true                # Enable health checks
 - **Cons**: Requires external database, network dependency
 - **Best for**: Production, multi-user access, large prompt collections
 
-#### **Enterprise Features**
+### **Enterprise Features**
 - **Authentication**: Azure AD, OAuth2, LDAP integration
 - **Monitoring**: Prometheus metrics, health check endpoints
 - **Security**: Helmet.js security headers, CORS configuration
 - **Scaling**: Kubernetes horizontal pod autoscaling
 - **Caching**: Redis integration for improved performance
+
+## Project Maintenance & Cleanup
+
+### **Build Artifacts & Cleanup**
+The project generates several types of build artifacts that should be managed:
+
+#### **Safe to Delete (Regenerable)**
+- `dist/` - Compiled TypeScript output (regenerated by `npm run build`)
+- `dist-web/` - Built Astro web application (regenerated by `npm run web:build`)
+- `dist-electron/` - Packaged Electron application (regenerated by `npm run electron:pack`)
+- `coverage/` - Jest test coverage reports (regenerated by `npm run test:coverage`)
+- `.astro/` - Astro build cache (regenerated automatically)
+- `.vercel/` - Vercel deployment cache and build outputs
+- `node_modules/` - Dependencies (reinstalled by `npm install`)
+
+#### **Development Generated (Platform Specific)**
+- `packages/**/dist/` - Individual package build outputs
+- `drizzle/` - Database migration files (generated by `npm run db:generate` but should be committed)
+
+#### **Cleanup Commands**
+```bash
+# Remove all build artifacts
+npm run clean
+
+# Deep clean (includes node_modules)
+npm run clean && rm -rf node_modules && npm install
+
+# Clean specific build types
+rm -rf dist/           # CLI builds
+rm -rf dist-web/       # Web builds  
+rm -rf dist-electron/  # Electron packages
+rm -rf coverage/       # Test coverage
+rm -rf .vercel/        # Vercel cache
+```
+
+### **Dependency Management**
+- **Audit Dependencies**: Use `npm audit` to check for security vulnerabilities
+- **Update Dependencies**: Use `npm update` for minor updates, manual review for major updates
+- **Remove Unused**: Regularly review and remove unused dependencies from `package.json`
+- **Duplicate Detection**: Use tools like `npm ls --depth=0` to identify version conflicts
+
+### **Git Hygiene**
+Ensure `.gitignore` excludes:
+```gitignore
+# Build outputs
+dist/
+dist-web/
+dist-electron/
+coverage/
+
+# Platform caches
+.astro/
+.vercel/
+node_modules/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment
+.env.local
+.env.production
+```
