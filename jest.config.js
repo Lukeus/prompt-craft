@@ -49,6 +49,13 @@ module.exports = {
   // Module file extensions
   moduleFileExtensions: ['ts', 'js', 'json'],
   
+  // Path mapping for TypeScript path aliases
+  moduleNameMapper: {
+    '^@core/(.*)$': '<rootDir>/packages/core/$1',
+    '^@infrastructure/(.*)$': '<rootDir>/packages/infrastructure/$1',
+    '^@apps/(.*)$': '<rootDir>/packages/apps/$1'
+  },
+  
   // Clear mocks between tests
   clearMocks: true,
   
