@@ -8,6 +8,7 @@
 [![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-brightgreen)](https://modelcontextprotocol.io/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue?logo=docker)](https://www.docker.com/)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-Ready-326CE5?logo=kubernetes&logoColor=white)](https://kubernetes.io/)
+[![Codespace Ready](https://img.shields.io/badge/Codespace-Ready-green?logo=github)](https://github.com/codespaces)
 
 A **production-ready, enterprise-grade** TypeScript prompt management system with multi-platform deployment support. Features **Desktop App (Electron)**, **CLI**, **Web Interface**, **MCP Protocol**, and **REST APIs** for organizing and rendering AI prompts across any infrastructure.
 
@@ -47,6 +48,34 @@ npm install
 ```
 
 ## 🚀 Quick Start
+
+### ☁️ **Cloud Development (GitHub Codespaces) - Recommended**
+
+Get started instantly with a fully configured cloud development environment:
+
+1. **Create a Codespace**:
+   - Click **Code** → **Codespaces** → **Create codespace on main**
+   - Or visit: `https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=your-repo-id`
+
+2. **Automatic Setup** (3-5 minutes):
+   - ✅ Node.js 18 + TypeScript + all dependencies
+   - ✅ PostgreSQL database with sample data
+   - ✅ VS Code extensions + development tools
+   - ✅ Project built and ready to use
+
+3. **Start Developing**:
+   ```bash
+   # Start web development server
+   pc-dev                    # Alias for npm run dev:web
+   
+   # Or use full commands
+   npm run dev:web          # Web interface (port 3000)
+   npm run dev:cli          # CLI in development mode
+   npm test                 # Run test suite
+   pc-db-studio            # Open database GUI
+   ```
+
+**📖 Complete Codespace Guide**: [docs/CODESPACE.md](docs/CODESPACE.md)
 
 ### 📦 **Local Development**
 ```bash
@@ -218,6 +247,11 @@ prompt-manager/
 │       │   └── shared/             # Shared utilities & preload
 │       ├── 📡 mcp-server/          # MCP stdio server
 │       └── 🌐 web/                 # Web interface & APIs
+├── ☁️ .devcontainer/              # GitHub Codespace configuration
+│   ├── devcontainer.json          # Main Codespace settings
+│   ├── docker-compose.yml         # Development services
+│   ├── Dockerfile                 # Development container
+│   └── setup.sh                   # Automatic initialization
 ├── 🐳 docker-compose.yml           # Multi-service Docker setup
 ├── 📜 Dockerfile                  # Production container image
 ├── ☸️  k8s/                         # Kubernetes manifests
@@ -237,7 +271,8 @@ Comprehensive guides for different aspects of the system:
 
 | Document | Description |
 |----------|-------------|
-| **[Deployment Guide](docs/DEPLOYMENT_GUIDE.md)** | 🚀 Complete multi-platform deployment instructions |
+| **[GitHub Codespace Guide](docs/CODESPACE.md)** | ☁️ Complete cloud development setup (3-minute start) |
+| **[Deployment Guide](docs/DEPLOYMENT_GUIDE.md)** | 🚀 Multi-platform deployment instructions |
 | **[MCP Web Server](docs/MCP_WEB_SERVER.md)** | 📡 HTTP/WebSocket MCP server documentation |
 | **[Client-Side Filtering](docs/CLIENT_SIDE_FILTERING.md)** | ⚡ Performance improvements and filtering |
 || **[WARP.md](WARP.md)** | 🛠️ Complete development reference |
@@ -320,6 +355,7 @@ See [WARP.md](WARP.md) for detailed development guidance.
 ## 📌 **Roadmap**
 
 ### ✅ **Completed**
+- ✅ **GitHub Codespace Support** - Full cloud development environment with 3-minute setup
 - ✅ **Native Desktop Application** (Electron with React UI)
 - ✅ **Multi-platform deployment** support (Docker, Kubernetes, Azure, Vercel)
 - ✅ **Enterprise authentication** (Azure AD, LDAP integration)
