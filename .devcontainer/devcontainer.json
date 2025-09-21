@@ -1,0 +1,121 @@
+{
+  "name": "Prompt Craft Development Environment",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  
+  // Features to install in the container
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "nodeGitTagLookupUrl": "https://api.github.com/repos/nodejs/node/tags",
+      "version": "18"
+    },
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+
+  // Configure tool-specific properties
+  "customizations": {
+    "vscode": {
+      // Extensions to install
+      "extensions": [
+        "ms-vscode.vscode-typescript-next",
+        "esbenp.prettier-vscode", 
+        "bradlc.vscode-tailwindcss",
+        "ms-vscode.test-adapter-converter",
+        "hbenl.vscode-test-explorer",
+        "ms-vscode.vscode-json",
+        "github.copilot",
+        "github.copilot-chat",
+        "ms-playwright.playwright",
+        "ms-vscode.vscode-docker",
+        "ckolkman.vscode-postgres",
+        "ms-vscode-remote.remote-containers",
+        "astro-build.astro-vscode",
+        "bradlc.vscode-tailwindcss",
+        "formulahendry.auto-rename-tag",
+        "christian-kohler.path-intellisense",
+        "yzhang.markdown-all-in-one",
+        "redhat.vscode-yaml"
+      ],
+      
+      // Settings
+      "settings": {
+        "typescript.preferences.quoteStyle": "double",
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.codeActionsOnSave": {
+          "source.fixAll": true,
+          "source.organizeImports": true
+        },
+        "typescript.updateImportsOnFileMove.enabled": "always",
+        "javascript.updateImportsOnFileMove.enabled": "always",
+        "editor.tabSize": 2,
+        "editor.insertSpaces": true,
+        "files.trimTrailingWhitespace": true,
+        "files.insertFinalNewline": true,
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "git.autofetch": true,
+        "git.enableSmartCommit": true,
+        "npm.enableScriptExplorer": true,
+        "[typescript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[javascript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[json]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[astro]": {
+          "editor.defaultFormatter": "astro-build.astro-vscode"
+        }
+      }
+    }
+  },
+
+  // Use 'forwardPorts' to make a list of ports available locally
+  "forwardPorts": [
+    3000,  // Astro web dev server
+    5432,  // PostgreSQL
+    8080   // MCP web server (if different)
+  ],
+
+  // Port attributes
+  "portsAttributes": {
+    "3000": {
+      "label": "Web Interface",
+      "onAutoForward": "notify"
+    },
+    "5432": {
+      "label": "PostgreSQL Database",
+      "onAutoForward": "silent"
+    },
+    "8080": {
+      "label": "MCP Server",
+      "onAutoForward": "notify"
+    }
+  },
+
+  // Use 'postCreateCommand' to run commands after the container is created
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+
+  // Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root
+  "remoteUser": "node",
+
+  // Environment variables
+  "containerEnv": {
+    "NODE_ENV": "development",
+    "REPOSITORY_TYPE": "database",
+    "DATABASE_URL": "postgresql://postgres:postgres@db:5432/promptcraft",
+    "FEATURE_WEB": "true",
+    "FEATURE_MCP": "true",
+    "FEATURE_AUTH": "false",
+    "FEATURE_MONITORING": "true"
+  },
+
+  // Mounts
+  "mounts": [
+    "source=${localWorkspaceFolder}/.env,target=/workspace/.env,type=bind,consistency=cached"
+  ]
+}
