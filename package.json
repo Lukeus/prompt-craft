@@ -158,6 +158,7 @@
     "mac": {
       "icon": "packages/apps/electron/assets/app-icon.icns",
       "category": "public.app-category.productivity",
+      "identity": null,
       "target": [
         {
           "target": "dmg",

@@ -40,6 +40,7 @@ jobs:
           fetch-depth: 0  # Fetch all history for changelog generation
       
       - name: Validate permissions
+        shell: bash
         run: |
           echo "Validating GitHub token permissions..."
           if [ -z "${{ secrets.GITHUB_TOKEN }}" ]; then
@@ -73,6 +74,7 @@ jobs:
 
       - name: Get version
         id: get-version
+        shell: bash
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             VERSION="${{ github.event.inputs.version }}"
@@ -85,6 +87,7 @@ jobs:
 
       - name: Generate changelog
         id: changelog
+        shell: bash
         run: |
           CHANGELOG="## What's New in ${{ steps.get-version.outputs.version }}
 
@@ -94,7 +97,7 @@ jobs:
           - Advanced search and filtering capabilities
           - System integration (native menus, tray support)
 
-          ### 🛠️ Technical Details
+          ### 🔧 Technical Details
           - Built with Electron ${{ env.ELECTRON_VERSION || '38+' }} 
           - React 18+ with TypeScript 5.x
           - TailwindCSS styling with dark mode support
@@ -164,6 +167,7 @@ jobs:
 
       - name: Install native dependencies (Linux)
         if: matrix.platform == 'ubuntu-latest'
+        shell: bash
         run: |
           sudo apt-get update
           sudo apt-get install -y libnss3-dev libatk-bridge2.0-dev libdrm-dev libxcomposite-dev libxdamage-dev libxrandr-dev libgbm-dev libxss1 libasound2-dev libgtk-3-dev libgdk-pixbuf2.0-dev libxfixes3 libxi6
@@ -183,17 +187,19 @@ jobs:
           npm run electron:build
           echo "✅ Electron components built successfully"
           
-          # Verify build output structure
+          # Verify build output structure (cross-platform)
           echo "Verifying build output structure:"
           echo "Main process file:"
-          ls -la dist/electron/packages/apps/electron/main/index.js || echo "❌ Main process file not found"
+          node -e "console.log(require('fs').existsSync('dist/electron/packages/apps/electron/main/index.js') ? '✅ Main process file found' : '❌ Main process file not found')"
           echo "Preload script file:"
-          ls -la dist/electron/shared/preload.js || echo "❌ Preload script file not found"
+          node -e "console.log(require('fs').existsSync('dist/electron/shared/preload.js') ? '✅ Preload script found' : '❌ Preload script not found')"
           echo "Renderer files:"
-          ls -la packages/apps/electron/renderer/dist/index.html || echo "❌ Renderer index.html not found"
+          node -e "console.log(require('fs').existsSync('packages/apps/electron/renderer/dist/index.html') ? '✅ Renderer index.html found' : '❌ Renderer index.html not found')"
 
       - name: Package Electron app
         env:
+          # Disable code signing if certificates are not available
+          CSC_IDENTITY_AUTO_DISCOVERY: false
           # macOS signing (if certificates are configured)
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
@@ -210,6 +216,7 @@ jobs:
           echo "✅ Electron app packaged successfully"
 
       - name: List build artifacts
+        shell: bash
         run: |
           echo "Build artifacts created:"
           if [ -d "dist-electron" ]; then
