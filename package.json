@@ -42,6 +42,7 @@
     "electron:build:main": "tsc -p packages/apps/electron/tsconfig.main.json && node scripts/electron-post-build.js",
     "electron:build:preload": "tsc packages/apps/electron/shared/preload.ts --target es2020 --module commonjs --outDir dist/electron/shared --skipLibCheck",
     "electron:build:renderer": "cd packages/apps/electron/renderer && webpack --mode production",
+    "electron:build:renderer:analyze": "cd packages/apps/electron/renderer && webpack --mode production --analyze",
     "electron:build": "npm run build && npm run electron:build:main && npm run electron:build:preload && npm run electron:build:renderer",
     "electron:dev:main": "tsc -p packages/apps/electron/tsconfig.main.json --watch",
     "electron:dev:preload": "tsc packages/apps/electron/shared/preload.ts --target es2020 --module commonjs --outDir dist/electron/shared --watch",
@@ -49,7 +50,12 @@
     "electron:start": "cross-env NODE_ENV=development electron dist/electron/packages/apps/electron/main/index.js",
     "electron:dev": "concurrently \"npm run electron:build:main\" \"npm run electron:build:preload\" \"npm run electron:dev:renderer\" \"wait-on http://localhost:3000 && npm run electron:start\"",
     "electron:pack": "npm run electron:build && electron-builder",
-    "electron:dist": "npm run electron:build && electron-builder --publish=never"
+    "electron:dist": "npm run electron:build && electron-builder --publish=never",
+    "release:patch": "./scripts/release.sh patch",
+    "release:minor": "./scripts/release.sh minor",
+    "release:major": "./scripts/release.sh major",
+    "release": "./scripts/release.sh",
+    "icons:generate": "./scripts/generate-app-icons.sh"
   },
   "keywords": [
     "prompts",
@@ -123,6 +129,7 @@
     "util": "^0.12.5",
     "wait-on": "^9.0.1",
     "webpack": "^5.101.3",
+    "webpack-bundle-analyzer": "^4.10.2",
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.2.2"
   },

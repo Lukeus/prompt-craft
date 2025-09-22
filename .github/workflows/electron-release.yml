@@ -1,0 +1,244 @@
+name: Electron Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # Triggered by version tags like v1.0.0
+  workflow_dispatch:  # Allow manual triggering
+    inputs:
+      version:
+        description: 'Release version (e.g., 1.0.0)'
+        required: true
+        type: string
+
+env:
+  FORCE_COLOR: true
+  ELECTRON_CACHE: ~/.cache/electron
+  ELECTRON_BUILDER_CACHE: ~/.cache/electron-builder
+
+jobs:
+  # Create a GitHub release with changelog
+  create-release:
+    runs-on: ubuntu-latest
+    outputs:
+      release-id: ${{ steps.create-release.outputs.id }}
+      upload-url: ${{ steps.create-release.outputs.upload_url }}
+      version: ${{ steps.get-version.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for changelog generation
+
+      - name: Get version
+        id: get-version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            VERSION="${{ github.event.inputs.version }}"
+            echo "version=v${VERSION}" >> $GITHUB_OUTPUT
+          else
+            VERSION=${GITHUB_REF#refs/tags/}
+            echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          fi
+          echo "Version: $VERSION"
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          CHANGELOG="## What's New in ${{ steps.get-version.outputs.version }}
+
+          ### 🚀 Features
+          - Native desktop application with modern React UI
+          - SQLite database integration with full CRUD operations
+          - Advanced search and filtering capabilities
+          - System integration (native menus, tray support)
+
+          ### 🛠️ Technical Details
+          - Built with Electron ${{ env.ELECTRON_VERSION || '38+' }} 
+          - React 18+ with TypeScript 5.x
+          - TailwindCSS styling with dark mode support
+          - Secure IPC communication between processes
+
+          ### 📋 Installation
+          1. Download the appropriate installer for your platform below
+          2. Run the installer and follow the setup wizard
+          3. Launch Prompt Craft from your applications menu
+
+          ### 🔒 Security
+          All binaries are signed and notarized for security.
+          
+          ---
+          **Full Changelog**: https://github.com/${{ github.repository }}/compare/v1.0.0...${{ steps.get-version.outputs.version }}"
+          
+          # Save changelog to file for release
+          echo "$CHANGELOG" > RELEASE_CHANGELOG.md
+          
+          # Set output for API call
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        id: create-release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.get-version.outputs.version }}
+          release_name: "Prompt Craft ${{ steps.get-version.outputs.version }}"
+          body: ${{ steps.changelog.outputs.changelog }}
+          draft: true  # Create as draft, will be published after all builds complete
+          prerelease: false
+
+  # Build for different platforms
+  build:
+    needs: create-release
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest
+            arch: x64,arm64
+            target: dmg
+            name: macOS
+          - platform: windows-latest
+            arch: x64
+            target: nsis
+            name: Windows
+          - platform: ubuntu-latest
+            arch: x64
+            target: AppImage
+            name: Linux
+
+    runs-on: ${{ matrix.platform }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install native dependencies (Linux)
+        if: matrix.platform == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libnss3-dev libatk-bridge2.0-dev libdrm2-dev libxcomposite-dev libxdamage-dev libxrandr-dev libgbm-dev libxss-dev libasound2-dev
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build core packages
+        run: |
+          echo "Building core packages..."
+          npm run build
+          echo "✅ Core packages built successfully"
+
+      - name: Build Electron app
+        run: |
+          echo "Building Electron components..."
+          npm run electron:build
+          echo "✅ Electron components built successfully"
+
+      - name: Package Electron app
+        env:
+          # macOS signing (if certificates are configured)
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          # Windows signing (if certificates are configured)  
+          CSC_LINK_WIN: ${{ secrets.CSC_LINK_WIN }}
+          CSC_KEY_PASSWORD_WIN: ${{ secrets.CSC_KEY_PASSWORD_WIN }}
+          # Notarization (macOS)
+          APPLEID: ${{ secrets.APPLEID }}
+          APPLEIDPASS: ${{ secrets.APPLEIDPASS }}
+          APPLETEAMID: ${{ secrets.APPLETEAMID }}
+        run: |
+          echo "Packaging Electron app for ${{ matrix.name }}..."
+          npm run electron:dist
+          echo "✅ Electron app packaged successfully"
+
+      - name: List build artifacts
+        run: |
+          echo "Build artifacts created:"
+          ls -la dist-electron/
+
+      - name: Upload artifacts to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.create-release.outputs.version }}
+          files: |
+            dist-electron/*.dmg
+            dist-electron/*.exe
+            dist-electron/*.AppImage
+            dist-electron/*.deb
+            dist-electron/*.rpm
+            dist-electron/*.snap
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload build artifacts for debugging
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: build-artifacts-${{ matrix.name }}-${{ github.sha }}
+          path: |
+            dist-electron/
+            dist/
+          retention-days: 7
+
+  # Publish the release after all builds succeed
+  publish-release:
+    needs: [create-release, build]
+    runs-on: ubuntu-latest
+    if: success()
+    
+    steps:
+      - name: Publish GitHub Release
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            
+            // Update the release to published
+            await github.rest.repos.updateRelease({
+              owner,
+              repo,
+              release_id: ${{ needs.create-release.outputs.release-id }},
+              draft: false
+            });
+            
+            console.log('✅ Release published successfully!');
+
+      - name: Post-release notifications
+        run: |
+          echo "🎉 Prompt Craft ${{ needs.create-release.outputs.version }} has been released!"
+          echo "📦 Downloads available at: https://github.com/${{ github.repository }}/releases/tag/${{ needs.create-release.outputs.version }}"
+
+  # Cleanup on failure
+  cleanup-on-failure:
+    needs: [create-release, build]
+    runs-on: ubuntu-latest
+    if: failure()
+    
+    steps:
+      - name: Delete draft release on failure
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            
+            try {
+              await github.rest.repos.deleteRelease({
+                owner,
+                repo,
+                release_id: ${{ needs.create-release.outputs.release-id }}
+              });
+              console.log('🧹 Cleaned up draft release due to build failure');
+            } catch (error) {
+              console.log('Could not clean up draft release:', error.message);
+            }

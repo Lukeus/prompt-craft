@@ -1,17 +1,40 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense, lazy } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast, { Toaster } from 'react-hot-toast';
 
 // Components
 import Layout from './components/Layout/Layout';
-import Dashboard from './pages/Dashboard';
-import PromptsPage from './pages/Prompts';
-import SearchPage from './pages/Search';
-import MCPPage from './pages/MCP';
-import NewPromptPage from './pages/NewPrompt';
-import EditPromptPage from './pages/EditPrompt';
-import PromptViewPage from './pages/PromptView';
+
+// Lazy-loaded page components for better code splitting
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const PromptsPage = lazy(() => import('./pages/Prompts'));
+const SearchPage = lazy(() => import('./pages/Search'));
+const MCPPage = lazy(() => import('./pages/MCP'));
+const NewPromptPage = lazy(() => import('./pages/NewPrompt'));
+const EditPromptPage = lazy(() => import('./pages/EditPrompt'));
+const PromptViewPage = lazy(() => import('./pages/PromptView'));
+
+// Loading component for Suspense fallback
+const PageLoader = () => (
+  <div className="h-full flex items-center justify-center">
+    <motion.div
+      className="w-8 h-8 bg-gradient-to-r from-primary-500 to-accent-500 rounded-lg flex items-center justify-center shadow-lg"
+      animate={{ 
+        rotate: 360,
+        scale: [1, 1.1, 1]
+      }}
+      transition={{ 
+        rotate: { duration: 2, repeat: Infinity, ease: "linear" },
+        scale: { duration: 1, repeat: Infinity, ease: "easeInOut" }
+      }}
+    >
+      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+      </svg>
+    </motion.div>
+  </div>
+);
 
 // Hooks
 import { useElectronAPI } from './hooks/useElectronAPI';
@@ -105,17 +128,19 @@ function App() {
             transition={{ duration: 0.2 }}
             className="h-full"
           >
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/prompts" element={<PromptsPage />} />
-              <Route path="/prompts/new" element={<NewPromptPage />} />
-              <Route path="/prompts/:id" element={<PromptViewPage />} />
-              <Route path="/prompts/:id/edit" element={<EditPromptPage />} />
-              <Route path="/search" element={<SearchPage />} />
-              <Route path="/mcp" element={<MCPPage />} />
-              {/* Catch-all route for unknown paths */}
-              <Route path="*" element={<Dashboard />} />
-            </Routes>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/prompts" element={<PromptsPage />} />
+                <Route path="/prompts/new" element={<NewPromptPage />} />
+                <Route path="/prompts/:id" element={<PromptViewPage />} />
+                <Route path="/prompts/:id/edit" element={<EditPromptPage />} />
+                <Route path="/search" element={<SearchPage />} />
+                <Route path="/mcp" element={<MCPPage />} />
+                {/* Catch-all route for unknown paths */}
+                <Route path="*" element={<Dashboard />} />
+              </Routes>
+            </Suspense>
           </motion.div>
         </AnimatePresence>
       </Layout>
