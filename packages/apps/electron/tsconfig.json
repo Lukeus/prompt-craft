@@ -1,0 +1,12 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "../../../",
+    "paths": {
+      "@core/*": ["packages/core/*"],
+      "@infrastructure/*": ["packages/infrastructure/*"],
+      "@apps/*": ["packages/apps/*"],
+      "@electron-shared/*": ["packages/apps/electron/shared/*"]
+    }
+  }
+}

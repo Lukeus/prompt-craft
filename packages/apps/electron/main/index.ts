@@ -1,3 +1,6 @@
+// Register tsconfig paths for module resolution
+import 'tsconfig-paths/register';
+
 import { app, BrowserWindow, ipcMain, Menu, shell, Tray, nativeImage } from 'electron';
 import * as path from 'path';
 import { isDev } from './utils/environment';
