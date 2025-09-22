@@ -11,6 +11,15 @@ on:
         required: true
         type: string
 
+# Required permissions for GitHub Actions
+permissions:
+  contents: write        # Required for creating releases and uploading assets
+  actions: read         # Required for workflow execution
+  packages: read        # Required for package access
+  pull-requests: read   # Required for PR context
+  id-token: write       # Required for OIDC token
+  attestations: write   # Required for build attestations
+
 env:
   FORCE_COLOR: true
   ELECTRON_CACHE: ~/.cache/electron
@@ -29,6 +38,28 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Fetch all history for changelog generation
+      
+      - name: Validate permissions
+        run: |
+          echo "Validating GitHub token permissions..."
+          if [ -z "${{ secrets.GITHUB_TOKEN }}" ]; then
+            echo "❌ ERROR: GITHUB_TOKEN is not available"
+            exit 1
+          fi
+          echo "✅ GitHub token is available"
+          
+          # Validate repository access
+          curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+               -H "Accept: application/vnd.github.v3+json" \
+               "https://api.github.com/repos/${{ github.repository }}" \
+               | jq -r '.permissions.admin // "false"' > /tmp/admin_check
+          
+          if [ "$(cat /tmp/admin_check)" != "true" ]; then
+            echo "⚠️  WARNING: Limited repository permissions detected"
+            echo "This may cause issues with release creation"
+          else
+            echo "✅ Repository permissions validated"
+          fi
 
       - name: Get version
         id: get-version
@@ -80,15 +111,14 @@ jobs:
 
       - name: Create GitHub Release
         id: create-release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.get-version.outputs.version }}
-          release_name: "Prompt Craft ${{ steps.get-version.outputs.version }}"
+          name: "Prompt Craft ${{ steps.get-version.outputs.version }}"
           body: ${{ steps.changelog.outputs.changelog }}
           draft: true  # Create as draft, will be published after all builds complete
           prerelease: false
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   # Build for different platforms
   build:
@@ -176,8 +206,7 @@ jobs:
             dist-electron/*.deb
             dist-electron/*.rpm
             dist-electron/*.snap
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload build artifacts for debugging
         uses: actions/upload-artifact@v4
@@ -197,21 +226,11 @@ jobs:
     
     steps:
       - name: Publish GitHub Release
-        uses: actions/github-script@v7
+        uses: softprops/action-gh-release@v2
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const { owner, repo } = context.repo;
-            
-            // Update the release to published
-            await github.rest.repos.updateRelease({
-              owner,
-              repo,
-              release_id: ${{ needs.create-release.outputs.release-id }},
-              draft: false
-            });
-            
-            console.log('✅ Release published successfully!');
+          tag_name: ${{ needs.create-release.outputs.version }}
+          draft: false
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Post-release notifications
         run: |
@@ -233,12 +252,22 @@ jobs:
             const { owner, repo } = context.repo;
             
             try {
-              await github.rest.repos.deleteRelease({
+              // Get release by tag name since we may not have the ID
+              const releases = await github.rest.repos.listReleases({
                 owner,
-                repo,
-                release_id: ${{ needs.create-release.outputs.release-id }}
+                repo
               });
-              console.log('🧹 Cleaned up draft release due to build failure');
+              
+              const release = releases.data.find(r => r.tag_name === '${{ needs.create-release.outputs.version }}');
+              
+              if (release && release.draft) {
+                await github.rest.repos.deleteRelease({
+                  owner,
+                  repo,
+                  release_id: release.id
+                });
+                console.log('🧹 Cleaned up draft release due to build failure');
+              }
             } catch (error) {
               console.log('Could not clean up draft release:', error.message);
             }
