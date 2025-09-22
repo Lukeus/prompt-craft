@@ -13,11 +13,24 @@ const distElectronPath = path.join(__dirname, '../dist/electron');
 console.log('Running Electron post-build script...');
 
 try {
-  // The Electron app now uses the existing core packages structure
-  // No special copying needed - everything is handled by TypeScript compilation
+  // Copy tsconfig.json for runtime path resolution
+  const electronTsconfigSrc = path.join(__dirname, '../packages/apps/electron/tsconfig.json');
+  const electronTsconfigDest = path.join(distElectronPath, 'tsconfig.json');
+  
+  if (fs.existsSync(electronTsconfigSrc)) {
+    console.log('Copying tsconfig.json for runtime path resolution...');
+    
+    // Ensure directory exists
+    if (!fs.existsSync(path.dirname(electronTsconfigDest))) {
+      fs.mkdirSync(path.dirname(electronTsconfigDest), { recursive: true });
+    }
+    
+    fs.copyFileSync(electronTsconfigSrc, electronTsconfigDest);
+    console.log('Copied tsconfig.json to dist/electron/');
+  }
   
   console.log('Electron post-build script completed successfully!');
-  console.log('Using existing core packages structure - no additional copying needed.');
+  console.log('Module resolution configuration added for Windows compatibility.');
 
 } catch (error) {
   console.error('Error in Electron post-build script:', error);
