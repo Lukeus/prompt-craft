@@ -508,6 +508,43 @@ export function setupIpcHandlers(mainWindow: BrowserWindow | null) {
     }
   });
 
+  // Settings operations
+  ipcMain.handle(IPC_CHANNELS.SETTINGS.GET, async () => {
+    try {
+      // For now, return default settings - in a real app you'd load from persistent storage
+      const defaultSettings = {
+        theme: 'dark',
+        autoStart: false,
+        minimizeToTray: true,
+        notifications: true,
+        defaultCategory: 'work',
+      };
+      return { success: true, data: defaultSettings };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  });
+
+  ipcMain.handle(IPC_CHANNELS.SETTINGS.SET, async (_, settings: any) => {
+    try {
+      // For now, just acknowledge the save - in a real app you'd persist to storage
+      console.log('Settings updated:', settings);
+      return { success: true, data: undefined };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  });
+
+  ipcMain.handle(IPC_CHANNELS.SETTINGS.RESET, async () => {
+    try {
+      // For now, just acknowledge the reset - in a real app you'd clear persistent storage
+      console.log('Settings reset to defaults');
+      return { success: true, data: undefined };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  });
+
   // System operations
   ipcMain.handle(IPC_CHANNELS.SYSTEM.GET_APP_VERSION, async () => {
     try {

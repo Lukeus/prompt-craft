@@ -14,6 +14,7 @@ const MCPPage = lazy(() => import('./pages/MCP'));
 const NewPromptPage = lazy(() => import('./pages/NewPrompt'));
 const EditPromptPage = lazy(() => import('./pages/EditPrompt'));
 const PromptViewPage = lazy(() => import('./pages/PromptView'));
+const SettingsPage = lazy(() => import('./pages/Settings'));
 
 // Loading component for Suspense fallback
 const PageLoader = () => (
@@ -143,6 +144,7 @@ function App() {
                 <Route path="/prompts/:id/edit" element={<EditPromptPage />} />
                 <Route path="/search" element={<SearchPage />} />
                 <Route path="/mcp" element={<MCPPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
                 {/* Catch-all route for unknown paths */}
                 <Route path="*" element={<Dashboard />} />
               </Routes>
