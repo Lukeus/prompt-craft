@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { 
   CheckCircleIcon,
@@ -20,7 +20,9 @@ export const ReviewAndTestStep: React.FC<StepProps> = ({
   const [errors, setErrors] = useState<ValidationError[]>([]);
   const [testValues, setTestValues] = useState<Record<string, any>>({});
   const [testResult, setTestResult] = useState<TestResult | null>(null);
+  const [renderedContent, setRenderedContent] = useState('');
   const [showRenderedContent, setShowRenderedContent] = useState(true);
+  const lastValidityRef = useRef<boolean | null>(null);
 
   // Initialize test values with defaults
   useEffect(() => {
@@ -52,46 +54,58 @@ export const ReviewAndTestStep: React.FC<StepProps> = ({
   }, [data.variables]);
 
   const validateForm = useCallback(() => {
-    const newErrors: ValidationError[] = [];
+    const nextErrors: ValidationError[] = [];
 
     // Basic form validation
     if (!data.name.trim()) {
-      newErrors.push({ field: 'name', message: 'Prompt name is required' });
+      nextErrors.push({ field: 'name', message: 'Prompt name is required' });
     }
     if (!data.description.trim()) {
-      newErrors.push({ field: 'description', message: 'Prompt description is required' });
+      nextErrors.push({ field: 'description', message: 'Prompt description is required' });
     }
     if (!data.content.trim()) {
-      newErrors.push({ field: 'content', message: 'Prompt content is required' });
+      nextErrors.push({ field: 'content', message: 'Prompt content is required' });
     }
     if (!data.author.trim()) {
-      newErrors.push({ field: 'author', message: 'Author is required' });
+      nextErrors.push({ field: 'author', message: 'Author is required' });
     }
 
     // Variable validation
     data.variables.forEach((variable, index) => {
       if (!variable.name.trim()) {
-        newErrors.push({ field: `variable-${index}`, message: `Variable ${index + 1} name is required` });
+        nextErrors.push({ field: `variable-${index}`, message: `Variable ${index + 1} name is required` });
       }
     });
 
-    setErrors(newErrors);
-    const isValid = newErrors.length === 0;
-    onValidationChange(isValid);
-    
-    return isValid;
-  }, [data, onValidationChange]);
+    const nextIsValid = nextErrors.length === 0;
+    return { nextErrors, nextIsValid };
+  }, [data]);
 
   useEffect(() => {
-    validateForm();
-  }, [validateForm]);
+    const { nextErrors, nextIsValid } = validateForm();
 
-  // Render prompt with test values
-  const renderedContent = useMemo(() => {
+    setErrors(prevErrors => {
+      const hasChanged =
+        prevErrors.length !== nextErrors.length ||
+        prevErrors.some((error, index) => {
+          const candidate = nextErrors[index];
+          if (!candidate) return true;
+          return error.field !== candidate.field || error.message !== candidate.message;
+        });
+
+      return hasChanged ? nextErrors : prevErrors;
+    });
+
+    if (lastValidityRef.current !== nextIsValid) {
+      lastValidityRef.current = nextIsValid;
+      onValidationChange(nextIsValid);
+    }
+  }, [validateForm, onValidationChange]);
+
+  useEffect(() => {
     let content = data.content;
-    
+
     try {
-      // Replace variables with test values
       data.variables.forEach(variable => {
         const value = testValues[variable.name];
         if (value !== undefined && value !== null) {
@@ -101,12 +115,12 @@ export const ReviewAndTestStep: React.FC<StepProps> = ({
         }
       });
 
+      setRenderedContent(content);
       setTestResult({ success: true, renderedContent: content });
-      return content;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      setRenderedContent(`Error rendering prompt: ${errorMessage}`);
       setTestResult({ success: false, error: errorMessage });
-      return `Error rendering prompt: ${errorMessage}`;
     }
   }, [data.content, data.variables, testValues]);
 

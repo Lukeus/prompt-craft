@@ -61,7 +61,7 @@ export const PromptCreationWizard: React.FC<PromptCreationWizardProps> = ({
   const [stepValidation, setStepValidation] = useState<Record<number, boolean>>({
     0: false,
     1: false,
-    2: true, // Variables are optional
+    2: true, // Variables are optional by default
     3: false,
   });
 
@@ -75,11 +75,37 @@ export const PromptCreationWizard: React.FC<PromptCreationWizardProps> = ({
     setStepValidation(prev => ({ ...prev, [stepIndex]: isValid }));
   }, []);
 
+  const isStepValid = useCallback((index: number) => {
+    return Boolean(stepValidation[index]);
+  }, [stepValidation]);
+
+  const canNavigateToStep = useCallback((targetIndex: number) => {
+    if (targetIndex === currentStepIndex) {
+      return true;
+    }
+
+    if (targetIndex < currentStepIndex) {
+      return true;
+    }
+
+    for (let index = 0; index < targetIndex; index += 1) {
+      if (!isStepValid(index)) {
+        return false;
+      }
+    }
+
+    return true;
+  }, [currentStepIndex, isStepValid]);
+
   const handleNext = useCallback(() => {
+    if (!isStepValid(currentStepIndex)) {
+      return;
+    }
+
     if (currentStepIndex < STEPS.length - 1) {
       setCurrentStepIndex(prev => prev + 1);
     }
-  }, [currentStepIndex]);
+  }, [currentStepIndex, isStepValid]);
 
   const handlePrevious = useCallback(() => {
     if (currentStepIndex > 0) {
@@ -88,17 +114,25 @@ export const PromptCreationWizard: React.FC<PromptCreationWizardProps> = ({
   }, [currentStepIndex]);
 
   const handleStepClick = useCallback((stepIndex: number) => {
-    // Allow navigation to any step that's been completed or is the next step
-    if (stepIndex <= currentStepIndex + 1 && stepIndex >= 0) {
-      setCurrentStepIndex(stepIndex);
+    if (stepIndex === currentStepIndex) {
+      return;
     }
-  }, [currentStepIndex]);
+
+    if (!canNavigateToStep(stepIndex)) {
+      return;
+    }
+
+    setCurrentStepIndex(stepIndex);
+  }, [currentStepIndex, canNavigateToStep]);
 
   const handleComplete = useCallback(() => {
+    if (!isStepValid(currentStepIndex)) {
+      return;
+    }
     onComplete(formData);
-  }, [formData, onComplete]);
+  }, [formData, isStepValid, onComplete]);
 
-  const canProceed = stepValidation[currentStepIndex];
+  const canProceed = isStepValid(currentStepIndex);
   const isLastStep = currentStepIndex === STEPS.length - 1;
   const isFirstStep = currentStepIndex === 0;
 
@@ -189,15 +223,16 @@ export const PromptCreationWizard: React.FC<PromptCreationWizardProps> = ({
                 >
                   <button
                     onClick={() => handleStepClick(index)}
+                    disabled={!canNavigateToStep(index)}
                     className={`
                       w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-medium transition-all duration-200
                       ${index === currentStepIndex
                         ? 'border-primary-500 bg-primary-500 text-white'
                         : index < currentStepIndex
-                        ? 'border-green-500 bg-green-500 text-white cursor-pointer hover:bg-green-400'
-                        : stepValidation[index - 1] !== false && index === currentStepIndex + 1
-                        ? 'border-dark-400 text-gray-400 cursor-pointer hover:border-dark-300'
-                        : 'border-dark-500 text-gray-500'
+                        ? 'border-green-500 bg-green-500 text-white'
+                        : canNavigateToStep(index)
+                        ? 'border-dark-400 text-gray-400 hover:border-dark-300'
+                        : 'border-dark-600 text-gray-500 cursor-not-allowed'
                       }
                     `}
                   >

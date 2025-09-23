@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, jsonb, index } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, jsonb, index, boolean } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 import { PromptCategory } from '@core/domain/entities/Prompt';
 
@@ -20,6 +20,7 @@ export const prompts = pgTable('prompts', {
     required: boolean;
     defaultValue?: any;
   }>>(),
+  isFavorite: boolean('is_favorite').notNull().default(false),
 }, (table) => ({
   // Indexes for better query performance
   categoryIdx: index('prompts_category_idx').on(table.category),

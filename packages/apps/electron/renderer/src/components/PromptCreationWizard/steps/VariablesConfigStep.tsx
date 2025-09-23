@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   VariableIcon,
@@ -45,20 +45,21 @@ export const VariablesConfigStep: React.FC<StepProps> = ({
 }) => {
   const [errors, setErrors] = useState<ValidationError[]>([]);
   const [expandedVariable, setExpandedVariable] = useState<string | null>(null);
+  const lastValidityRef = useRef<boolean | null>(null);
 
   const validateForm = useCallback(() => {
-    const newErrors: ValidationError[] = [];
+    const nextErrors: ValidationError[] = [];
 
     // Validate each variable
     data.variables.forEach((variable, index) => {
       // Name validation
       if (!variable.name.trim()) {
-        newErrors.push({ 
+        nextErrors.push({ 
           field: `variable-${index}-name`, 
           message: `Variable ${index + 1}: Name is required` 
         });
       } else if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(variable.name)) {
-        newErrors.push({ 
+        nextErrors.push({ 
           field: `variable-${index}-name`, 
           message: `Variable ${index + 1}: Name must be a valid identifier (letters, numbers, underscore)` 
         });
@@ -69,7 +70,7 @@ export const VariablesConfigStep: React.FC<StepProps> = ({
         (v, i) => i !== index && v.name === variable.name
       );
       if (duplicateIndex !== -1) {
-        newErrors.push({ 
+        nextErrors.push({ 
           field: `variable-${index}-name`, 
           message: `Variable ${index + 1}: Duplicate variable name "${variable.name}"` 
         });
@@ -79,7 +80,7 @@ export const VariablesConfigStep: React.FC<StepProps> = ({
       if (variable.type === 'number' && variable.validation) {
         if (variable.validation.min !== undefined && variable.validation.max !== undefined) {
           if (variable.validation.min > variable.validation.max) {
-            newErrors.push({ 
+            nextErrors.push({ 
               field: `variable-${index}-validation`, 
               message: `Variable ${index + 1}: Minimum value cannot be greater than maximum value` 
             });
@@ -91,7 +92,7 @@ export const VariablesConfigStep: React.FC<StepProps> = ({
       if (variable.type === 'string' && variable.validation) {
         if (variable.validation.minLength !== undefined && variable.validation.maxLength !== undefined) {
           if (variable.validation.minLength > variable.validation.maxLength) {
-            newErrors.push({ 
+            nextErrors.push({ 
               field: `variable-${index}-validation`, 
               message: `Variable ${index + 1}: Minimum length cannot be greater than maximum length` 
             });
@@ -103,7 +104,7 @@ export const VariablesConfigStep: React.FC<StepProps> = ({
           try {
             new RegExp(variable.validation.pattern);
           } catch (e) {
-            newErrors.push({ 
+            nextErrors.push({ 
               field: `variable-${index}-validation`, 
               message: `Variable ${index + 1}: Invalid regex pattern` 
             });
@@ -112,16 +113,30 @@ export const VariablesConfigStep: React.FC<StepProps> = ({
       }
     });
 
-    setErrors(newErrors);
-    const isValid = newErrors.length === 0;
-    onValidationChange(isValid);
-    
-    return isValid;
-  }, [data.variables, onValidationChange]);
+    const nextIsValid = nextErrors.length === 0;
+    return { nextErrors, nextIsValid };
+  }, [data.variables]);
 
   useEffect(() => {
-    validateForm();
-  }, [validateForm]);
+    const { nextErrors, nextIsValid } = validateForm();
+
+    setErrors(prevErrors => {
+      const hasChanged =
+        prevErrors.length !== nextErrors.length ||
+        prevErrors.some((error, index) => {
+          const candidate = nextErrors[index];
+          if (!candidate) return true;
+          return error.field !== candidate.field || error.message !== candidate.message;
+        });
+
+      return hasChanged ? nextErrors : prevErrors;
+    });
+
+    if (lastValidityRef.current !== nextIsValid) {
+      lastValidityRef.current = nextIsValid;
+      onValidationChange(nextIsValid);
+    }
+  }, [validateForm, onValidationChange]);
 
   const getFieldError = (fieldName: string) => {
     return errors.find(error => error.field === fieldName)?.message;

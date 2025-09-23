@@ -10,6 +10,7 @@ export const IPC_CHANNELS = {
     UPDATE: 'prompts:update',
     DELETE: 'prompts:delete',
     RENDER: 'prompts:render',
+    SET_FAVORITE: 'prompts:set-favorite',
   },
   
   // MCP Server operations
@@ -62,6 +63,12 @@ export const IPC_CHANNELS = {
     SET: 'settings:set',
     RESET: 'settings:reset',
   },
+
+  // Diagnostics and workspace telemetry
+  DIAGNOSTICS: {
+    GET_SNAPSHOT: 'diagnostics:get-snapshot',
+    UPDATED: 'diagnostics:updated',
+  },
 } as const;
 
 // Type definitions for IPC responses
@@ -85,6 +92,7 @@ export interface PromptData {
   variables?: PromptVariable[];
   createdAt?: string;
   updatedAt?: string;
+  isFavorite?: boolean;
 }
 
 export interface PromptVariable {
@@ -101,6 +109,21 @@ export interface PromptStats {
   work: number;
   personal: number;
   shared: number;
+}
+
+export interface DiagnosticsPayload {
+  stats: PromptStats;
+  activity: Array<{
+    id: string;
+    name: string;
+    description?: string;
+    updatedAt: string;
+    category: 'work' | 'personal' | 'shared';
+    isFavorite?: boolean;
+    action: 'created' | 'updated';
+  }>;
+  source?: string;
+  timestamp: string;
 }
 
 // Type definitions for MCP server status

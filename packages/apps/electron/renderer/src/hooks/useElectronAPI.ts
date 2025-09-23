@@ -1,3 +1,5 @@
+import { useCallback, useMemo } from 'react';
+
 // React hooks for Electron API integration
 
 export const useElectronAPI = () => {
@@ -13,7 +15,7 @@ export const useElectronAPI = () => {
 export const usePrompts = () => {
   const electronAPI = useElectronAPI();
 
-  const getAllPrompts = async () => {
+  const getAllPrompts = useCallback(async () => {
     if (!electronAPI) {
       return { success: false, error: 'Electron API not available' };
     }
@@ -26,39 +28,47 @@ export const usePrompts = () => {
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
-  };
+  }, [electronAPI]);
 
-  const getPromptById = async (id: string) => {
+  const getPromptById = useCallback(async (id: string) => {
     if (!electronAPI) return { success: false, error: 'Electron API not available' };
     return electronAPI.prompts.getById(id);
-  };
+  }, [electronAPI]);
 
-  const createPrompt = async (promptData: any) => {
+  const createPrompt = useCallback(async (promptData: any) => {
     if (!electronAPI) return { success: false, error: 'Electron API not available' };
     return electronAPI.prompts.create(promptData);
-  };
+  }, [electronAPI]);
 
-  const updatePrompt = async (id: string, promptData: any) => {
+  const updatePrompt = useCallback(async (id: string, promptData: any) => {
     if (!electronAPI) return { success: false, error: 'Electron API not available' };
     return electronAPI.prompts.update(id, promptData);
-  };
+  }, [electronAPI]);
 
-  const deletePrompt = async (id: string) => {
+  const deletePrompt = useCallback(async (id: string) => {
     if (!electronAPI) return { success: false, error: 'Electron API not available' };
     return electronAPI.prompts.delete(id);
-  };
+  }, [electronAPI]);
 
-  const searchPrompts = async (query: string, category?: string) => {
+  const searchPrompts = useCallback(async (query: string, category?: string) => {
     if (!electronAPI) return { success: false, error: 'Electron API not available' };
     return electronAPI.prompts.search(query, category);
-  };
+  }, [electronAPI]);
 
-  const getPromptsByCategory = async (category: string) => {
+  const getPromptsByCategory = useCallback(async (category: string) => {
     if (!electronAPI) return { success: false, error: 'Electron API not available' };
     return electronAPI.prompts.getByCategory(category);
-  };
+  }, [electronAPI]);
 
-  return {
+  const setFavorite = useCallback(async (id: string, isFavorite: boolean) => {
+    if (!electronAPI) return { success: false, error: 'Electron API not available' };
+    if (!electronAPI.prompts.setFavorite) {
+      return { success: false, error: 'Favorites API not available' };
+    }
+    return electronAPI.prompts.setFavorite(id, isFavorite);
+  }, [electronAPI]);
+
+  return useMemo(() => ({
     getAllPrompts,
     getPromptById,
     createPrompt,
@@ -66,13 +76,23 @@ export const usePrompts = () => {
     deletePrompt,
     searchPrompts,
     getPromptsByCategory,
-  };
+    setFavorite,
+  }), [
+    getAllPrompts,
+    getPromptById,
+    createPrompt,
+    updatePrompt,
+    deletePrompt,
+    searchPrompts,
+    getPromptsByCategory,
+    setFavorite,
+  ]);
 };
 
 export const useDatabase = () => {
   const electronAPI = useElectronAPI();
 
-  const getStats = async () => {
+  const getStats = useCallback(async () => {
     if (!electronAPI) {
       return { success: false, error: 'Electron API not available' };
     }
@@ -85,52 +105,71 @@ export const useDatabase = () => {
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
-  };
+  }, [electronAPI]);
 
-  const exportData = async (filePath: string) => {
+  const exportData = useCallback(async (filePath: string) => {
     if (!electronAPI) return { success: false, error: 'Electron API not available' };
     return electronAPI.database.export(filePath);
-  };
+  }, [electronAPI]);
 
-  const importData = async (filePath: string) => {
+  const importData = useCallback(async (filePath: string) => {
     if (!electronAPI) return { success: false, error: 'Electron API not available' };
     return electronAPI.database.import(filePath);
-  };
+  }, [electronAPI]);
 
-  return {
+  return useMemo(() => ({
     getStats,
     exportData,
     importData,
-  };
+  }), [getStats, exportData, importData]);
 };
 
 export const useMCP = () => {
   const electronAPI = useElectronAPI();
 
-  const startServer = async () => {
+  const startServer = useCallback(async () => {
     if (!electronAPI) return { success: false, error: 'Electron API not available' };
     return electronAPI.mcp.startServer();
-  };
+  }, [electronAPI]);
 
-  const stopServer = async () => {
+  const stopServer = useCallback(async () => {
     if (!electronAPI) return { success: false, error: 'Electron API not available' };
     return electronAPI.mcp.stopServer();
-  };
+  }, [electronAPI]);
 
-  const getStatus = async () => {
+  const getStatus = useCallback(async () => {
     if (!electronAPI) return { success: false, error: 'Electron API not available' };
     return electronAPI.mcp.getStatus();
-  };
+  }, [electronAPI]);
 
-  const onStatusChanged = (callback: (status: any) => void) => {
-    if (!electronAPI) return;
-    electronAPI.mcp.onStatusChanged(callback);
-  };
+  const onStatusChanged = useCallback((callback: (status: any) => void) => {
+    if (!electronAPI) return () => undefined;
+    return electronAPI.mcp.onStatusChanged(callback);
+  }, [electronAPI]);
 
-  return {
+  return useMemo(() => ({
     startServer,
     stopServer,
     getStatus,
     onStatusChanged,
-  };
+  }), [startServer, stopServer, getStatus, onStatusChanged]);
+};
+
+export const useDiagnostics = () => {
+  const electronAPI = useElectronAPI();
+
+  const getSnapshot = useCallback(async () => {
+    if (!electronAPI) return { success: false, error: 'Electron API not available' };
+    return electronAPI.diagnostics.getSnapshot();
+  }, [electronAPI]);
+
+  const onUpdated = useCallback((callback: (payload: any) => void) => {
+    if (!electronAPI) return () => undefined;
+    return electronAPI.diagnostics.onUpdated(callback);
+  }, [electronAPI]);
+
+  return useMemo(() => ({
+    getSnapshot,
+    onUpdated,
+  }), [getSnapshot, onUpdated]);
 };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { 
   DocumentTextIcon,
@@ -63,6 +63,7 @@ export const ContentCreationStep: React.FC<StepProps> = ({
   const [errors, setErrors] = useState<ValidationError[]>([]);
   const [showPreview, setShowPreview] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+  const lastValidityRef = useRef<boolean | null>(null);
 
   // Extract variables from content
   const detectedVariables = useMemo(() => {
@@ -106,37 +107,51 @@ export const ContentCreationStep: React.FC<StepProps> = ({
   }, [detectedVariables, data.variables, onChange]);
 
   const validateForm = useCallback(() => {
-    const newErrors: ValidationError[] = [];
+    const nextErrors: ValidationError[] = [];
 
     // Content validation
     if (!data.content.trim()) {
-      newErrors.push({ field: 'content', message: 'Prompt content is required' });
+      nextErrors.push({ field: 'content', message: 'Prompt content is required' });
     } else if (data.content.length < 20) {
-      newErrors.push({ field: 'content', message: 'Content must be at least 20 characters' });
+      nextErrors.push({ field: 'content', message: 'Content must be at least 20 characters' });
     } else if (data.content.length > 5000) {
-      newErrors.push({ field: 'content', message: 'Content must be less than 5000 characters' });
+      nextErrors.push({ field: 'content', message: 'Content must be less than 5000 characters' });
     }
 
     // Check for unmatched braces
     const openBraces = (data.content.match(/\{\{/g) || []).length;
     const closeBraces = (data.content.match(/\}\}/g) || []).length;
     if (openBraces !== closeBraces) {
-      newErrors.push({ 
+      nextErrors.push({ 
         field: 'content', 
         message: 'Unmatched variable braces. Make sure all {{variable}} have matching opening and closing braces.' 
       });
     }
 
-    setErrors(newErrors);
-    const isValid = newErrors.length === 0;
-    onValidationChange(isValid);
-    
-    return isValid;
-  }, [data.content, onValidationChange]);
+    const nextIsValid = nextErrors.length === 0;
+    return { nextErrors, nextIsValid };
+  }, [data.content]);
 
   useEffect(() => {
-    validateForm();
-  }, [validateForm]);
+    const { nextErrors, nextIsValid } = validateForm();
+
+    setErrors(prevErrors => {
+      const hasChanged =
+        prevErrors.length !== nextErrors.length ||
+        prevErrors.some((error, index) => {
+          const candidate = nextErrors[index];
+          if (!candidate) return true;
+          return error.field !== candidate.field || error.message !== candidate.message;
+        });
+
+      return hasChanged ? nextErrors : prevErrors;
+    });
+
+    if (lastValidityRef.current !== nextIsValid) {
+      lastValidityRef.current = nextIsValid;
+      onValidationChange(nextIsValid);
+    }
+  }, [validateForm, onValidationChange]);
 
   const getFieldError = (fieldName: string) => {
     return errors.find(error => error.field === fieldName)?.message;

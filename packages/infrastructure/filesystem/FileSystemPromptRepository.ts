@@ -27,6 +27,7 @@ export class FileSystemPromptRepository implements PromptRepository {
 
   private async loadAllPrompts(): Promise<void> {
     this.prompts.clear();
+    this.usageStats = this.usageStatsProvider?.() || this.usageStats;
     
     for (const category of Object.values(PromptCategory)) {
       await this.loadPromptsFromCategory(category);
@@ -45,7 +46,12 @@ export class FileSystemPromptRepository implements PromptRepository {
           const fileContent = await fs.readFile(filePath, 'utf-8');
           const promptData = JSON.parse(fileContent);
           const prompt = Prompt.fromJSON(promptData);
-          this.prompts.set(prompt.id, prompt);
+          const favorites = this.usageStats?.favorites ?? [];
+          const shouldBeFavorite = favorites.includes(prompt.id) || prompt.isFavorite;
+          const promptWithFavorite = shouldBeFavorite !== prompt.isFavorite
+            ? prompt.withFavorite(shouldBeFavorite)
+            : prompt;
+          this.prompts.set(prompt.id, promptWithFavorite);
         } catch (error) {
           console.warn(`Failed to load prompt from ${filePath}:`, error);
         }

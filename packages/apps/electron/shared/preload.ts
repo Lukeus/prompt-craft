@@ -12,6 +12,7 @@ const IPC_CHANNELS = {
     UPDATE: 'prompts:update',
     DELETE: 'prompts:delete',
     RENDER: 'prompts:render',
+    SET_FAVORITE: 'prompts:set-favorite',
   },
   // MCP Server operations
   MCP: {
@@ -57,6 +58,10 @@ const IPC_CHANNELS = {
     SET: 'settings:set',
     RESET: 'settings:reset',
   },
+  DIAGNOSTICS: {
+    GET_SNAPSHOT: 'diagnostics:get-snapshot',
+    UPDATED: 'diagnostics:updated',
+  },
 };
 
 // Type definitions (inline to avoid import issues)
@@ -88,13 +93,9 @@ interface PromptData {
 
 interface PromptStats {
   total: number;
-  categories: Record<string, number>;
-  recentActivity: Array<{
-    id: string;
-    name: string;
-    action: 'created' | 'updated' | 'deleted';
-    timestamp: string;
-  }>;
+  work: number;
+  personal: number;
+  shared: number;
 }
 
 interface MCPServerStatus {
@@ -112,6 +113,23 @@ interface AppSettings {
   defaultCategory: string;
 }
 
+interface DiagnosticsPayload {
+  stats: PromptStats;
+  activity: DiagnosticsActivityItem[];
+  source?: string;
+  timestamp: string;
+}
+
+interface DiagnosticsActivityItem {
+  id: string;
+  name: string;
+  description?: string;
+  updatedAt: string;
+  category: string;
+  isFavorite?: boolean;
+  action: 'created' | 'updated';
+}
+
 // Define the API that will be available in the renderer process
 export interface ElectronAPI {
   // Prompt operations
@@ -124,6 +142,7 @@ export interface ElectronAPI {
     update: (id: string, promptData: Partial<PromptData>) => Promise<IPCResponse<PromptData>>;
     delete: (id: string) => Promise<IPCResponse<void>>;
     render: (id: string, variables: Record<string, any>) => Promise<IPCResponse<string>>;
+    setFavorite: (id: string, isFavorite: boolean) => Promise<IPCResponse<PromptData>>;
   };
 
   // MCP Server operations
@@ -131,7 +150,7 @@ export interface ElectronAPI {
     startServer: () => Promise<IPCResponse<string>>;
     stopServer: () => Promise<IPCResponse<string>>;
     getStatus: () => Promise<IPCResponse<MCPServerStatus>>;
-    onStatusChanged: (callback: (status: MCPServerStatus) => void) => void;
+    onStatusChanged: (callback: (status: MCPServerStatus) => void) => () => void;
   };
 
   // Database operations
@@ -161,7 +180,7 @@ export interface ElectronAPI {
   // Navigation
   navigation: {
     goTo: (route: string) => void;
-    onNavigateTo: (callback: (route: string) => void) => void;
+    onNavigateTo: (callback: (route: string) => void) => () => void;
   };
 
   // Notifications
@@ -176,6 +195,11 @@ export interface ElectronAPI {
     set: (settings: Partial<AppSettings>) => Promise<IPCResponse<void>>;
     reset: () => Promise<IPCResponse<void>>;
   };
+
+  diagnostics: {
+    getSnapshot: () => Promise<IPCResponse<DiagnosticsPayload>>;
+    onUpdated: (callback: (payload: DiagnosticsPayload) => void) => () => void;
+  };
 }
 
 // Create the API object
@@ -189,6 +213,7 @@ const electronAPI: ElectronAPI = {
     update: (id: string, promptData) => ipcRenderer.invoke(IPC_CHANNELS.PROMPTS.UPDATE, id, promptData),
     delete: (id: string) => ipcRenderer.invoke(IPC_CHANNELS.PROMPTS.DELETE, id),
     render: (id: string, variables) => ipcRenderer.invoke(IPC_CHANNELS.PROMPTS.RENDER, id, variables),
+    setFavorite: (id: string, isFavorite: boolean) => ipcRenderer.invoke(IPC_CHANNELS.PROMPTS.SET_FAVORITE, id, isFavorite),
   },
 
   mcp: {
@@ -196,7 +221,9 @@ const electronAPI: ElectronAPI = {
     stopServer: () => ipcRenderer.invoke(IPC_CHANNELS.MCP.STOP_SERVER),
     getStatus: () => ipcRenderer.invoke(IPC_CHANNELS.MCP.GET_STATUS),
     onStatusChanged: (callback) => {
-      ipcRenderer.on(IPC_CHANNELS.MCP.SERVER_STATUS_CHANGED, (_, status) => callback(status));
+      const listener = (_: Electron.IpcRendererEvent, status: MCPServerStatus) => callback(status);
+      ipcRenderer.on(IPC_CHANNELS.MCP.SERVER_STATUS_CHANGED, listener);
+      return () => ipcRenderer.removeListener(IPC_CHANNELS.MCP.SERVER_STATUS_CHANGED, listener);
     },
   },
 
@@ -224,7 +251,9 @@ const electronAPI: ElectronAPI = {
   navigation: {
     goTo: (route: string) => ipcRenderer.send(IPC_CHANNELS.NAVIGATION.GO_TO, route),
     onNavigateTo: (callback) => {
-      ipcRenderer.on(IPC_CHANNELS.NAVIGATION.NAVIGATE_TO, (_, route) => callback(route));
+      const listener = (_: Electron.IpcRendererEvent, route: string) => callback(route);
+      ipcRenderer.on(IPC_CHANNELS.NAVIGATION.NAVIGATE_TO, listener);
+      return () => ipcRenderer.removeListener(IPC_CHANNELS.NAVIGATION.NAVIGATE_TO, listener);
     },
   },
 
@@ -237,6 +266,15 @@ const electronAPI: ElectronAPI = {
     get: () => ipcRenderer.invoke(IPC_CHANNELS.SETTINGS.GET),
     set: (settings) => ipcRenderer.invoke(IPC_CHANNELS.SETTINGS.SET, settings),
     reset: () => ipcRenderer.invoke(IPC_CHANNELS.SETTINGS.RESET),
+  },
+
+  diagnostics: {
+    getSnapshot: () => ipcRenderer.invoke(IPC_CHANNELS.DIAGNOSTICS.GET_SNAPSHOT),
+    onUpdated: (callback) => {
+      const listener = (_: Electron.IpcRendererEvent, payload: DiagnosticsPayload) => callback(payload);
+      ipcRenderer.on(IPC_CHANNELS.DIAGNOSTICS.UPDATED, listener);
+      return () => ipcRenderer.removeListener(IPC_CHANNELS.DIAGNOSTICS.UPDATED, listener);
+    },
   },
 };
 

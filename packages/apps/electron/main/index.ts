@@ -130,23 +130,13 @@ class PromptCraftElectronApp {
       this.mainWindow = null;
     });
 
-    // Handle window close with proper quit detection
-    this.mainWindow.on('close', (event: Electron.Event) => {
-      // Check if we're quitting the app or just closing the window
+    // Ensure the application exits when the primary window is closed
+    this.mainWindow.on('close', () => {
       if (!(this as any).isQuitting) {
-        // On macOS, hide to tray if available, otherwise just close
-        if (process.platform === 'darwin' && this.tray) {
-          event.preventDefault();
-          this.mainWindow?.hide();
-        }
-        // On Windows/Linux, minimize to tray or close entirely
-        else if (this.tray) {
-          event.preventDefault();
-          this.mainWindow?.hide();
-        }
-        // If no tray, allow window to close normally
+        (this as any).isQuitting = true;
+        this.tray?.destroy();
+        app.quit();
       }
-      // If isQuitting is true, allow normal close process
     });
   }
 

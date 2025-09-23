@@ -10,6 +10,7 @@ export interface CreatePromptDTO {
   author?: string;
   version?: string;
   variables?: PromptVariable[];
+  isFavorite?: boolean;
 }
 
 export interface UpdatePromptDTO {
@@ -20,6 +21,7 @@ export interface UpdatePromptDTO {
   tags?: string[];
   author?: string;
   variables?: PromptVariable[];
+  isFavorite?: boolean;
 }
 
 export interface RenderPromptDTO {
@@ -46,7 +48,8 @@ export class PromptUseCases {
       now,
       dto.version || '1.0.0',
       dto.author,
-      dto.variables
+      dto.variables,
+      dto.isFavorite ?? false
     );
 
     await this.promptRepository.save(prompt);
@@ -59,7 +62,7 @@ export class PromptUseCases {
       throw new Error(`Prompt with ID ${dto.id} not found`);
     }
 
-    const updatedPrompt = existingPrompt.withUpdatedContent(
+    let updatedPrompt = existingPrompt.withUpdatedContent(
       dto.name,
       dto.description,
       dto.content,
@@ -67,6 +70,10 @@ export class PromptUseCases {
       dto.author,
       dto.variables
     );
+
+    if (dto.isFavorite !== undefined) {
+      updatedPrompt = updatedPrompt.withFavorite(dto.isFavorite);
+    }
 
     await this.promptRepository.save(updatedPrompt);
     return updatedPrompt;
@@ -159,5 +166,16 @@ export class PromptUseCases {
     }
 
     return errors;
+  }
+
+  async setFavorite(dto: { id: string; isFavorite: boolean }): Promise<Prompt> {
+    const existingPrompt = await this.promptRepository.findById(dto.id);
+    if (!existingPrompt) {
+      throw new Error(`Prompt with ID ${dto.id} not found`);
+    }
+
+    const updatedPrompt = existingPrompt.withFavorite(dto.isFavorite);
+    await this.promptRepository.save(updatedPrompt);
+    return updatedPrompt;
   }
 }
