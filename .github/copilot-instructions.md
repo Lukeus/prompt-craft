@@ -55,10 +55,11 @@ Prompt Craft is a production-ready, enterprise-grade TypeScript prompt managemen
 - `npm run db:seed` - Import existing JSON prompts to database
 - `npm run db:studio` - Open Drizzle Studio for database inspection
 
-### Electron Desktop App
+### Electron Desktop App (Production Ready)
 - `npm run electron:build` - Build all Electron components
 - `npm run electron:dev` - Start in development mode with hot reload
-- `npm run electron:start` - Start the built application
+- `npm run electron:start:prod` - Start production build (recommended)
+- `npm run electron:rebuild` - Fix native module compatibility (if needed)
 
 ### Web Interface
 - `npm run web:dev` - Start Astro development server
@@ -125,6 +126,10 @@ The system provides multiple MCP server implementations:
 
 ## Critical Notes
 
+- **Electron App is Production Ready** - VS Code-like interface with complete functionality
+- **Settings Page Implemented** - Full app configuration with themes and behavior controls
+- **MCP Server Integration Working** - Built-in server management with live diagnostics
+- **Native Module Compatibility** - SQLite requires `npm run electron:rebuild` if issues occur
 - **Never deploy without explicit confirmation** - deployment requires user approval
 - **Always run linting before deploying** - no known lint errors allowed in production
 - **Repository architecture must not be changed** - follow existing patterns
