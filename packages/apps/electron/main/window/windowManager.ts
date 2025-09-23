@@ -9,7 +9,7 @@ export interface WindowConfig {
   webPreferences?: Electron.WebPreferences;
 }
 
-export const createWindow = (config: WindowConfig): BrowserWindow => {
+export const createWindow = (config: WindowConfig = {}): BrowserWindow => {
   // Get primary display dimensions
   const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().workAreaSize;
   

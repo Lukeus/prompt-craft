@@ -32,11 +32,15 @@ class PromptCraftElectronApp {
       });
     });
 
-    // Handle all windows closed
+    // Handle all windows closed - Fixed to always quit
     app.on('window-all-closed', () => {
-      if (process.platform !== 'darwin') {
-        app.quit();
-      }
+      // Always quit the app when all windows are closed
+      app.quit();
+    });
+
+    // Handle before quit to ensure proper cleanup
+    app.on('before-quit', () => {
+      (this as any).isQuitting = true;
     });
 
     // Security: Enhanced navigation and content security
@@ -94,9 +98,27 @@ class PromptCraftElectronApp {
     // Load the React app
     const startUrl = isDev() 
       ? 'http://localhost:3000' 
-      : `file://${path.join(__dirname, '../renderer/index.html')}`;
+      : `file://${path.join(__dirname, '../../../../renderer/index.html')}`;
     
-    this.mainWindow.loadURL(startUrl);
+    console.log('Loading renderer from:', startUrl);
+    
+    // Load URL with error handling
+    this.mainWindow.loadURL(startUrl).catch((error) => {
+      console.error('Failed to load renderer:', error);
+    });
+    
+    // Add error event listeners
+    this.mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+      console.error('Renderer failed to load:', {
+        errorCode,
+        errorDescription,
+        validatedURL
+      });
+    });
+    
+    this.mainWindow.webContents.on('did-finish-load', () => {
+      console.log('Renderer loaded successfully');
+    });
 
     // Open DevTools in development
     if (isDev()) {
@@ -108,12 +130,23 @@ class PromptCraftElectronApp {
       this.mainWindow = null;
     });
 
-    // Handle close to tray (minimize functionality can be added later)
+    // Handle window close with proper quit detection
     this.mainWindow.on('close', (event: Electron.Event) => {
-      if (!(app as any).isQuiting && this.tray) {
-        event.preventDefault();
-        this.mainWindow?.hide();
+      // Check if we're quitting the app or just closing the window
+      if (!(this as any).isQuitting) {
+        // On macOS, hide to tray if available, otherwise just close
+        if (process.platform === 'darwin' && this.tray) {
+          event.preventDefault();
+          this.mainWindow?.hide();
+        }
+        // On Windows/Linux, minimize to tray or close entirely
+        else if (this.tray) {
+          event.preventDefault();
+          this.mainWindow?.hide();
+        }
+        // If no tray, allow window to close normally
       }
+      // If isQuitting is true, allow normal close process
     });
   }
 
@@ -163,7 +196,7 @@ class PromptCraftElectronApp {
         {
           label: 'Quit',
           click: () => {
-            (app as any).isQuiting = true;
+            (this as any).isQuitting = true;
             app.quit();
           }
         }
