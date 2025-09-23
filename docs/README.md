@@ -148,7 +148,7 @@ AZURE_CLIENT_ID=...
 
 ### **Common Issues**
 1. **Database connection errors** - Check `DATABASE_URL` and network access
-2. **Build failures** - Ensure Node.js 16+ and clean build (`npm run clean`)
+2. **Build failures** - Ensure Node.js 20+ and clean build (`npm run clean`)
 3. **Memory issues** - Increase container memory limits
 4. **Permission errors** - Check file permissions and user contexts
 

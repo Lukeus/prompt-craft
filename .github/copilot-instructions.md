@@ -7,7 +7,7 @@ Prompt Craft is a production-ready, enterprise-grade TypeScript prompt managemen
 ## Architecture & Technology Stack
 
 - **Language**: TypeScript (strict mode) compiling to JavaScript
-- **Runtime**: Node.js (>=16.0.0)
+- **Runtime**: Node.js (>=20.0.0)
 - **Database**: PostgreSQL with Drizzle ORM (optional, falls back to file system)
 - **Frontend**: 
   - Web: Astro with Tailwind CSS

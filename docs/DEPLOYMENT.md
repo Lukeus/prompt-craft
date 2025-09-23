@@ -98,7 +98,7 @@ Your app is already optimized with:
 
 ### Common Issues:
 
-1. **Build fails**: Check Node.js version (requires >=16.0.0)
+1. **Build fails**: Check Node.js version (requires >=20.0.0)
 2. **API routes not working**: Ensure Vercel functions are properly configured
 3. **Static assets missing**: Check build output directory
 
