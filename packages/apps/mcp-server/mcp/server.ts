@@ -47,24 +47,130 @@ export class PromptMcpServer {
       const manager = await this.initializePromptManager();
       const prompts = await manager.getAllPrompts();
       
-return {
-        tools: prompts.map((prompt: any) => ({
-          name: `prompt_${prompt.id}`,
-          description: `${prompt.name}: ${prompt.description}` +
-            (prompt.category ? ` [category=${prompt.category}]` : '') +
-            (prompt.tags && prompt.tags.length ? ` [tags=${prompt.tags.join(', ')}]` : ''),
+      // Individual prompt tools
+      const promptTools = prompts.map((prompt: any) => ({
+        name: `prompt_${prompt.id}`,
+        description: `${prompt.name}: ${prompt.description}` +
+          (prompt.category ? ` [category=${prompt.category}]` : '') +
+          (prompt.tags && prompt.tags.length ? ` [tags=${prompt.tags.join(', ')}]` : ''),
+        inputSchema: {
+          type: 'object',
+          properties: this.generateInputSchemaProperties(prompt),
+          required: this.getRequiredVariables(prompt),
+        },
+      }));
+      
+      // Utility tools
+      const utilityTools = [
+        {
+          name: 'search_prompts',
+          description: 'Search prompts by query, category, or tags',
           inputSchema: {
             type: 'object',
-            properties: this.generateInputSchemaProperties(prompt),
-            required: this.getRequiredVariables(prompt),
-          },
-        })),
+            properties: {
+              query: {
+                type: 'string',
+                description: 'Search query to match in prompt names, descriptions, or content'
+              },
+              category: {
+                type: 'string',
+                description: 'Filter by category (work, personal, shared)',
+                enum: ['work', 'personal', 'shared']
+              },
+              tags: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Filter by tags'
+              },
+              limit: {
+                type: 'number',
+                description: 'Maximum number of results to return',
+                default: 10
+              }
+            },
+            required: []
+          }
+        },
+        {
+          name: 'list_categories',
+          description: 'List all available prompt categories with counts',
+          inputSchema: {
+            type: 'object',
+            properties: {},
+            required: []
+          }
+        }
+      ];
+      
+      return {
+        tools: [...promptTools, ...utilityTools]
       };
     });
 
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const { name, arguments: args } = request.params;
+      const manager = await this.initializePromptManager();
 
+      // Handle utility tools
+      if (name === 'search_prompts') {
+        try {
+          const { query, category, tags, limit } = args as any;
+          const results = await manager.searchPrompts({
+            query,
+            category: category as PromptCategory,
+            tags,
+            limit,
+          });
+
+          return {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify(results.map((prompt: any) => ({
+                  id: prompt.id,
+                  name: prompt.name,
+                  description: prompt.description,
+                  category: prompt.category,
+                  tags: prompt.tags,
+                })), null, 2),
+              },
+            ],
+          };
+        } catch (error) {
+          throw new McpError(
+            ErrorCode.InternalError,
+            `Failed to search prompts: ${error instanceof Error ? error.message : String(error)}`
+          );
+        }
+      }
+
+      if (name === 'list_categories') {
+        try {
+          const categories = Object.values(PromptCategory);
+          const categoryCounts = await Promise.all(
+            categories.map(async category => ({
+              category,
+              count: (await manager.getPromptsByCategory(category)).length,
+            }))
+          );
+
+          return {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify(categoryCounts, null, 2),
+              },
+            ],
+          };
+        } catch (error) {
+          throw new McpError(
+            ErrorCode.InternalError,
+            `Failed to list categories: ${error instanceof Error ? error.message : String(error)}`
+          );
+        }
+      }
+
+      // Handle individual prompt tools
       if (!name.startsWith('prompt_')) {
         throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
       }
@@ -72,8 +178,7 @@ return {
       const promptId = name.replace('prompt_', '');
       
       try {
-        const manager = await this.initializePromptManager();
-const renderResult = await manager.renderPrompt({ id: promptId, variableValues: args as Record<string, any> });
+        const renderResult = await manager.renderPrompt({ id: promptId, variableValues: args as Record<string, any> });
         const renderedPrompt = renderResult.rendered;
         
         // Compute which defaults were used based on provided args vs prompt variable defaults
@@ -108,67 +213,9 @@ const renderResult = await manager.renderPrompt({ id: promptId, variableValues: 
       }
     });
 
-    // Additional handlers for prompt management
-    this.server.setRequestHandler('prompt_search' as any, async (request: any) => {
-      const { query, category, tags, limit } = request.params;
-      
-      try {
-        const manager = await this.initializePromptManager();
-        const results = await manager.searchPrompts({
-          query,
-          category: category as PromptCategory,
-          tags,
-          limit,
-        });
-
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(results.map((prompt: any) => ({
-                id: prompt.id,
-                name: prompt.name,
-                description: prompt.description,
-                category: prompt.category,
-                tags: prompt.tags,
-              })), null, 2),
-            },
-          ],
-        };
-      } catch (error) {
-        throw new McpError(
-          ErrorCode.InternalError,
-          `Failed to search prompts: ${error instanceof Error ? error.message : String(error)}`
-        );
-      }
-    });
-
-    this.server.setRequestHandler('prompt_list_categories' as any, async () => {
-      try {
-        const manager = await this.initializePromptManager();
-        const categories = Object.values(PromptCategory);
-        const categoryCounts = await Promise.all(
-          categories.map(async category => ({
-            category,
-            count: (await manager.getPromptsByCategory(category)).length,
-          }))
-        );
-
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(categoryCounts, null, 2),
-            },
-          ],
-        };
-      } catch (error) {
-        throw new McpError(
-          ErrorCode.InternalError,
-          `Failed to list categories: ${error instanceof Error ? error.message : String(error)}`
-        );
-      }
-    });
+    // Note: Custom handlers removed to fix MCP server startup issue
+    // The standard ListTools and CallTool handlers above provide core functionality
+    // Additional features can be implemented as individual tools instead
   }
 
   private generateInputSchemaProperties(prompt: any): Record<string, any> {
