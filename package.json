@@ -16,6 +16,7 @@
     "start": "node packages/apps/cli/bootstrap.js",
     "dev:cli": "ts-node packages/apps/cli/index.ts",
     "test": "jest",
+    "test:ci": "jest --config jest.ci.config.js",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:unit": "jest --testPathPatterns='(domain|application)'",
@@ -71,7 +72,7 @@
   "author": "Luke Adams",
   "license": "MIT",
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   },
   "dependencies": {
     "@astrojs/node": "^9.4.3",

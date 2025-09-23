@@ -24,7 +24,8 @@ export class Prompt {
     public readonly updatedAt: Date,
     public readonly version: string,
     public readonly author?: string,
-    public readonly variables?: PromptVariable[]
+    public readonly variables?: PromptVariable[],
+    public readonly isFavorite: boolean = false
   ) {}
 
   public withUpdatedContent(
@@ -46,7 +47,25 @@ export class Prompt {
       new Date(), // Update the updatedAt timestamp
       this.version,
       author ?? this.author,
-      variables ?? this.variables
+      variables ?? this.variables,
+      this.isFavorite
+    );
+  }
+
+  public withFavorite(isFavorite: boolean): Prompt {
+    return new Prompt(
+      this.id,
+      this.name,
+      this.description,
+      this.content,
+      this.category,
+      this.tags,
+      this.createdAt,
+      new Date(),
+      this.version,
+      this.author,
+      this.variables,
+      isFavorite
     );
   }
 
@@ -148,7 +167,8 @@ export class Prompt {
       updatedAt: this.updatedAt.toISOString(),
       version: this.version,
       author: this.author,
-      variables: this.variables
+      variables: this.variables,
+      isFavorite: this.isFavorite
     };
   }
 
@@ -164,7 +184,8 @@ export class Prompt {
       new Date(data.updatedAt),
       data.version || '1.0.0',
       data.author,
-      data.variables
+      data.variables,
+      Boolean(data.isFavorite)
     );
   }
 }

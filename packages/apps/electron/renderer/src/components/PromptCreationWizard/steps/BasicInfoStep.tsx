@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { 
   InformationCircleIcon, 
@@ -24,42 +24,55 @@ export const BasicInfoStep: React.FC<StepProps> = ({
   const [errors, setErrors] = useState<ValidationError[]>([]);
   const [tagInput, setTagInput] = useState('');
 
+  const lastValidityRef = useRef<boolean | null>(null);
+
   const validateForm = useCallback(() => {
-    const newErrors: ValidationError[] = [];
+    const nextErrors: ValidationError[] = [];
 
-    // Name validation
     if (!data.name.trim()) {
-      newErrors.push({ field: 'name', message: 'Prompt name is required' });
+      nextErrors.push({ field: 'name', message: 'Prompt name is required' });
     } else if (data.name.length < 3) {
-      newErrors.push({ field: 'name', message: 'Name must be at least 3 characters' });
+      nextErrors.push({ field: 'name', message: 'Name must be at least 3 characters' });
     } else if (data.name.length > 100) {
-      newErrors.push({ field: 'name', message: 'Name must be less than 100 characters' });
+      nextErrors.push({ field: 'name', message: 'Name must be less than 100 characters' });
     }
 
-    // Description validation
     if (!data.description.trim()) {
-      newErrors.push({ field: 'description', message: 'Description is required' });
+      nextErrors.push({ field: 'description', message: 'Description is required' });
     } else if (data.description.length < 10) {
-      newErrors.push({ field: 'description', message: 'Description must be at least 10 characters' });
+      nextErrors.push({ field: 'description', message: 'Description must be at least 10 characters' });
     } else if (data.description.length > 500) {
-      newErrors.push({ field: 'description', message: 'Description must be less than 500 characters' });
+      nextErrors.push({ field: 'description', message: 'Description must be less than 500 characters' });
     }
 
-    // Author validation
     if (!data.author.trim()) {
-      newErrors.push({ field: 'author', message: 'Author is required' });
+      nextErrors.push({ field: 'author', message: 'Author is required' });
     }
 
-    setErrors(newErrors);
-    const isValid = newErrors.length === 0;
-    onValidationChange(isValid);
-    
-    return isValid;
-  }, [data, onValidationChange]);
+    const nextIsValid = nextErrors.length === 0;
+    return { nextErrors, nextIsValid };
+  }, [data]);
 
   useEffect(() => {
-    validateForm();
-  }, [validateForm]);
+    const { nextErrors, nextIsValid } = validateForm();
+
+    setErrors(prevErrors => {
+      const hasChanged =
+        prevErrors.length !== nextErrors.length ||
+        prevErrors.some((error, index) => {
+          const nextError = nextErrors[index];
+          if (!nextError) return true;
+          return error.field !== nextError.field || error.message !== nextError.message;
+        });
+
+      return hasChanged ? nextErrors : prevErrors;
+    });
+
+    if (lastValidityRef.current !== nextIsValid) {
+      lastValidityRef.current = nextIsValid;
+      onValidationChange(nextIsValid);
+    }
+  }, [validateForm, onValidationChange]);
 
   const getFieldError = (fieldName: string) => {
     return errors.find(error => error.field === fieldName)?.message;

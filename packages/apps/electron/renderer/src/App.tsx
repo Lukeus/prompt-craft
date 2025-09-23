@@ -47,11 +47,17 @@ function App() {
 
   useEffect(() => {
     // Handle navigation events from the main process
-    if (electronAPI) {
-      electronAPI.navigation.onNavigateTo((route: string) => {
-        navigate(route);
-      });
+    if (!electronAPI) {
+      return;
     }
+
+    const unsubscribe = electronAPI.navigation.onNavigateTo((route: string) => {
+      navigate(route);
+    });
+
+    return () => {
+      unsubscribe?.();
+    };
   }, [electronAPI, navigate]);
 
   useEffect(() => {

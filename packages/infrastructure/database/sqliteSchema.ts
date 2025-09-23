@@ -14,6 +14,7 @@ export const prompts = sqliteTable('prompts', {
   version: text('version').notNull().default('1.0.0'),
   author: text('author'),
   variables: text('variables'), // JSON string for variables array
+  isFavorite: integer('is_favorite').notNull().default(0),
 }, (table) => ({
   // Indexes for better query performance
   categoryIdx: index('prompts_category_idx').on(table.category),

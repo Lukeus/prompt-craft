@@ -81,7 +81,8 @@ export class SQLiteConnection {
           updated_at INTEGER NOT NULL,
           version TEXT NOT NULL DEFAULT '1.0.0',
           author TEXT,
-          variables TEXT
+          variables TEXT,
+          is_favorite INTEGER NOT NULL DEFAULT 0
         );
         
         CREATE INDEX IF NOT EXISTS prompts_category_idx ON prompts(category);
@@ -121,6 +122,12 @@ export class SQLiteConnection {
           DELETE FROM prompts_fts WHERE rowid = OLD.rowid;
         END;
       `);
+
+      const columns = this.database.prepare("PRAGMA table_info('prompts')").all() as Array<{ name: string }>;
+      const hasFavoriteColumn = columns.some(column => column.name === 'is_favorite');
+      if (!hasFavoriteColumn) {
+        this.database.exec("ALTER TABLE prompts ADD COLUMN is_favorite INTEGER NOT NULL DEFAULT 0;");
+      }
     } catch (error) {
       console.error('Error initializing SQLite tables:', error);
       throw error;

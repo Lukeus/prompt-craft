@@ -16,6 +16,8 @@ export class DrizzlePromptRepository implements PromptRepository {
   constructor(private readonly usageStatsProvider?: () => UsageStats) {}
 
   private mapDbRowToPrompt(row: SelectPrompt): Prompt {
+    const usageFavorites = this.usageStats?.favorites ?? [];
+
     return new Prompt(
       row.id,
       row.name,
@@ -27,7 +29,8 @@ export class DrizzlePromptRepository implements PromptRepository {
       new Date(row.updatedAt),
       row.version,
       row.author || undefined,
-      row.variables as any || undefined
+      row.variables as any || undefined,
+      row.isFavorite ?? usageFavorites.includes(row.id)
     );
   }
 
@@ -44,6 +47,7 @@ export class DrizzlePromptRepository implements PromptRepository {
       version: prompt.version,
       author: prompt.author || null,
       variables: prompt.variables || null,
+      isFavorite: prompt.isFavorite,
     };
   }
 

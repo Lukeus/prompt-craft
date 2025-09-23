@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'react-hot-toast';
 import {
   DocumentTextIcon,
   BriefcaseIcon,
@@ -17,7 +18,9 @@ import {
   CalendarIcon,
   UserIcon,
   ClockIcon,
+  StarIcon as StarOutlineIcon,
 } from '@heroicons/react/24/outline';
+import { StarIcon as StarSolidIcon } from '@heroicons/react/24/solid';
 import { usePrompts } from '../hooks/useElectronAPI';
 
 interface Prompt {
@@ -32,10 +35,12 @@ interface Prompt {
   createdAt: string;
   updatedAt: string;
   variables?: any[];
+  isFavorite?: boolean;
 }
 
 type FilterCategory = 'all' | 'work' | 'personal' | 'shared';
 type SortOption = 'updated' | 'created' | 'name' | 'category';
+type ViewFilter = 'all' | 'favorites' | 'recent';
 
 const Prompts: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -47,8 +52,12 @@ const Prompts: React.FC = () => {
   );
   const [sortBy, setSortBy] = useState<SortOption>('updated');
   const [showFilters, setShowFilters] = useState(false);
+  const [viewFilter, setViewFilter] = useState<ViewFilter>(
+    (searchParams.get('view') as ViewFilter) || 'all'
+  );
+  const [favoritePendingId, setFavoritePendingId] = useState<string | null>(null);
   
-  const { getAllPrompts, searchPrompts, getPromptsByCategory } = usePrompts();
+  const { getAllPrompts, searchPrompts, getPromptsByCategory, setFavorite } = usePrompts();
 
   // Fetch prompts based on current filters
   useEffect(() => {
@@ -78,17 +87,41 @@ const Prompts: React.FC = () => {
     fetchPrompts();
   }, [searchQuery, categoryFilter]);
 
+  useEffect(() => {
+    const nextView = (searchParams.get('view') as ViewFilter) || 'all';
+    if (nextView !== viewFilter) {
+      setViewFilter(nextView);
+    }
+  }, [searchParams, viewFilter]);
+
   // Update URL params when filters change
   useEffect(() => {
     const params = new URLSearchParams();
     if (searchQuery) params.set('q', searchQuery);
     if (categoryFilter !== 'all') params.set('category', categoryFilter);
+    if (viewFilter !== 'all') params.set('view', viewFilter);
     setSearchParams(params);
-  }, [searchQuery, categoryFilter, setSearchParams]);
+  }, [searchQuery, categoryFilter, viewFilter, setSearchParams]);
+
+  const filteredPrompts = useMemo(() => {
+    let next = [...prompts];
+
+    if (viewFilter === 'favorites') {
+      next = next.filter((prompt) => Boolean(prompt.isFavorite));
+    }
+
+    if (viewFilter === 'recent') {
+      next = next
+        .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+        .slice(0, 20);
+    }
+
+    return next;
+  }, [prompts, viewFilter]);
 
   // Sort prompts
   const sortedPrompts = useMemo(() => {
-    const sorted = [...prompts];
+    const sorted = [...filteredPrompts];
     
     switch (sortBy) {
       case 'updated':
@@ -102,16 +135,31 @@ const Prompts: React.FC = () => {
       default:
         return sorted;
     }
-  }, [prompts, sortBy]);
+  }, [filteredPrompts, sortBy]);
 
   const categoryStats = useMemo(() => {
     return {
-      all: prompts.length,
-      work: prompts.filter(p => p.category === 'work').length,
-      personal: prompts.filter(p => p.category === 'personal').length,
-      shared: prompts.filter(p => p.category === 'shared').length,
+      all: filteredPrompts.length,
+      work: filteredPrompts.filter(p => p.category === 'work').length,
+      personal: filteredPrompts.filter(p => p.category === 'personal').length,
+      shared: filteredPrompts.filter(p => p.category === 'shared').length,
     };
-  }, [prompts]);
+  }, [filteredPrompts]);
+
+  const updateViewFilter = (nextView: ViewFilter) => {
+    setViewFilter(nextView);
+  };
+
+  const viewLabel = useMemo(() => {
+    switch (viewFilter) {
+      case 'favorites':
+        return 'Favorite Prompts';
+      case 'recent':
+        return 'Recently Updated';
+      default:
+        return null;
+    }
+  }, [viewFilter]);
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
@@ -131,6 +179,34 @@ const Prompts: React.FC = () => {
     }
   };
 
+  const handleToggleFavorite = async (prompt: Prompt) => {
+    if (favoritePendingId) {
+      return;
+    }
+
+    setFavoritePendingId(prompt.id);
+    const targetState = !prompt.isFavorite;
+
+    try {
+      const response = await setFavorite(prompt.id, targetState);
+      if (response.success) {
+        setPrompts(prev => prev.map(item => item.id === prompt.id ? { ...item, isFavorite: targetState } : item));
+        toast.success(
+          targetState
+            ? `Added "${prompt.name}" to favorites.`
+            : `Removed "${prompt.name}" from favorites.`,
+          { id: `favorite-${prompt.id}` }
+        );
+      } else if (response.error) {
+        toast.error(response.error, { id: `favorite-${prompt.id}` });
+      }
+    } catch (error) {
+      toast.error('Failed to update favorite status.', { id: `favorite-${prompt.id}` });
+    } finally {
+      setFavoritePendingId(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -141,12 +217,16 @@ const Prompts: React.FC = () => {
       >
         <div>
           <h1 className="text-3xl font-bold text-gray-100 mb-2">
-            {categoryFilter === 'all' ? 'All Prompts' : 
-             categoryFilter.charAt(0).toUpperCase() + categoryFilter.slice(1) + ' Prompts'}
+            {viewLabel
+              ? viewLabel
+              : categoryFilter === 'all'
+                ? 'All Prompts'
+                : categoryFilter.charAt(0).toUpperCase() + categoryFilter.slice(1) + ' Prompts'}
           </h1>
           <p className="text-gray-400">
             {sortedPrompts.length} prompt{sortedPrompts.length !== 1 ? 's' : ''} found
             {searchQuery && ` for "${searchQuery}"`}
+            {!searchQuery && viewFilter !== 'all' && ` in ${viewLabel?.toLowerCase()}`}
           </p>
         </div>
         
@@ -179,12 +259,20 @@ const Prompts: React.FC = () => {
             type="text"
             placeholder="Search prompts by name, description, or content..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              if (viewFilter !== 'all') {
+                updateViewFilter('all');
+              }
+            }}
             className="form-input pl-10 pr-10"
           />
           {searchQuery && (
             <button
-              onClick={() => setSearchQuery('')}
+              onClick={() => {
+                setSearchQuery('');
+                updateViewFilter('all');
+              }}
               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
             >
               <XMarkIcon className="w-5 h-5" />
@@ -223,6 +311,34 @@ const Prompts: React.FC = () => {
                         <span className="ml-2 px-2 py-0.5 bg-dark-700/50 rounded text-xs">
                           {categoryStats[key]}
                         </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <label className="form-label mb-3">Quick views</label>
+                <div className="flex flex-wrap gap-2">
+                  {([
+                    ['all', 'All'],
+                    ['favorites', 'Favorites'],
+                    ['recent', 'Recent'],
+                  ] as const).map(([key, label]) => {
+                    const isActive = viewFilter === key;
+                    const Icon = key === 'favorites' ? HeartIcon : key === 'recent' ? ClockIcon : DocumentTextIcon;
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => updateViewFilter(key as ViewFilter)}
+                        className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                          isActive
+                            ? 'bg-success-900/30 text-success-300 ring-1 ring-success-700/30'
+                            : 'bg-dark-800/50 text-gray-300 hover:bg-dark-700/50'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4 mr-2" />
+                        {label}
                       </button>
                     );
                   })}
@@ -294,9 +410,31 @@ const Prompts: React.FC = () => {
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${categoryColor}`}>
                       <Icon className="w-5 h-5" />
                     </div>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${categoryColor}`}>
-                      {prompt.category}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleToggleFavorite(prompt)}
+                        disabled={favoritePendingId === prompt.id}
+                        aria-pressed={prompt.isFavorite ? 'true' : 'false'}
+                        className={`rounded-full border border-transparent p-2 transition-colors duration-200 ${
+                          prompt.isFavorite
+                            ? 'text-amber-300 border-amber-500/30 bg-amber-500/10'
+                            : 'text-gray-400 hover:text-amber-200 hover:border-amber-500/20 hover:bg-amber-500/10'
+                        } ${favoritePendingId === prompt.id ? 'opacity-60 cursor-not-allowed' : ''}`}
+                      >
+                        {prompt.isFavorite ? (
+                          <StarSolidIcon className="w-4 h-4" />
+                        ) : (
+                          <StarOutlineIcon className="w-4 h-4" />
+                        )}
+                        <span className="sr-only">
+                          {prompt.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                        </span>
+                      </button>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${categoryColor}`}>
+                        {prompt.category}
+                      </span>
+                    </div>
                   </div>
 
                   {/* Content */}

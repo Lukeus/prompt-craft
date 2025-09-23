@@ -3,7 +3,7 @@
 [![CI/CD](https://github.com/Lukeus/prompt-craft/actions/workflows/ci.yml/badge.svg)](https://github.com/Lukeus/prompt-craft/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-18+-43853D?style=flat&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-20+-43853D?style=flat&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Electron](https://img.shields.io/badge/Electron-Ready-47848F?style=flat&logo=electron&logoColor=white)](https://www.electronjs.org/)
 [![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-brightgreen)](https://modelcontextprotocol.io/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue?logo=docker)](https://www.docker.com/)
@@ -36,7 +36,7 @@ A **production-ready, enterprise-grade** TypeScript prompt management system wit
 ## 📦 Installation
 
 ### Prerequisites
-- **Node.js** 18+ (recommended: 20+)
+- **Node.js** 20+ (LTS recommended)
 - **npm** or **yarn**
 - **Git**
 
@@ -58,7 +58,7 @@ Get started instantly with a fully configured cloud development environment:
    - Or visit: `https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=your-repo-id`
 
 2. **Automatic Setup** (3-5 minutes):
-   - ✅ Node.js 18 + TypeScript + all dependencies
+   - ✅ Node.js 20+ + TypeScript + all dependencies
    - ✅ PostgreSQL database with sample data
    - ✅ VS Code extensions + development tools
    - ✅ Project built and ready to use
@@ -162,7 +162,7 @@ npm run electron:pack
 ### Technical Requirements & Current Limitations
 
 **💻 Development Requirements:**
-- Node.js 18+ with TypeScript 5.x
+- Node.js 20+ with TypeScript 5.x
 - SQLite database (automatically created)
 - All dependencies managed via npm
 - Build process requires ~10-15 seconds

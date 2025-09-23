@@ -33,6 +33,9 @@ export class DrizzleSQLitePromptRepository implements PromptRepository {
       variables = undefined;
     }
 
+    const usageFavorites = this.usageStats?.favorites ?? [];
+    const favoriteFromRow = (row as any).isFavorite === 1 || (row as any).isFavorite === true;
+
     return new Prompt(
       row.id,
       row.name,
@@ -44,7 +47,8 @@ export class DrizzleSQLitePromptRepository implements PromptRepository {
       new Date(row.updatedAt),
       row.version,
       row.author || undefined,
-      variables as any
+      variables as any,
+      favoriteFromRow || usageFavorites.includes(row.id)
     );
   }
 
@@ -61,6 +65,7 @@ export class DrizzleSQLitePromptRepository implements PromptRepository {
       version: prompt.version,
       author: prompt.author || null,
       variables: prompt.variables ? JSON.stringify(prompt.variables) : null,
+      isFavorite: prompt.isFavorite ? 1 : 0,
     };
   }
 
