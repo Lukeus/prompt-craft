@@ -1,6 +1,6 @@
 {
   "name": "prompt-craft",
-  "version": "1.0.6",
+  "version": "1.1.0",
   "description": "A TypeScript-based prompt management system with MCP server integration for organizing work and personal prompts",
   "main": "dist/electron/packages/apps/electron/main/index.js",
   "homepage": "./",
