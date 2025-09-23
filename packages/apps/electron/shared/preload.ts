@@ -98,11 +98,20 @@ interface PromptStats {
   shared: number;
 }
 
+interface MCPLogEntry {
+  id: string;
+  timestamp: string;
+  type: 'stdout' | 'stderr' | 'system';
+  message: string;
+}
+
 interface MCPServerStatus {
-  isRunning: boolean;
+  running: boolean;
+  pid?: number;
   port?: number;
   startTime?: string;
-  connections: number;
+  logs?: MCPLogEntry[];
+  error?: string;
 }
 
 interface AppSettings {
@@ -147,7 +156,7 @@ export interface ElectronAPI {
 
   // MCP Server operations
   mcp: {
-    startServer: () => Promise<IPCResponse<string>>;
+    startServer: () => Promise<IPCResponse<{ pid?: number }>>;
     stopServer: () => Promise<IPCResponse<string>>;
     getStatus: () => Promise<IPCResponse<MCPServerStatus>>;
     onStatusChanged: (callback: (status: MCPServerStatus) => void) => () => void;

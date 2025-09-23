@@ -1,4 +1,7 @@
 import { ipcMain, BrowserWindow, dialog, app } from 'electron';
+import { ChildProcess, fork } from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
 import { IPC_CHANNELS } from '../../shared/ipcChannels';
 import { Prompt } from '../../../../core/domain/entities/Prompt';
 import { getContainer } from '../../../../core/infrastructure/Container';
@@ -7,6 +10,7 @@ import { seedSQLiteDatabase } from '../../../../infrastructure/database/sqliteSe
 import { testSQLiteConnection } from '../../../../infrastructure/database/sqliteConnection';
 
 const DIAGNOSTIC_ACTIVITY_LIMIT = 8;
+const MCP_LOG_LIMIT = 200;
 
 // Initialize container with SQLite repository for Electron
 function initializeContainer() {
@@ -101,6 +105,79 @@ async function collectDiagnosticsData() {
   };
 }
 
+interface McpLogEntry {
+  id: string;
+  timestamp: string;
+  type: 'stdout' | 'stderr' | 'system';
+  message: string;
+}
+
+interface McpState {
+  process: ChildProcess | null;
+  logs: McpLogEntry[];
+  startTime: string | null;
+  port: number | null;
+  lastError: string | null;
+  pid?: number;
+}
+
+const mcpState: McpState = {
+  process: null,
+  logs: [],
+  startTime: null,
+  port: null,
+  lastError: null,
+  pid: undefined,
+};
+
+function resolveMcpEntrypoint() {
+  const prodEntry = path.join(process.resourcesPath, 'dist', 'mcp-server', 'index.js');
+  if (fs.existsSync(prodEntry)) {
+    return { entry: prodEntry, execArgv: [] as string[] };
+  }
+
+  const devTsEntry = path.join(process.cwd(), 'packages/apps/mcp-server/index.ts');
+  if (fs.existsSync(devTsEntry)) {
+    let tsNodeRegister = 'ts-node/register';
+    try {
+      tsNodeRegister = require.resolve('ts-node/register/transpile-only');
+    } catch (error) {
+      try {
+        tsNodeRegister = require.resolve('ts-node/register');
+      } catch (registerError) {
+        appendMcpLog('stderr', 'ts-node register module not found. MCP server cannot start.');
+      }
+    }
+
+    let tsConfigPathsRegister: string | null = null;
+    try {
+      tsConfigPathsRegister = require.resolve('tsconfig-paths/register');
+    } catch (error) {
+      appendMcpLog('system', 'tsconfig-paths/register not found; path aliases may not resolve for MCP server.');
+    }
+
+    const execArgv: string[] = ['-r', tsNodeRegister];
+    if (tsConfigPathsRegister) {
+      execArgv.push('-r', tsConfigPathsRegister);
+    }
+
+    return { entry: devTsEntry, execArgv };
+  }
+
+  const devJsEntry = path.join(process.cwd(), 'packages/apps/mcp-server/index.js');
+  return { entry: devJsEntry, execArgv: [] as string[] };
+}
+
+function appendMcpLog(type: McpLogEntry['type'], message: string) {
+  const entry: McpLogEntry = {
+    id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    timestamp: new Date().toISOString(),
+    type,
+    message,
+  };
+  mcpState.logs = [...mcpState.logs, entry].slice(-MCP_LOG_LIMIT);
+}
+
 export function setupIpcHandlers(mainWindow: BrowserWindow | null) {
   const emitDiagnosticsUpdate = async (source: string) => {
     if (!mainWindow || mainWindow.isDestroyed()) {
@@ -115,6 +192,25 @@ export function setupIpcHandlers(mainWindow: BrowserWindow | null) {
       });
     } catch (error) {
       console.error('Failed to broadcast diagnostics update:', error);
+    }
+  };
+
+  const emitMcpStatus = (source: string, error?: string) => {
+    if (error) {
+      appendMcpLog('system', error);
+      mcpState.lastError = error;
+    }
+
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send(IPC_CHANNELS.MCP.SERVER_STATUS_CHANGED, {
+        running: Boolean(mcpState.process),
+        pid: mcpState.pid,
+        port: mcpState.port ?? undefined,
+        startTime: mcpState.startTime ?? undefined,
+        logs: mcpState.logs,
+        error: mcpState.lastError ?? undefined,
+        source,
+      });
     }
   };
 
@@ -260,32 +356,153 @@ export function setupIpcHandlers(mainWindow: BrowserWindow | null) {
 
   // MCP Server operations
   ipcMain.handle(IPC_CHANNELS.MCP.START_SERVER, async () => {
+    if (mcpState.process) {
+      const message = 'MCP server is already running.';
+      appendMcpLog('system', message);
+      emitMcpStatus('mcp:start:duplicate');
+      return { success: false, error: message };
+    }
+
     try {
-      const status = { running: true, port: 3000 };
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send(IPC_CHANNELS.MCP.SERVER_STATUS_CHANGED, status);
+      const { entry, execArgv } = resolveMcpEntrypoint();
+      appendMcpLog('system', `Starting MCP server using ${path.basename(entry)}...`);
+
+      const env: NodeJS.ProcessEnv = {
+        ...process.env,
+        NODE_ENV: process.env.NODE_ENV ?? 'production',
+      };
+
+      if (entry.endsWith('.ts')) {
+        env.TS_NODE_PROJECT = env.TS_NODE_PROJECT || path.join(process.cwd(), 'tsconfig.json');
+        env.TS_NODE_TRANSPILE_ONLY = env.TS_NODE_TRANSPILE_ONLY || 'true';
+        if (!env.TS_NODE_COMPILER_OPTIONS) {
+          env.TS_NODE_COMPILER_OPTIONS = JSON.stringify({ moduleResolution: 'Node', module: 'CommonJS' });
+        } else {
+          try {
+            const existing = JSON.parse(env.TS_NODE_COMPILER_OPTIONS);
+            if (!existing.module) {
+              existing.module = 'CommonJS';
+            }
+            if (!existing.moduleResolution) {
+              existing.moduleResolution = 'Node';
+            }
+            env.TS_NODE_COMPILER_OPTIONS = JSON.stringify(existing);
+          } catch (error) {
+            env.TS_NODE_COMPILER_OPTIONS = JSON.stringify({ moduleResolution: 'Node', module: 'CommonJS' });
+          }
+        }
       }
-      return { success: true, data: status, message: 'MCP Server started (mock)' };
+
+      const child = fork(entry, [], {
+        cwd: process.cwd(),
+        stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
+        execArgv,
+        env,
+      });
+
+      mcpState.process = child;
+      mcpState.pid = child.pid ?? undefined;
+      mcpState.startTime = new Date().toISOString();
+      mcpState.lastError = null;
+
+      child.stdout?.on('data', (data) => {
+        appendMcpLog('stdout', data.toString());
+        emitMcpStatus('mcp:stdout');
+      });
+
+      child.stderr?.on('data', (data) => {
+        appendMcpLog('stderr', data.toString());
+        emitMcpStatus('mcp:stderr');
+      });
+
+      child.on('exit', (code, signal) => {
+        const message = `MCP server exited (code ${code ?? 'null'}, signal ${signal ?? 'null'})`;
+        appendMcpLog('system', message);
+        mcpState.process = null;
+        mcpState.pid = undefined;
+        mcpState.startTime = null;
+        if (code && code !== 0) {
+          mcpState.lastError = message;
+        }
+        emitMcpStatus('mcp:exit');
+      });
+
+      emitMcpStatus('mcp:start');
+      return { success: true, data: { pid: child.pid }, message: 'MCP server starting' };
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+      const message = error instanceof Error ? error.message : 'Failed to start MCP server';
+      appendMcpLog('stderr', message);
+      mcpState.process = null;
+      mcpState.pid = undefined;
+      mcpState.startTime = null;
+      mcpState.lastError = message;
+      emitMcpStatus('mcp:error', message);
+      return { success: false, error: message };
     }
   });
 
   ipcMain.handle(IPC_CHANNELS.MCP.STOP_SERVER, async () => {
-    try {
-      const status = { running: false, port: 3000 };
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send(IPC_CHANNELS.MCP.SERVER_STATUS_CHANGED, status);
-      }
-      return { success: true, data: status, message: 'MCP Server stopped (mock)' };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    if (!mcpState.process) {
+      const message = 'MCP server is not running.';
+      appendMcpLog('system', message);
+      emitMcpStatus('mcp:stop:noop');
+      return { success: false, error: message };
     }
+
+    const child = mcpState.process;
+
+    return await new Promise((resolve) => {
+      appendMcpLog('system', 'Stopping MCP server...');
+      emitMcpStatus('mcp:stop');
+
+      const finalize = (success: boolean, error?: string) => {
+        mcpState.process = null;
+        mcpState.pid = undefined;
+        mcpState.startTime = null;
+        if (error) {
+          mcpState.lastError = error;
+          appendMcpLog('stderr', error);
+        } else {
+          appendMcpLog('system', 'MCP server stopped.');
+        }
+        emitMcpStatus('mcp:stop:complete');
+        resolve(success ? { success: true, message: 'MCP server stopped' } : { success: false, error: error || 'Failed to stop MCP server' });
+      };
+
+      const timeout = setTimeout(() => {
+        if (mcpState.process) {
+          child.kill('SIGKILL');
+        }
+      }, 4000);
+
+      child.once('exit', () => {
+        clearTimeout(timeout);
+        finalize(true);
+      });
+
+      try {
+        child.kill();
+      } catch (error) {
+        clearTimeout(timeout);
+        const message = error instanceof Error ? error.message : 'Failed to stop MCP server';
+        finalize(false, message);
+      }
+    });
   });
 
   ipcMain.handle(IPC_CHANNELS.MCP.GET_STATUS, async () => {
     try {
-      return { success: true, data: { running: false, port: 3000 } };
+      return {
+        success: true,
+        data: {
+          running: Boolean(mcpState.process),
+          pid: mcpState.pid,
+          port: mcpState.port ?? undefined,
+          startTime: mcpState.startTime ?? undefined,
+          logs: mcpState.logs,
+          error: mcpState.lastError ?? undefined,
+        },
+      };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }

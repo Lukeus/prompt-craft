@@ -129,8 +129,18 @@ export interface DiagnosticsPayload {
 // Type definitions for MCP server status
 export interface MCPServerStatus {
   running: boolean;
+  pid?: number;
   port?: number;
+  startTime?: string;
+  logs?: MCPLogEntry[];
   error?: string;
+}
+
+export interface MCPLogEntry {
+  id: string;
+  timestamp: string;
+  type: 'stdout' | 'stderr' | 'system';
+  message: string;
 }
 
 // Type definitions for settings

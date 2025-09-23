@@ -36,7 +36,9 @@ jobs:
           echo "TypeScript build successful!"
 
       - name: Run unit tests
-        run: npm test
+        run: |
+          echo "Running unit tests with CI configuration..."
+          npm run test:ci
 
       - name: Validate prompt consistency
         run: |
