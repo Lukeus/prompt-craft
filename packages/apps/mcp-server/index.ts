@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { PromptMcpServer } from './mcp/server';
+import { PromptMcpServer } from './mcp/server.js';
 
 // Start the MCP server
 const server = new PromptMcpServer();
