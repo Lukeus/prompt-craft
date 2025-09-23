@@ -182,6 +182,7 @@ jobs:
           echo "✅ Core packages built successfully"
 
       - name: Rebuild native modules for Electron
+        shell: bash
         run: |
           echo "Rebuilding native modules for Electron compatibility..."
           # Try the electron rebuild script first
@@ -203,6 +204,7 @@ jobs:
           echo "✅ Electron components built successfully"
           
       - name: Validate Electron build artifacts
+        shell: bash
         run: |
           echo "Validating Electron build artifacts..."
           
