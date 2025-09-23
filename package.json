@@ -55,7 +55,9 @@
     "release:minor": "./scripts/release.sh minor",
     "release:major": "./scripts/release.sh major",
     "release": "./scripts/release.sh",
-    "icons:generate": "./scripts/generate-app-icons.sh"
+    "icons:generate": "./scripts/generate-app-icons.sh",
+    "electron:analyze": "npm run electron:build:renderer:analyze && open packages/apps/electron/renderer/bundle-report.html",
+    "electron:clean": "rm -rf dist/electron && rm -rf packages/apps/electron/renderer/dist"
   },
   "keywords": [
     "prompts",
@@ -67,7 +69,7 @@
   "author": "Luke Adams",
   "license": "MIT",
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=18.0.0"
   },
   "dependencies": {
     "@astrojs/node": "^9.4.3",

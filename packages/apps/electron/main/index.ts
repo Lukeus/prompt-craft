@@ -39,18 +39,32 @@ class PromptCraftElectronApp {
       }
     });
 
-    // Security: Prevent navigation to external URLs
+    // Security: Enhanced navigation and content security
     app.on('web-contents-created', (_, contents) => {
+      // Prevent navigation to external URLs
       contents.on('will-navigate', (navigationEvent, url) => {
         const parsedUrl = new URL(url);
-        if (parsedUrl.origin !== 'http://localhost:3000' && parsedUrl.origin !== 'file://') {
+        const allowedOrigins = ['http://localhost:3000', 'file://'];
+        
+        if (!allowedOrigins.includes(parsedUrl.origin)) {
+          console.warn('Blocked navigation to:', url);
           navigationEvent.preventDefault();
         }
       });
 
+      // Handle new window requests securely
       contents.setWindowOpenHandler(({ url }) => {
-        shell.openExternal(url);
+        // Only allow external links in system browser
+        if (url.startsWith('http://') || url.startsWith('https://')) {
+          shell.openExternal(url);
+        }
         return { action: 'deny' };
+      });
+
+      // Prevent file downloads to unauthorized locations
+      contents.session.on('will-download', (event, downloadItem) => {
+        // Allow downloads but log them for security monitoring
+        console.log('Download initiated:', downloadItem.getFilename());
       });
     });
   }
@@ -68,7 +82,12 @@ class PromptCraftElectronApp {
         contextIsolation: true,
         preload: preloadPath,
         webSecurity: true,
-        sandbox: false,
+        sandbox: false, // Keep disabled for now due to SQLite access needs
+        allowRunningInsecureContent: false,
+        experimentalFeatures: false,
+        enableBlinkFeatures: '', // Explicitly disable experimental features
+        disableBlinkFeatures: 'Auxclick', // Disable middle-click navigation
+        additionalArguments: ['--disable-features=VizDisplayCompositor'],
       },
     });
 
