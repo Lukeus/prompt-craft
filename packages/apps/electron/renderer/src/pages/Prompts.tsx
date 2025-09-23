@@ -45,8 +45,11 @@ type ViewFilter = 'all' | 'favorites' | 'recent';
 const Prompts: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [prompts, setPrompts] = useState<Prompt[]>([]);
+  const [allPrompts, setAllPrompts] = useState<Prompt[]>([]); // Keep all prompts for client-side search fallback
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
+  // Actual query used for searching - only updated on Enter press or explicit search
+  const [activeSearchQuery, setActiveSearchQuery] = useState(searchParams.get('q') || '');
   const [categoryFilter, setCategoryFilter] = useState<FilterCategory>(
     (searchParams.get('category') as FilterCategory) || 'all'
   );
@@ -59,33 +62,87 @@ const Prompts: React.FC = () => {
   
   const { getAllPrompts, searchPrompts, getPromptsByCategory, setFavorite } = usePrompts();
 
-  // Fetch prompts based on current filters
+  // Handle Enter key press to trigger search
+  const handleSearchSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    setActiveSearchQuery(searchQuery);
+  };
+  
+  // Handle search input key press
+  const handleSearchKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearchSubmit();
+    }
+  };
+
+  // Load all prompts on first mount for client-side search fallback
+  useEffect(() => {
+    const loadAllPrompts = async () => {
+      try {
+        const response = await getAllPrompts();
+        if (response.success) {
+          setAllPrompts(response.data || []);
+        }
+      } catch (error) {
+        console.error('Failed to load all prompts:', error);
+      }
+    };
+    
+    loadAllPrompts();
+  }, [getAllPrompts]);
+
+  // Fetch prompts based on current filters (using active search query)
   useEffect(() => {
     const fetchPrompts = async () => {
       setIsLoading(true);
       try {
         let response;
+        let useClientSideSearch = false;
         
-        if (searchQuery) {
-          response = await searchPrompts(searchQuery, categoryFilter === 'all' ? undefined : categoryFilter);
+        if (activeSearchQuery) {
+          response = await searchPrompts(activeSearchQuery, categoryFilter === 'all' ? undefined : categoryFilter);
+          
+          // If backend search fails or returns no results, use client-side search
+          if (!response.success || !response.data || response.data.length === 0) {
+            useClientSideSearch = true;
+          }
         } else if (categoryFilter === 'all') {
           response = await getAllPrompts();
         } else {
           response = await getPromptsByCategory(categoryFilter);
         }
         
-        if (response.success) {
-          setPrompts(response.data);
+        if (useClientSideSearch && activeSearchQuery) {
+          // Client-side search fallback
+          const searchLower = activeSearchQuery.toLowerCase();
+          let filtered = allPrompts.filter(prompt => {
+            const matchesCategory = categoryFilter === 'all' || prompt.category === categoryFilter;
+            const matchesSearch = 
+              prompt.name.toLowerCase().includes(searchLower) ||
+              prompt.description.toLowerCase().includes(searchLower) ||
+              prompt.content.toLowerCase().includes(searchLower) ||
+              (prompt.tags && prompt.tags.some(tag => tag.toLowerCase().includes(searchLower))) ||
+              (prompt.author && prompt.author.toLowerCase().includes(searchLower));
+            
+            return matchesCategory && matchesSearch;
+          });
+          
+          setPrompts(filtered);
+        } else if (response && response.success) {
+          setPrompts(response.data || []);
+        } else {
+          setPrompts([]);
         }
       } catch (error) {
         console.error('Failed to fetch prompts:', error);
+        setPrompts([]);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchPrompts();
-  }, [searchQuery, categoryFilter]);
+  }, [activeSearchQuery, categoryFilter, allPrompts]);
 
   useEffect(() => {
     const nextView = (searchParams.get('view') as ViewFilter) || 'all';
@@ -94,14 +151,14 @@ const Prompts: React.FC = () => {
     }
   }, [searchParams, viewFilter]);
 
-  // Update URL params when filters change
+  // Update URL params when filters change (only on active search query)
   useEffect(() => {
     const params = new URLSearchParams();
-    if (searchQuery) params.set('q', searchQuery);
+    if (activeSearchQuery) params.set('q', activeSearchQuery);
     if (categoryFilter !== 'all') params.set('category', categoryFilter);
     if (viewFilter !== 'all') params.set('view', viewFilter);
-    setSearchParams(params);
-  }, [searchQuery, categoryFilter, viewFilter, setSearchParams]);
+    setSearchParams(params, { replace: true });
+  }, [activeSearchQuery, categoryFilter, viewFilter, setSearchParams]);
 
   const filteredPrompts = useMemo(() => {
     let next = [...prompts];
@@ -225,8 +282,8 @@ const Prompts: React.FC = () => {
           </h1>
           <p className="text-gray-400">
             {sortedPrompts.length} prompt{sortedPrompts.length !== 1 ? 's' : ''} found
-            {searchQuery && ` for "${searchQuery}"`}
-            {!searchQuery && viewFilter !== 'all' && ` in ${viewLabel?.toLowerCase()}`}
+            {activeSearchQuery && ` for "${activeSearchQuery}"`}
+            {!activeSearchQuery && viewFilter !== 'all' && ` in ${viewLabel?.toLowerCase()}`}
           </p>
         </div>
         
@@ -253,11 +310,11 @@ const Prompts: React.FC = () => {
         className="glass-card rounded-xl p-6"
       >
         {/* Search Bar */}
-        <div className="relative mb-4">
+        <form onSubmit={handleSearchSubmit} className="relative mb-4">
           <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
             type="text"
-            placeholder="Search prompts by name, description, or content..."
+            placeholder="Search prompts by name, description, or content... (Press Enter to search)"
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
@@ -265,20 +322,35 @@ const Prompts: React.FC = () => {
                 updateViewFilter('all');
               }
             }}
-            className="form-input pl-10 pr-10"
+            onKeyPress={handleSearchKeyPress}
+            className="form-input pl-10 pr-20"
+            autoComplete="off"
+            spellCheck={false}
           />
           {searchQuery && (
-            <button
-              onClick={() => {
-                setSearchQuery('');
-                updateViewFilter('all');
-              }}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
-            >
-              <XMarkIcon className="w-5 h-5" />
-            </button>
+            <>
+              <button
+                type="submit"
+                className="absolute right-10 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-primary-300 transition-colors"
+                title="Search"
+              >
+                <MagnifyingGlassIcon className="w-5 h-5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery('');
+                  setActiveSearchQuery('');
+                  updateViewFilter('all');
+                }}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
+                title="Clear search"
+              >
+                <XMarkIcon className="w-5 h-5" />
+              </button>
+            </>
           )}
-        </div>
+        </form>
 
         <AnimatePresence>
           {showFilters && (
@@ -516,18 +588,19 @@ const Prompts: React.FC = () => {
           >
             <DocumentTextIcon className="mx-auto h-12 w-12 text-gray-500 mb-4" />
             <h3 className="text-lg font-semibold text-gray-200 mb-2">
-              {searchQuery ? 'No prompts found' : 'No prompts yet'}
+              {activeSearchQuery ? 'No prompts found' : 'No prompts yet'}
             </h3>
             <p className="text-gray-400 mb-6">
-              {searchQuery 
-                ? `No prompts match "${searchQuery}". Try adjusting your search or filters.`
+              {activeSearchQuery 
+                ? `No prompts match "${activeSearchQuery}". Try adjusting your search or filters.`
                 : 'Get started by creating your first prompt.'}
             </p>
             <div className="flex items-center justify-center gap-3">
-              {searchQuery && (
+              {activeSearchQuery && (
                 <button
                   onClick={() => {
                     setSearchQuery('');
+                    setActiveSearchQuery('');
                     setCategoryFilter('all');
                   }}
                   className="btn-secondary"

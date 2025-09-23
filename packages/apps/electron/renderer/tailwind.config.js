@@ -132,6 +132,7 @@ module.exports = {
     },
   },
   plugins: [
+    require('@tailwindcss/typography'),
     // Add custom utilities
     function({ addUtilities }) {
       const newUtilities = {

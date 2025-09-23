@@ -225,7 +225,14 @@ export function setupIpcHandlers(mainWindow: BrowserWindow | null) {
     try {
       const useCases = await getPromptUseCases();
       const prompts = await useCases.getAllPrompts();
-      return { success: true, data: prompts };
+      // Serialize prompts to ensure JSON compatibility
+      const serializedPrompts = prompts.map(p => {
+        if (p && typeof p.toJSON === 'function') {
+          return p.toJSON();
+        }
+        return p;
+      });
+      return { success: true, data: serializedPrompts };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -245,7 +252,9 @@ export function setupIpcHandlers(mainWindow: BrowserWindow | null) {
       const useCases = await getPromptUseCases();
       const prompt = await useCases.getPromptById(promptId);
       if (prompt) {
-        return { success: true, data: prompt };
+        // Serialize prompt to ensure JSON compatibility
+        const serializedPrompt = (prompt && typeof prompt.toJSON === 'function') ? prompt.toJSON() : prompt;
+        return { success: true, data: serializedPrompt };
       } else {
         return { success: false, error: 'Prompt not found' };
       }
@@ -258,7 +267,14 @@ export function setupIpcHandlers(mainWindow: BrowserWindow | null) {
     try {
       const useCases = await getPromptUseCases();
       const prompts = await useCases.getPromptsByCategory(category as any);
-      return { success: true, data: prompts };
+      // Serialize prompts to ensure JSON compatibility
+      const serializedPrompts = prompts.map(p => {
+        if (p && typeof p.toJSON === 'function') {
+          return p.toJSON();
+        }
+        return p;
+      });
+      return { success: true, data: serializedPrompts };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -277,8 +293,17 @@ export function setupIpcHandlers(mainWindow: BrowserWindow | null) {
       }
       
       const results = await useCases.searchPrompts(searchCriteria);
-      return { success: true, data: results };
+      
+      // Serialize prompts to ensure JSON compatibility
+      const serializedResults = results.map(p => {
+        if (p && typeof p.toJSON === 'function') {
+          return p.toJSON();
+        }
+        return p;
+      });
+      return { success: true, data: serializedResults };
     } catch (error) {
+      console.error('Search error:', error);
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   });
