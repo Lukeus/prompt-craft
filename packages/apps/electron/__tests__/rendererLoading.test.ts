@@ -4,6 +4,14 @@ import path from 'path';
 // Mock electron
 jest.mock('electron', () => ({
   BrowserWindow: jest.fn(),
+  screen: {
+    getPrimaryDisplay: jest.fn(() => ({
+      workAreaSize: {
+        width: 1920,
+        height: 1080,
+      },
+    })),
+  },
   app: {
     getPath: jest.fn(() => '/mock/path'),
   },
@@ -38,6 +46,12 @@ describe('Renderer Loading', () => {
     mockWindow = {
       webContents: mockWebContents,
       on: jest.fn(),
+      once: jest.fn(),
+      center: jest.fn(),
+      getBounds: jest.fn().mockReturnValue({ x: 100, y: 100, width: 800, height: 600 }),
+      setBounds: jest.fn(),
+      isMaximized: jest.fn().mockReturnValue(false),
+      maximize: jest.fn(),
       show: jest.fn(),
       hide: jest.fn(),
       loadURL: jest.fn().mockResolvedValue(undefined),
@@ -155,7 +169,7 @@ describe('Renderer Loading', () => {
 
       // Find the did-fail-load callback
       const failLoadCallback = mockWebContents.on.mock.calls.find(
-        call => call[0] === 'did-fail-load'
+        (call: any[]) => call[0] === 'did-fail-load'
       )?.[1];
 
       if (failLoadCallback) {
@@ -178,7 +192,7 @@ describe('Renderer Loading', () => {
 
       // Find the did-finish-load callback
       const finishLoadCallback = mockWebContents.on.mock.calls.find(
-        call => call[0] === 'did-finish-load'
+        (call: any[]) => call[0] === 'did-finish-load'
       )?.[1];
 
       if (finishLoadCallback) {

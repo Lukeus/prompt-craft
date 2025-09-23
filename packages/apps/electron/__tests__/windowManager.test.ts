@@ -5,6 +5,14 @@ import path from 'path';
 // Mock electron module
 jest.mock('electron', () => ({
   BrowserWindow: jest.fn(),
+  screen: {
+    getPrimaryDisplay: jest.fn(() => ({
+      workAreaSize: {
+        width: 1920,
+        height: 1080,
+      },
+    })),
+  },
   app: {
     getPath: jest.fn(() => '/mock/app/path'),
   },
@@ -23,6 +31,12 @@ describe('Window Manager', () => {
     mockWindow = {
       loadURL: jest.fn().mockResolvedValue(undefined),
       on: jest.fn(),
+      once: jest.fn(),
+      center: jest.fn(),
+      getBounds: jest.fn().mockReturnValue({ x: 100, y: 100, width: 800, height: 600 }),
+      setBounds: jest.fn(),
+      isMaximized: jest.fn().mockReturnValue(false),
+      maximize: jest.fn(),
       webContents: {
         openDevTools: jest.fn(),
         on: jest.fn(),
@@ -91,11 +105,13 @@ describe('Window Manager', () => {
 
       // Get the ready-to-show callback
       const readyToShowCallback = mockWindow.on.mock.calls.find(
-        call => call[0] === 'ready-to-show'
-      )[1];
+        (call: any[]) => call[0] === 'ready-to-show'
+      )?.[1];
 
       // Execute the callback
-      readyToShowCallback();
+      if (readyToShowCallback) {
+        readyToShowCallback();
+      }
 
       // Verify window is shown
       expect(mockWindow.show).toHaveBeenCalled();
@@ -111,10 +127,12 @@ describe('Window Manager', () => {
 
     it('should show window when ready', () => {
       const readyToShowCallback = mockWindow.on.mock.calls.find(
-        call => call[0] === 'ready-to-show'
-      )[1];
+        (call: any[]) => call[0] === 'ready-to-show'
+      )?.[1];
 
-      readyToShowCallback();
+      if (readyToShowCallback) {
+        readyToShowCallback();
+      }
       expect(mockWindow.show).toHaveBeenCalled();
     });
 
