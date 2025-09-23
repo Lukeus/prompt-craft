@@ -10,7 +10,7 @@ module.exports = {
   mode: isDevelopment ? 'development' : 'production',
   entry: './src/index.tsx',
   target: isDevelopment ? 'web' : 'electron-renderer', // Use web for dev server, electron-renderer for production
-  devtool: isDevelopment ? 'source-map' : false,
+  devtool: isDevelopment ? 'source-map' : 'nosources-source-map', // Source maps for production debugging
   
   node: {
     __dirname: false,
@@ -96,8 +96,8 @@ module.exports = {
   
   performance: {
     hints: isDevelopment ? false : 'warning',
-    maxAssetSize: 500000, // 500kb
-    maxEntrypointSize: 500000, // 500kb
+    maxAssetSize: 1000000, // 1MB - More appropriate for desktop apps
+    maxEntrypointSize: 1000000, // 1MB - More appropriate for desktop apps
     assetFilter: function(assetFilename) {
       return !assetFilename.endsWith('.map');
     }

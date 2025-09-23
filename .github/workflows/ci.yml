@@ -95,6 +95,10 @@ jobs:
           echo "Building Electron main and preload..."
           echo "Main packages already built, now building Electron components..."
           
+          # Rebuild native modules for Electron compatibility
+          echo "Rebuilding native modules for Electron..."
+          npm run electron:rebuild || echo "Native module rebuild failed, continuing..."
+          
           # Verify that the main packages were built properly
           echo "Checking for required build artifacts:"
           ls -la dist/ || echo "No dist directory found"

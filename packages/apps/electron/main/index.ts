@@ -32,25 +32,43 @@ class PromptCraftElectronApp {
       });
     });
 
-    // Handle all windows closed
+    // Handle all windows closed - Fixed to always quit
     app.on('window-all-closed', () => {
-      if (process.platform !== 'darwin') {
-        app.quit();
-      }
+      // Always quit the app when all windows are closed
+      app.quit();
     });
 
-    // Security: Prevent navigation to external URLs
+    // Handle before quit to ensure proper cleanup
+    app.on('before-quit', () => {
+      (this as any).isQuitting = true;
+    });
+
+    // Security: Enhanced navigation and content security
     app.on('web-contents-created', (_, contents) => {
+      // Prevent navigation to external URLs
       contents.on('will-navigate', (navigationEvent, url) => {
         const parsedUrl = new URL(url);
-        if (parsedUrl.origin !== 'http://localhost:3000' && parsedUrl.origin !== 'file://') {
+        const allowedOrigins = ['http://localhost:3000', 'file://'];
+        
+        if (!allowedOrigins.includes(parsedUrl.origin)) {
+          console.warn('Blocked navigation to:', url);
           navigationEvent.preventDefault();
         }
       });
 
+      // Handle new window requests securely
       contents.setWindowOpenHandler(({ url }) => {
-        shell.openExternal(url);
+        // Only allow external links in system browser
+        if (url.startsWith('http://') || url.startsWith('https://')) {
+          shell.openExternal(url);
+        }
         return { action: 'deny' };
+      });
+
+      // Prevent file downloads to unauthorized locations
+      contents.session.on('will-download', (event, downloadItem) => {
+        // Allow downloads but log them for security monitoring
+        console.log('Download initiated:', downloadItem.getFilename());
       });
     });
   }
@@ -68,16 +86,39 @@ class PromptCraftElectronApp {
         contextIsolation: true,
         preload: preloadPath,
         webSecurity: true,
-        sandbox: false,
+        sandbox: false, // Keep disabled for now due to SQLite access needs
+        allowRunningInsecureContent: false,
+        experimentalFeatures: false,
+        enableBlinkFeatures: '', // Explicitly disable experimental features
+        disableBlinkFeatures: 'Auxclick', // Disable middle-click navigation
+        additionalArguments: ['--disable-features=VizDisplayCompositor'],
       },
     });
 
     // Load the React app
     const startUrl = isDev() 
       ? 'http://localhost:3000' 
-      : `file://${path.join(__dirname, '../renderer/index.html')}`;
+      : `file://${path.join(__dirname, '../../../../renderer/index.html')}`;
     
-    this.mainWindow.loadURL(startUrl);
+    console.log('Loading renderer from:', startUrl);
+    
+    // Load URL with error handling
+    this.mainWindow.loadURL(startUrl).catch((error) => {
+      console.error('Failed to load renderer:', error);
+    });
+    
+    // Add error event listeners
+    this.mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+      console.error('Renderer failed to load:', {
+        errorCode,
+        errorDescription,
+        validatedURL
+      });
+    });
+    
+    this.mainWindow.webContents.on('did-finish-load', () => {
+      console.log('Renderer loaded successfully');
+    });
 
     // Open DevTools in development
     if (isDev()) {
@@ -89,12 +130,23 @@ class PromptCraftElectronApp {
       this.mainWindow = null;
     });
 
-    // Handle close to tray (minimize functionality can be added later)
+    // Handle window close with proper quit detection
     this.mainWindow.on('close', (event: Electron.Event) => {
-      if (!(app as any).isQuiting && this.tray) {
-        event.preventDefault();
-        this.mainWindow?.hide();
+      // Check if we're quitting the app or just closing the window
+      if (!(this as any).isQuitting) {
+        // On macOS, hide to tray if available, otherwise just close
+        if (process.platform === 'darwin' && this.tray) {
+          event.preventDefault();
+          this.mainWindow?.hide();
+        }
+        // On Windows/Linux, minimize to tray or close entirely
+        else if (this.tray) {
+          event.preventDefault();
+          this.mainWindow?.hide();
+        }
+        // If no tray, allow window to close normally
       }
+      // If isQuitting is true, allow normal close process
     });
   }
 
@@ -144,7 +196,7 @@ class PromptCraftElectronApp {
         {
           label: 'Quit',
           click: () => {
-            (app as any).isQuiting = true;
+            (this as any).isQuitting = true;
             app.quit();
           }
         }

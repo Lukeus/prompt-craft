@@ -1,6 +1,6 @@
 {
   "name": "prompt-craft",
-  "version": "1.0.6",
+  "version": "1.1.0",
   "description": "A TypeScript-based prompt management system with MCP server integration for organizing work and personal prompts",
   "main": "dist/electron/packages/apps/electron/main/index.js",
   "homepage": "./",
@@ -51,11 +51,15 @@
     "electron:dev": "concurrently \"npm run electron:build:main\" \"npm run electron:build:preload\" \"npm run electron:dev:renderer\" \"wait-on http://localhost:3000 && npm run electron:start\"",
     "electron:pack": "npm run electron:build && electron-builder",
     "electron:dist": "npm run electron:build && electron-builder --publish=never",
+    "electron:start:prod": "NODE_ENV=production npx electron dist/electron/packages/apps/electron/main/index.js",
+    "electron:rebuild": "npx electron-rebuild",
     "release:patch": "./scripts/release.sh patch",
     "release:minor": "./scripts/release.sh minor",
     "release:major": "./scripts/release.sh major",
     "release": "./scripts/release.sh",
-    "icons:generate": "./scripts/generate-app-icons.sh"
+    "icons:generate": "./scripts/generate-app-icons.sh",
+    "electron:analyze": "npm run electron:build:renderer:analyze && open packages/apps/electron/renderer/bundle-report.html",
+    "electron:clean": "rm -rf dist/electron && rm -rf packages/apps/electron/renderer/dist"
   },
   "keywords": [
     "prompts",
@@ -67,12 +71,12 @@
   "author": "Luke Adams",
   "license": "MIT",
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=18.0.0"
   },
   "dependencies": {
     "@astrojs/node": "^9.4.3",
     "@astrojs/tailwind": "^6.0.2",
-    "@astrojs/vercel": "^8.2.7",
+    "@astrojs/vercel": "^8.2.8",
     "@heroicons/react": "^2.2.0",
     "@modelcontextprotocol/sdk": "^1.17.5",
     "@neondatabase/serverless": "^1.0.1",
@@ -82,7 +86,9 @@
     "@types/react-router-dom": "^5.3.3",
     "@types/uuid": "^10.0.0",
     "astro": "^5.13.7",
+    "better-sqlite3": "^12.4.1",
     "clsx": "^2.1.1",
+    "dotenv": "^17.2.2",
     "drizzle-orm": "^0.44.5",
     "framer-motion": "^12.23.16",
     "lucide-react": "^0.544.0",
@@ -96,9 +102,7 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.9.2",
     "uuid": "^13.0.0",
-    "ws": "^8.18.0",
-    "dotenv": "^17.2.2",
-    "better-sqlite3": "^12.2.0"
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "@jest/globals": "^30.1.2",
