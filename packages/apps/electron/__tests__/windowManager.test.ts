@@ -33,6 +33,7 @@ describe('Window Manager', () => {
       on: jest.fn(),
       once: jest.fn(),
       center: jest.fn(),
+      focus: jest.fn(),
       getBounds: jest.fn().mockReturnValue({ x: 100, y: 100, width: 800, height: 600 }),
       setBounds: jest.fn(),
       isMaximized: jest.fn().mockReturnValue(false),
@@ -97,14 +98,18 @@ describe('Window Manager', () => {
       createWindow();
 
       // Verify that event listeners are set up
-      expect(mockWindow.on).toHaveBeenCalledWith('ready-to-show', expect.any(Function));
+      // The actual implementation uses window.once('ready-to-show'), not window.on
+      expect(mockWindow.once).toHaveBeenCalledWith('ready-to-show', expect.any(Function));
+      // Also verify resize and move event handlers
+      expect(mockWindow.on).toHaveBeenCalledWith('resize', expect.any(Function));
+      expect(mockWindow.on).toHaveBeenCalledWith('move', expect.any(Function));
     });
 
     it('should handle window ready-to-show event', () => {
       createWindow();
 
-      // Get the ready-to-show callback
-      const readyToShowCallback = mockWindow.on.mock.calls.find(
+      // Get the ready-to-show callback from window.once
+      const readyToShowCallback = mockWindow.once.mock.calls.find(
         (call: any[]) => call[0] === 'ready-to-show'
       )?.[1];
 
@@ -126,7 +131,7 @@ describe('Window Manager', () => {
     });
 
     it('should show window when ready', () => {
-      const readyToShowCallback = mockWindow.on.mock.calls.find(
+      const readyToShowCallback = mockWindow.once.mock.calls.find(
         (call: any[]) => call[0] === 'ready-to-show'
       )?.[1];
 
@@ -137,7 +142,11 @@ describe('Window Manager', () => {
     });
 
     it('should handle window close properly', () => {
-      expect(mockWindow.on).toHaveBeenCalledWith('ready-to-show', expect.any(Function));
+      // Test that the ready-to-show event was registered
+      expect(mockWindow.once).toHaveBeenCalledWith('ready-to-show', expect.any(Function));
+      // Test that resize/move events were registered for window state saving
+      expect(mockWindow.on).toHaveBeenCalledWith('resize', expect.any(Function));
+      expect(mockWindow.on).toHaveBeenCalledWith('move', expect.any(Function));
     });
   });
 
