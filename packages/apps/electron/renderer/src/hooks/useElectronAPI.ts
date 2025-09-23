@@ -35,6 +35,16 @@ export const usePrompts = () => {
     return electronAPI.prompts.getById(id);
   }, [electronAPI]);
 
+  const getById = useCallback(async (id: string) => {
+    if (!electronAPI) return { success: false, error: 'Electron API not available' };
+    return electronAPI.prompts.getById(id);
+  }, [electronAPI]);
+
+  const render = useCallback(async (id: string, variables: Record<string, any>) => {
+    if (!electronAPI) return { success: false, error: 'Electron API not available' };
+    return electronAPI.prompts.render(id, variables);
+  }, [electronAPI]);
+
   const createPrompt = useCallback(async (promptData: any) => {
     if (!electronAPI) return { success: false, error: 'Electron API not available' };
     return electronAPI.prompts.create(promptData);
@@ -71,6 +81,8 @@ export const usePrompts = () => {
   return useMemo(() => ({
     getAllPrompts,
     getPromptById,
+    getById,
+    render,
     createPrompt,
     updatePrompt,
     deletePrompt,
@@ -80,6 +92,8 @@ export const usePrompts = () => {
   }), [
     getAllPrompts,
     getPromptById,
+    getById,
+    render,
     createPrompt,
     updatePrompt,
     deletePrompt,

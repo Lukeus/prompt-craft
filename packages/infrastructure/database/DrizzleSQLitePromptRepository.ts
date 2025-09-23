@@ -1,7 +1,7 @@
 import { eq, and, desc, like, or, sql, count, SQL } from 'drizzle-orm';
 import { Prompt, PromptCategory } from '@core/domain/entities/Prompt';
 import { PromptRepository, PromptSearchCriteria } from '@core/domain/repositories/PromptRepository';
-import { getSQLiteDatabase } from './sqliteConnection';
+import { getSQLiteDatabase, getSQLiteConnection } from './sqliteConnection';
 import { prompts, SelectPrompt, InsertPrompt, PromptVariable, SQLitePromptRow, PromptData } from './sqliteSchema';
 
 interface UsageStats {
@@ -11,6 +11,7 @@ interface UsageStats {
 
 export class DrizzleSQLitePromptRepository implements PromptRepository {
   private db = getSQLiteDatabase();
+  private rawDb = getSQLiteConnection().getRawDb();
   private usageStats?: UsageStats;
 
   constructor(private readonly usageStatsProvider?: () => UsageStats) {}
@@ -147,6 +148,7 @@ export class DrizzleSQLitePromptRepository implements PromptRepository {
   async search(criteria: PromptSearchCriteria): Promise<Prompt[]> {
     try {
       const conditions: (SQL<unknown> | undefined)[] = [];
+      let useFallbackSearch = false;
 
       // Filter by category
       if (criteria.category) {
@@ -166,20 +168,31 @@ export class DrizzleSQLitePromptRepository implements PromptRepository {
         conditions.push(like(prompts.author, `%${criteria.author}%`));
       }
 
-      // Text search - check if FTS is available, otherwise use LIKE
+      // Text search - try FTS first, then fallback to LIKE
       if (criteria.query) {
         const searchQuery = `%${criteria.query}%`;
         
-        // Try FTS first, fall back to LIKE searches
+        // Try FTS search first
         try {
-          conditions.push(
-            sql`prompts.id IN (
-              SELECT id FROM prompts_fts 
-              WHERE prompts_fts MATCH ${criteria.query}
-            )`
-          );
+          // Check if FTS table exists and has data
+          const ftsExists = await this.checkFTSExists();
+          if (ftsExists) {
+            // Use FTS search
+            const ftsResults = await this.performFTSSearch(criteria.query, criteria.category);
+            if (ftsResults.length > 0) {
+              return ftsResults;
+            } else {
+              useFallbackSearch = true;
+            }
+          } else {
+            useFallbackSearch = true;
+          }
         } catch (ftsError) {
-          // Fallback to LIKE searches
+          useFallbackSearch = true;
+        }
+        
+        // If FTS failed or returned no results, use LIKE search
+        if (useFallbackSearch) {
           conditions.push(
             or(
               like(prompts.name, searchQuery),
@@ -191,46 +204,116 @@ export class DrizzleSQLitePromptRepository implements PromptRepository {
         }
       }
 
-      // Build the query
-      let query = this.db.select().from(prompts);
-      
-      // Apply conditions
-      if (conditions.length > 0) {
-        const validConditions = conditions.filter((c): c is SQL<unknown> => c !== undefined);
-        if (validConditions.length > 0) {
-          query = query.where(and(...validConditions)) as typeof query;
-        }
-      }
-
-      // Order by updated date (newest first)
-      query = query.orderBy(desc(prompts.updatedAt)) as typeof query;
-
-      // Apply limit
-      if (criteria.limit && criteria.limit > 0) {
-        query = query.limit(criteria.limit) as typeof query;
-      }
-
-      const rows = await query;
-      const results = rows.map(row => this.mapDbRowToPrompt(row as SQLitePromptRow));
-
-      // Apply usage-based sorting if needed
-      if (this.usageStatsProvider && !criteria.query) {
-        results.sort((a, b) => {
-          const usageScoreA = this.getUsageScore(a.id);
-          const usageScoreB = this.getUsageScore(b.id);
-          
-          if (usageScoreB !== usageScoreA) {
-            return usageScoreB - usageScoreA;
+      // Build the query (only if we're not using FTS or if FTS failed)
+      if (!criteria.query || useFallbackSearch) {
+        let query = this.db.select().from(prompts);
+        
+        // Apply conditions
+        if (conditions.length > 0) {
+          const validConditions = conditions.filter((c): c is SQL<unknown> => c !== undefined);
+          if (validConditions.length > 0) {
+            query = query.where(and(...validConditions)) as typeof query;
           }
-          return b.updatedAt.getTime() - a.updatedAt.getTime();
-        });
+        }
+
+        // Order by updated date (newest first)
+        query = query.orderBy(desc(prompts.updatedAt)) as typeof query;
+
+        // Apply limit
+        if (criteria.limit && criteria.limit > 0) {
+          query = query.limit(criteria.limit) as typeof query;
+        }
+
+        const rows = await query;
+        const results = rows.map(row => this.mapDbRowToPrompt(row as SQLitePromptRow));
+
+        // Apply usage-based sorting if needed
+        if (this.usageStatsProvider && !criteria.query) {
+          results.sort((a, b) => {
+            const usageScoreA = this.getUsageScore(a.id);
+            const usageScoreB = this.getUsageScore(b.id);
+            
+            if (usageScoreB !== usageScoreA) {
+              return usageScoreB - usageScoreA;
+            }
+            return b.updatedAt.getTime() - a.updatedAt.getTime();
+          });
+        }
+
+        return results;
       }
 
-      return results;
+      return [];
     } catch (error) {
       console.error('Failed to search prompts:', error);
       throw new Error('Failed to search prompts');
     }
+  }
+  
+  private async checkFTSExists(): Promise<boolean> {
+    try {
+      // Use raw db.prepare for better control
+      const result = this.rawDb.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='prompts_fts'").get();
+      return result !== undefined;
+    } catch (error) {
+      console.error('Error checking FTS table existence:', error);
+      return false;
+    }
+  }
+  
+  private async performFTSSearch(query: string, category?: string): Promise<Prompt[]> {
+    try {
+      // Use raw db.prepare for FTS search
+      let stmt;
+      
+      if (category) {
+        stmt = this.rawDb.prepare(`
+          SELECT p.* FROM prompts p
+          JOIN prompts_fts fts ON p.rowid = fts.rowid
+          WHERE prompts_fts MATCH ? AND p.category = ?
+          ORDER BY p.updated_at DESC
+        `);
+        
+        // Execute with parameters
+        const rows = stmt.all(query, category) as any[];
+        return this.mapResultsToPrompts(rows);
+      } else {
+        stmt = this.rawDb.prepare(`
+          SELECT p.* FROM prompts p
+          JOIN prompts_fts fts ON p.rowid = fts.rowid
+          WHERE prompts_fts MATCH ?
+          ORDER BY p.updated_at DESC
+        `);
+        
+        // Execute with parameter
+        const rows = stmt.all(query) as any[];
+        return this.mapResultsToPrompts(rows);
+      }
+    } catch (error) {
+      console.error('FTS search error:', error);
+      throw error;
+    }
+  }
+  
+  private mapResultsToPrompts(rows: any[]): Prompt[] {
+    return rows.map(row => {
+      // Convert snake_case to camelCase
+      const mappedRow = {
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        content: row.content,
+        category: row.category,
+        tags: row.tags,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        version: row.version,
+        author: row.author,
+        variables: row.variables,
+        isFavorite: row.is_favorite
+      };
+      return this.mapDbRowToPrompt(mappedRow as unknown as SQLitePromptRow);
+    });
   }
 
   async save(prompt: Prompt): Promise<void> {

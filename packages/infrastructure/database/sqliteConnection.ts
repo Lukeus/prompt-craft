@@ -128,9 +128,35 @@ export class SQLiteConnection {
       if (!hasFavoriteColumn) {
         this.database.exec("ALTER TABLE prompts ADD COLUMN is_favorite INTEGER NOT NULL DEFAULT 0;");
       }
+      
+      // Populate FTS table with existing data if it's empty
+      this.populateFTSTable();
     } catch (error) {
       console.error('Error initializing SQLite tables:', error);
       throw error;
+    }
+  }
+  
+  private populateFTSTable(): void {
+    try {
+      // Check if FTS table is empty
+      const ftsCount = this.database.prepare('SELECT COUNT(*) as count FROM prompts_fts').get() as { count: number };
+      const promptsCount = this.database.prepare('SELECT COUNT(*) as count FROM prompts').get() as { count: number };
+      
+      if (ftsCount.count === 0 && promptsCount.count > 0) {
+        console.log('Populating FTS table with existing prompts...');
+        
+        // Populate FTS table with existing data
+        this.database.exec(`
+          INSERT INTO prompts_fts(rowid, id, name, description, content, category, tags)
+          SELECT rowid, id, name, description, content, category, tags FROM prompts;
+        `);
+        
+        console.log(`Populated FTS table with ${promptsCount.count} prompts`);
+      }
+    } catch (error) {
+      console.error('Error populating FTS table:', error);
+      // Don't throw here, as FTS is not critical for basic functionality
     }
   }
   
